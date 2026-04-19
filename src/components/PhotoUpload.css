@@ -1,0 +1,30 @@
+
+.photo-upload {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.upload-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 1px dashed #1e3a5f;
+  color: #6b8cae;
+  padding: 0.6rem 1.25rem;
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.2s;
+}
+
+.upload-btn:hover { border-color: #c9a84c; color: #c9a84c; }
+.upload-btn.uploading { border-color: #c9a84c; color: #c9a84c; cursor: wait; }
+
+.upload-error {
+  font-size: 0.78rem;
+  color: #ef4444;
+}

@@ -1,0 +1,250 @@
+
+.fleet-page {
+  padding-bottom: 4rem;
+}
+
+.fleet-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid #1e3a5f;
+}
+
+.fleet-header h1 {
+  font-size: 2rem;
+  color: #c9a84c;
+  letter-spacing: 0.03em;
+  margin-bottom: 0.25rem;
+}
+
+.fleet-subtitle {
+  font-size: 0.82rem;
+  color: #6b8cae;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.btn-register {
+  background: #c9a84c;
+  color: #0a0f1e;
+  padding: 0.65rem 1.5rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  text-decoration: none;
+  transition: background 0.2s;
+  white-space: nowrap;
+}
+
+.btn-register:hover { background: #e0bc5e; }
+
+.fleet-filters {
+  margin-bottom: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.search-input {
+  background: #0d1629;
+  border: 1px solid #1e3a5f;
+  color: #e8e4d8;
+  padding: 0.85rem 1.25rem;
+  font-size: 0.9rem;
+  font-family: inherit;
+  outline: none;
+  width: 100%;
+  transition: border-color 0.2s;
+}
+
+.search-input:focus { border-color: #c9a84c; }
+
+.filter-row {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.filter-select {
+  background: #0d1629;
+  border: 1px solid #1e3a5f;
+  color: #6b8cae;
+  padding: 0.6rem 1rem;
+  font-size: 0.82rem;
+  font-family: inherit;
+  outline: none;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+
+.filter-select:focus { border-color: #c9a84c; }
+
+.flag-input {
+  width: 100px;
+  text-transform: uppercase;
+}
+
+.btn-clear {
+  background: transparent;
+  border: 1px solid #1e3a5f;
+  color: #6b8cae;
+  padding: 0.6rem 1rem;
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.2s;
+}
+
+.btn-clear:hover { border-color: #c9a84c; color: #c9a84c; }
+
+.fleet-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.25rem;
+}
+
+.fleet-loading {
+  display: flex;
+  justify-content: center;
+  padding: 4rem;
+}
+
+.fleet-empty {
+  text-align: center;
+  padding: 4rem;
+  color: #6b8cae;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.yacht-card {
+  background: #0d1629;
+  border: 1px solid #1e3a5f;
+  text-decoration: none;
+  display: flex;
+  flex-direction: column;
+  transition: border-color 0.2s, transform 0.2s;
+  cursor: pointer;
+}
+
+.yacht-card:hover {
+  border-color: #c9a84c;
+  transform: translateY(-2px);
+}
+
+.yacht-card-top {
+  position: relative;
+  height: 140px;
+  background: linear-gradient(135deg, #0d1629 0%, #1e3a5f 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.yacht-photo-placeholder {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: #1e3a5f;
+  border: 2px solid #c9a84c;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.8rem;
+  color: #c9a84c;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.yacht-status-dot {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.yacht-card-body {
+  padding: 1.25rem;
+  flex: 1;
+}
+
+.yacht-name-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 0.25rem;
+}
+
+.yacht-name {
+  font-size: 1.15rem;
+  color: #e8e4d8;
+  letter-spacing: 0.03em;
+}
+
+.yacht-flag {
+  font-size: 0.72rem;
+  letter-spacing: 0.15em;
+  color: #c9a84c;
+  text-transform: uppercase;
+}
+
+.yacht-model {
+  font-size: 0.82rem;
+  color: #6b8cae;
+  margin-bottom: 0.75rem;
+  letter-spacing: 0.05em;
+}
+
+.yacht-meta {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.yacht-meta span {
+  font-size: 0.75rem;
+  color: #3d5a78;
+  letter-spacing: 0.08em;
+}
+
+.yacht-notes-preview {
+  font-size: 0.78rem;
+  color: #3d5a78;
+  line-height: 1.5;
+  margin-top: 0.5rem;
+  font-style: italic;
+}
+
+.yacht-card-footer {
+  padding: 0.85rem 1.25rem;
+  border-top: 1px solid #1e3a5f;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.yacht-status-label {
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.yacht-view {
+  font-size: 0.75rem;
+  color: #3d5a78;
+  letter-spacing: 0.08em;
+  transition: color 0.2s;
+}
+
+.yacht-card:hover .yacht-view { color: #c9a84c; }
