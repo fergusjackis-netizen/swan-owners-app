@@ -12,9 +12,9 @@ export default function Login() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
-  const [resetSent, setResetSent] = useState(false)
   const [showReset, setShowReset] = useState(false)
   const [resetEmail, setResetEmail] = useState('')
+  const [resetSent, setResetSent] = useState(false)
   const [resetLoading, setResetLoading] = useState(false)
 
   function update(field, value) {
@@ -30,11 +30,7 @@ export default function Login() {
       await loginWithEmail(form.email, form.password)
       navigate('/')
     } catch (err) {
-      if (err.code === 'auth/invalid-credential' || err.code === 'auth/wrong-password') {
-        setError('Incorrect email or password.')
-      } else {
-        setError('Sign in failed. Please try again.')
-      }
+      setError('Incorrect email or password.')
       setLoading(false)
     }
   }
@@ -45,6 +41,7 @@ export default function Login() {
     try {
       await sendPasswordResetEmail(auth, resetEmail)
       setResetSent(true)
+      setError('')
     } catch (err) {
       setError('Could not send reset email. Please check the address.')
     }
@@ -55,8 +52,8 @@ export default function Login() {
     <div className="auth-page">
       <div className="auth-card">
         <div className="auth-header">
-          <h1>Welcome back</h1>
-          <p>Sign in to access the Swan Owners community.</p>
+          <h1>{showReset ? 'Reset Password' : 'Welcome back'}</h1>
+          <p>{showReset ? 'Enter your email and we will send you a reset link.' : 'Sign in to access the Swan Owners community.'}</p>
         </div>
 
         {!showReset ? (
@@ -64,7 +61,8 @@ export default function Login() {
             <form className="auth-form" onSubmit={handleSubmit}>
               <div className="form-group">
                 <label>Email Address</label>
-                <input type="email" value={form.email} onChange={e => update('email', e.target.value)}
+                <input type="email" value={form.email}
+                  onChange={e => update('email', e.target.value)}
                   placeholder="your@email.com" autoComplete="email" />
               </div>
               <div className="form-group">
@@ -88,21 +86,21 @@ export default function Login() {
                 {loading ? 'Signing in...' : 'Sign In'}
               </button>
             </form>
-            <button className="btn-forgot" onClick={() => { setShowReset(true); setResetEmail(form.email); setError('') }}>
+            <button className="btn-forgot"
+              onClick={() => { setShowReset(true); setResetEmail(form.email); setError('') }}>
               Forgot your password?
             </button>
           </>
         ) : (
           <div className="reset-form">
-            <h2>Reset Password</h2>
             {resetSent ? (
-              <p className="reset-sent">Password reset email sent to {resetEmail}. Check your inbox and junk folder.</p>
+              <p className="reset-sent">Reset email sent to {resetEmail}. Check your inbox and junk folder.</p>
             ) : (
               <>
-                <p>Enter your email address and we will send you a reset link.</p>
-                <div className="form-group" style={{ marginTop: '1rem' }}>
+                <div className="form-group">
                   <label>Email Address</label>
-                  <input type="email" value={resetEmail} onChange={e => setResetEmail(e.target.value)}
+                  <input type="email" value={resetEmail}
+                    onChange={e => setResetEmail(e.target.value)}
                     placeholder="your@email.com" />
                 </div>
                 {error && <p className="auth-error">{error}</p>}

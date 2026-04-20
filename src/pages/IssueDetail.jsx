@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { db } from '../firebase'
-import { doc, getDoc, collection, getDocs, orderBy, query, updateDoc, serverTimestamp } from 'firebase/firestore'
-import { postIssueReply, upvoteIssue, markIssueResolved, deleteIssue } from '../services/firestore'
+import { doc, getDoc, collection, getDocs, orderBy, query, serverTimestamp, addDoc } from 'firebase/firestore'
+import { markIssueResolved, deleteIssue } from '../services/firestore'
 import { useAuth } from '../hooks/useAuth'
-import { SYSTEM_TAGS } from '../data/swanModels'
+import { SYSTEM_TAGS, containsBadLanguage } from '../data/swanModels'
 import PhotoUpload from '../components/PhotoUpload'
 import PhotoGallery from '../components/PhotoGallery'
 import './Issues.css'
@@ -13,21 +13,18 @@ import './IssueDetail.css'
 export default function IssueDetail() {
   const { issueId } = useParams()
   const { user, isAdmin } = useAuth()
+  const navigate = useNavigate()
   const [issue, setIssue] = useState(null)
   const [replies, setReplies] = useState([])
   const [loading, setLoading] = useState(true)
   const [replyText, setReplyText] = useState('')
   const [replyPhotos, setReplyPhotos] = useState([])
   const [posting, setPosting] = useState(false)
-  const [voted, setVoted] = useState(false)
 
   useEffect(() => {
     async function load() {
       const snap = await getDoc(doc(db, 'issues', issueId))
-      if (snap.exists()) {
-        setIssue({ id: snap.id, ...snap.data() })
-        setVoted(snap.data().upvotedBy?.includes(user?.uid))
-      }
+      if (snap.exists()) setIssue({ id: snap.id, ...snap.data() })
       const repliesSnap = await getDocs(
         query(collection(db, 'issues', issueId, 'replies'), orderBy('createdAt', 'asc'))
       )
@@ -35,54 +32,35 @@ export default function IssueDetail() {
       setLoading(false)
     }
     load()
-  }, [issueId, user?.uid])
-
-  async function handleVote() {
-    if (!user) return
-    await upvoteIssue(issueId, user.uid)
-    setIssue(prev => ({ ...prev, upvotes: voted ? (prev.upvotes - 1) : (prev.upvotes + 1) }))
-    setVoted(v => !v)
-  }
+  }, [issueId])
 
   async function handleReply() {
     if (!replyText.trim() && !replyPhotos.length) return
     if (!user) return
     setPosting(true)
-    const { addDoc } = await import('firebase/firestore')
-    const { containsBadLanguage } = await import('../data/swanModels')
     const flagged = containsBadLanguage(replyText)
-    const replyRef = await addDoc(
-      collection(db, 'issues', issueId, 'replies'),
-      {
-        text: replyText,
-        photos: replyPhotos,
-        authorUid: user.uid,
-        flagged,
-        createdAt: serverTimestamp(),
-      }
-    )
+    const replyRef = await addDoc(collection(db, 'issues', issueId, 'replies'), {
+      text: replyText, photos: replyPhotos, authorUid: user.uid, flagged,
+      createdAt: serverTimestamp(),
+    })
     setReplies(prev => [...prev, {
-      id: replyRef.id,
-      text: replyText,
-      photos: replyPhotos,
-      authorUid: user.uid,
-      flagged,
-      createdAt: { toMillis: () => Date.now() }
+      id: replyRef.id, text: replyText, photos: replyPhotos,
+      authorUid: user.uid, flagged, createdAt: { toMillis: () => Date.now() }
     }])
     setReplyText('')
     setReplyPhotos([])
     setPosting(false)
   }
 
+  async function handleResolve() {
+    await markIssueResolved(issueId, user.uid)
+    setIssue(prev => ({ ...prev, resolved: true }))
+  }
+
   async function handleDelete() {
     if (!window.confirm('Delete this issue? This cannot be undone.')) return
     await deleteIssue(issueId)
     navigate('/issues')
-  }
-
-  async function handleResolve() {
-    await markIssueResolved(issueId, user.uid)
-    setIssue(prev => ({ ...prev, resolved: true }))
   }
 
   function getSystemLabel(id) {
@@ -105,18 +83,13 @@ export default function IssueDetail() {
     </div>
   )
 
+  const canModify = user && (issue.authorUid === user.uid || isAdmin)
+
   return (
     <div className="issue-detail-page">
       <Link to="/issues" className="back-link">Back to Issues</Link>
-
       <div className="issue-detail-card">
         <div className="issue-detail-header">
-          <div className="issue-detail-votes">
-            <button className={"vote-btn" + (voted ? " voted" : "")} onClick={handleVote} disabled={!user}>
-              <span className="vote-count">{issue.upvotes || 0}</span>
-              <span className="vote-label">{voted ? "voted" : "vote"}</span>
-            </button>
-          </div>
           <div className="issue-detail-main">
             <div className="issue-tags">
               {issue.swanModel && <span className="tag tag-model">{issue.swanModel}</span>}
@@ -134,7 +107,6 @@ export default function IssueDetail() {
             <p>{issue.description}</p>
             <PhotoGallery photos={issue.photos || []} />
           </section>
-
           {(issue.fix || (issue.fixPhotos && issue.fixPhotos.length > 0)) && (
             <section className="issue-section fix-section">
               <h2>Fix</h2>
@@ -144,23 +116,19 @@ export default function IssueDetail() {
           )}
         </div>
 
-        {user && (issue.authorUid === user.uid || isAdmin) && (
+        {canModify && (
           <div className="issue-actions">
             {!issue.resolved && (
               <button className="btn-resolve" onClick={handleResolve}>Mark as Resolved</button>
             )}
-            <button className="btn-delete" onClick={handleDelete}>Delete Issue</button>
+            <button className="btn-delete-issue" onClick={handleDelete}>Delete Issue</button>
           </div>
         )}
       </div>
 
       <div className="replies-section">
         <h2>Discussion ({replies.length})</h2>
-
-        {replies.length === 0 && (
-          <p className="no-replies">No replies yet. Be the first to contribute.</p>
-        )}
-
+        {replies.length === 0 && <p className="no-replies">No replies yet. Be the first to contribute.</p>}
         {replies.map(r => (
           <div key={r.id} className={"reply-card" + (r.flagged ? " flagged" : "")}>
             <p className="reply-text">{r.text}</p>
@@ -168,16 +136,10 @@ export default function IssueDetail() {
             <span className="reply-time">{timeAgo(r.createdAt)}</span>
           </div>
         ))}
-
         {user ? (
           <div className="reply-form">
-            <textarea
-              value={replyText}
-              onChange={e => setReplyText(e.target.value)}
-              rows={3}
-              placeholder="Add to the discussion..."
-              className="reply-input"
-            />
+            <textarea value={replyText} onChange={e => setReplyText(e.target.value)}
+              rows={3} placeholder="Add to the discussion..." className="reply-input" />
             <div className="reply-form-footer">
               <PhotoUpload
                 storagePath={"issues/" + issueId + "/replies"}
@@ -185,28 +147,20 @@ export default function IssueDetail() {
                 existingPhotos={replyPhotos}
                 onUploaded={newPhotos => setReplyPhotos(prev => [...prev, ...newPhotos])}
               />
-              <button
-                className="btn-post"
-                onClick={handleReply}
-                disabled={posting || (!replyText.trim() && !replyPhotos.length)}
-              >
+              <button className="btn-post" onClick={handleReply}
+                disabled={posting || (!replyText.trim() && !replyPhotos.length)}>
                 {posting ? 'Posting...' : 'Post Reply'}
               </button>
             </div>
             {replyPhotos.length > 0 && (
-              <PhotoGallery
-                photos={replyPhotos}
-                onCaptionChange={(idx, caption) => {
-                  setReplyPhotos(prev => prev.map((p, i) => i === idx ? { ...p, caption } : p))
-                }}
+              <PhotoGallery photos={replyPhotos}
+                onCaptionChange={(idx, caption) => setReplyPhotos(prev => prev.map((p, i) => i === idx ? { ...p, caption } : p))}
                 onRemove={idx => setReplyPhotos(prev => prev.filter((_, i) => i !== idx))}
               />
             )}
           </div>
         ) : (
-          <p className="issues-notice">
-            <Link to="/login">Sign in</Link> to join the discussion.
-          </p>
+          <p className="issues-notice"><Link to="/login">Sign in</Link> to join the discussion.</p>
         )}
       </div>
     </div>
