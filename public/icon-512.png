@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Background -->
+  <rect width="512" height="512" fill="#0a0f1e" rx="80"/>
+  
+  <!-- Decorative border -->
+  <rect x="24" y="24" width="464" height="464" fill="none" stroke="#1e3a5f" stroke-width="2" rx="60"/>
+  
+  <!-- SWAN text -->
+  <text x="256" y="220" font-family="Georgia, serif" font-size="120" font-weight="700" 
+    fill="#c9a84c" text-anchor="middle" letter-spacing="8">SWAN</text>
+  
+  <!-- Divider line -->
+  <line x1="80" y1="255" x2="432" y2="255" stroke="#c9a84c" stroke-width="1.5" opacity="0.5"/>
+  
+  <!-- OWNERS text -->
+  <text x="256" y="320" font-family="Georgia, serif" font-size="48" 
+    fill="#6b8cae" text-anchor="middle" letter-spacing="18">OWNERS</text>
+
+  <!-- Small wave decoration -->
+  <path d="M 100 380 Q 130 360 160 380 Q 190 400 220 380 Q 250 360 280 380 Q 310 400 340 380 Q 370 360 400 380" 
+    fill="none" stroke="#1e3a5f" stroke-width="2"/>
+</svg>
