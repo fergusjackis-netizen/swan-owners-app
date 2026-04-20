@@ -1,3 +1,3 @@
 export default function Messages() {
-  return <div className="page"><h1>Messages</h1></div>
+  return <div className="page"><h1>Messages</h1><p>Coming soon.</p></div>
 }
