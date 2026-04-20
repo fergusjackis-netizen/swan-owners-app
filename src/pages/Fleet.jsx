@@ -1,16 +1,19 @@
 import { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { getFleet } from '../services/firestore'
+import { useAuth } from '../hooks/useAuth'
 import { SWAN_MODELS, SWAN_CATEGORIES, YACHT_STATUS } from '../data/swanModels'
 import './Fleet.css'
 
 export default function Fleet() {
+  const { user } = useAuth()
   const [yachts, setYachts] = useState([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [filterModel, setFilterModel] = useState('')
   const [filterCategory, setFilterCategory] = useState('all')
   const [filterFlag, setFilterFlag] = useState('')
+  const navigate = useNavigate()
 
   useEffect(() => {
     getFleet().then(data => {
@@ -46,6 +49,14 @@ export default function Fleet() {
 
   const hasFilters = search || filterModel || filterFlag || filterCategory !== 'all'
 
+  function handleCardClick(yachtId) {
+    if (!user) {
+      navigate('/register')
+    } else {
+      navigate('/fleet/' + yachtId)
+    }
+  }
+
   return (
     <div className="fleet-page">
       <div className="fleet-header">
@@ -55,8 +66,15 @@ export default function Fleet() {
             {loading ? 'Loading...' : yachts.length + ' yacht' + (yachts.length !== 1 ? 's' : '') + ' registered'}
           </p>
         </div>
-        <Link to="/my-yacht" className="btn-register">Register Your Swan</Link>
+        {user && <Link to="/my-yacht" className="btn-register">Register Your Swan</Link>}
       </div>
+
+      {!user && (
+        <div className="fleet-guest-notice">
+          <p>Join Swan Owners to see full yacht profiles, contact details, status and issues.</p>
+          <Link to="/register" className="btn-register">Apply for membership</Link>
+        </div>
+      )}
 
       <div className="fleet-filters">
         <input
@@ -66,19 +84,22 @@ export default function Fleet() {
           value={search}
           onChange={e => setSearch(e.target.value)}
         />
-        <div className="filter-row">
-          <select className="filter-select" value={filterCategory} onChange={e => { setFilterCategory(e.target.value); setFilterModel('') }}>
-            {SWAN_CATEGORIES.map(c => <option key={c.id} value={c.id}>{c.label}</option>)}
-          </select>
-          <select className="filter-select" value={filterModel} onChange={e => setFilterModel(e.target.value)}>
-            <option value="">All Models</option>
-            {SWAN_MODELS.filter(m => filterCategory === 'all' || m.category === filterCategory).map(m => (
-              <option key={m.id} value={m.name}>{m.name}</option>
-            ))}
-          </select>
-          <input className="filter-select flag-input" type="text" placeholder="Flag e.g. GBR" value={filterFlag} onChange={e => setFilterFlag(e.target.value)} maxLength={3} />
-          {hasFilters && <button className="btn-clear" onClick={clearFilters}>Clear filters</button>}
-        </div>
+        {user && (
+          <div className="filter-row">
+            <select className="filter-select" value={filterCategory}
+              onChange={e => { setFilterCategory(e.target.value); setFilterModel('') }}>
+              {SWAN_CATEGORIES.map(c => <option key={c.id} value={c.id}>{c.label}</option>)}
+            </select>
+            <select className="filter-select" value={filterModel} onChange={e => setFilterModel(e.target.value)}>
+              <option value="">All Models</option>
+              {SWAN_MODELS.filter(m => filterCategory === 'all' || m.category === filterCategory)
+                .map(m => <option key={m.id} value={m.name}>{m.name}</option>)}
+            </select>
+            <input className="filter-select flag-input" type="text" placeholder="Flag e.g. GBR"
+              value={filterFlag} onChange={e => setFilterFlag(e.target.value)} maxLength={3} />
+            {hasFilters && <button className="btn-clear" onClick={clearFilters}>Clear</button>}
+          </div>
+        )}
       </div>
 
       {loading ? (
@@ -94,12 +115,16 @@ export default function Fleet() {
             const status = getStatusInfo(yacht.currentStatus)
             const modelData = SWAN_MODELS.find(m => m.name === yacht.model)
             return (
-              <Link key={yacht.id} to={'/fleet/' + yacht.id} className="yacht-card">
+              <div key={yacht.id} className={"yacht-card" + (!user ? " yacht-card-guest" : "")}
+                onClick={() => handleCardClick(yacht.id)}>
                 <div className="yacht-card-top">
                   <div className="yacht-photo-placeholder">
                     <span>{yacht.name?.[0] || '?'}</span>
                   </div>
-                  <div className="yacht-status-dot" style={{ background: status.color }} title={status.label} />
+                  {user && (
+                    <div className="yacht-status-dot"
+                      style={{ background: status.color }} title={status.label} />
+                  )}
                 </div>
                 <div className="yacht-card-body">
                   <div className="yacht-name-row">
@@ -108,21 +133,30 @@ export default function Fleet() {
                   </div>
                   <p className="yacht-model">{yacht.model || 'Unknown model'}</p>
                   <div className="yacht-meta">
-                    {yacht.year && <span>{yacht.year}</span>}
                     {yacht.homeMarina?.country && <span>{yacht.homeMarina.country}</span>}
-                    {modelData && <span>{modelData.loa}m</span>}
+                    {user && modelData && <span>{modelData.loa}m</span>}
+                    {user && yacht.year && <span>{yacht.year}</span>}
                   </div>
-                  {yacht.notes && (
+                  {user && yacht.notes && (
                     <p className="yacht-notes-preview">
                       {yacht.notes.length > 80 ? yacht.notes.substring(0, 80) + '...' : yacht.notes}
                     </p>
                   )}
+                  {!user && (
+                    <p className="yacht-join-prompt">Join to see full details</p>
+                  )}
                 </div>
                 <div className="yacht-card-footer">
-                  <span className="yacht-status-label" style={{ color: status.color }}>{status.label}</span>
-                  <span className="yacht-view">View ???</span>
+                  {user ? (
+                    <>
+                      <span className="yacht-status-label" style={{ color: status.color }}>{status.label}</span>
+                      <span className="yacht-view">View</span>
+                    </>
+                  ) : (
+                    <span className="yacht-join-cta">Members only</span>
+                  )}
                 </div>
-              </Link>
+              </div>
             )
           })}
         </div>
