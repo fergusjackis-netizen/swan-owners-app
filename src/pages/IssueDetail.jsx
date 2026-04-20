@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react'
-import { useParams, Link } from 'react-router-dom'
+import { useParams, Link, useNavigate } from 'react-router-dom'
 import { db } from '../firebase'
 import { doc, getDoc, collection, getDocs, orderBy, query, updateDoc, serverTimestamp } from 'firebase/firestore'
-import { postIssueReply, upvoteIssue, markIssueResolved } from '../services/firestore'
+import { postIssueReply, upvoteIssue, markIssueResolved, deleteIssue } from '../services/firestore'
 import { useAuth } from '../hooks/useAuth'
 import { SYSTEM_TAGS } from '../data/swanModels'
 import PhotoUpload from '../components/PhotoUpload'
@@ -74,6 +74,12 @@ export default function IssueDetail() {
     setPosting(false)
   }
 
+  async function handleDelete() {
+    if (!window.confirm('Delete this issue? This cannot be undone.')) return
+    await deleteIssue(issueId)
+    navigate('/issues')
+  }
+
   async function handleResolve() {
     await markIssueResolved(issueId, user.uid)
     setIssue(prev => ({ ...prev, resolved: true }))
@@ -138,9 +144,12 @@ export default function IssueDetail() {
           )}
         </div>
 
-        {user && !issue.resolved && (issue.authorUid === user.uid || isAdmin) && (
+        {user && (issue.authorUid === user.uid || isAdmin) && (
           <div className="issue-actions">
-            <button className="btn-resolve" onClick={handleResolve}>Mark as Resolved</button>
+            {!issue.resolved && (
+              <button className="btn-resolve" onClick={handleResolve}>Mark as Resolved</button>
+            )}
+            <button className="btn-delete" onClick={handleDelete}>Delete Issue</button>
           </div>
         )}
       </div>

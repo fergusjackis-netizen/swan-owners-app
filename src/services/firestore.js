@@ -238,3 +238,7 @@ export async function approveModel(proposalId, modelData) {
   })
   await updateDoc(doc(db, 'modelProposals', proposalId), { status: 'approved' })
 }
+
+export async function deleteIssue(issueId) {
+  await deleteDoc(doc(db, 'issues', issueId))
+}

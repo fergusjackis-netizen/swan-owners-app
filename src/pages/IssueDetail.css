@@ -202,3 +202,18 @@
 }
 
 .tag-photos { background: #1a1a2e; color: #8888cc; }
+
+.btn-delete {
+  background: transparent;
+  border: 1px solid #ef4444;
+  color: #ef4444;
+  padding: 0.5rem 1.25rem;
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.2s;
+  margin-left: 0.75rem;
+}
+.btn-delete:hover { background: rgba(239,68,68,0.1); }
