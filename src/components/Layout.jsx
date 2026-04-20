@@ -9,7 +9,6 @@ export default function Layout() {
   const navigate = useNavigate()
   const [menuOpen, setMenuOpen] = useState(false)
 
-  // Primary nav  -  always visible
   const primaryNav = [
     { path: '/fleet', label: 'Fleet' },
     { path: '/issues', label: 'Issues & Fixes' },
@@ -20,7 +19,6 @@ export default function Layout() {
     ] : []),
   ]
 
-  // Secondary nav  -  in dropdown when logged in
   const secondaryNav = user ? [
     { path: '/contacts', label: 'Contacts' },
     { path: '/messages', label: 'Messages' },
@@ -28,68 +26,70 @@ export default function Layout() {
     ...(isAdmin ? [{ path: '/admin', label: 'Admin Panel' }] : []),
   ] : []
 
+  const allNav = [...primaryNav, ...secondaryNav]
   const firstName = userProfile?.name?.split(' ')[0] || user?.email?.split('@')[0] || ''
+
+  function closeMenu() { setMenuOpen(false) }
 
   return (
     <div className="layout">
       <header className="header">
-        <Link to="/" className="logo">
+        <Link to="/" className="logo" onClick={closeMenu}>
           <span className="logo-swan">SWAN</span>
           <span className="logo-owners">OWNERS</span>
         </Link>
 
-        <nav className="nav">
-          {primaryNav.map(item => (
-            <Link
-              key={item.path}
-              to={item.path}
-              className={`nav-link ${location.pathname.startsWith(item.path) ? 'active' : ''}`}
-            >
-              {item.label}
-            </Link>
-          ))}
-        </nav>
-
         <div className="header-actions">
-          {user ? (
-            <div className="user-dropdown">
-              <button
-                className="user-trigger"
-                onClick={() => setMenuOpen(o => !o)}
-              >
-                <span className="user-first-name">{firstName}</span>
-                <span className="dropdown-arrow">{menuOpen ? '▲' : '▼'}</span>
-              </button>
-              {menuOpen && (
-                <div className="dropdown-menu">
-                  {secondaryNav.map(item => (
-                    <Link
-                      key={item.path}
-                      to={item.path}
-                      className="dropdown-item"
-                      onClick={() => setMenuOpen(false)}
-                    >
-                      {item.label}
-                    </Link>
-                  ))}
-                  <div className="dropdown-divider" />
-                  <button
-                    className="dropdown-item dropdown-signout"
-                    onClick={() => { logout(); navigate('/'); setMenuOpen(false) }}
-                  >
-                    Sign out
-                  </button>
-                </div>
-              )}
-            </div>
-          ) : (
-            <div className="auth-buttons">
+          {!user && (
+            <div className="auth-buttons-desktop">
               <Link to="/login" className="btn-ghost">Sign in</Link>
               <Link to="/register" className="btn-primary">Join</Link>
             </div>
           )}
+          {user && (
+            <span className="user-name-desktop">{firstName}</span>
+          )}
+          <button
+            className={"hamburger" + (menuOpen ? " open" : "")}
+            onClick={() => setMenuOpen(o => !o)}
+            aria-label="Menu"
+          >
+            <span /><span /><span />
+          </button>
         </div>
       </header>
+
+      <div className={"mobile-drawer" + (menuOpen ? " open" : "")}>
+        <div className="drawer-header">
+          <Link to="/" className="logo" onClick={closeMenu}>
+            <span className="logo-swan">SWAN</span>
+            <span className="logo-owners">OWNERS</span>
+          </Link>
+          <button className="drawer-close" onClick={closeMenu}>&#x2715;</button>
+        </div>
+        <nav className="drawer-nav">
+          {allNav.map(item => (
+            <Link key={item.path} to={item.path}
+              className={"drawer-link" + (location.pathname.startsWith(item.path) ? " active" : "")}
+              onClick={closeMenu}>
+              {item.label}
+            </Link>
+          ))}
+        </nav>
+        <div className="drawer-footer">
+          {user ? (
+            <>
+              <p className="user-drawer-name">{userProfile?.name || user.email}</p>
+              <button className="btn-ghost" onClick={() => { logout(); navigate('/'); closeMenu() }}>Sign out</button>
+            </>
+          ) : (
+            <>
+              <Link to="/login" className="btn-ghost" onClick={closeMenu}>Sign in</Link>
+              <Link to="/register" className="btn-primary" onClick={closeMenu}>Join the Community</Link>
+            </>
+          )}
+        </div>
+      </div>
 
       <main className="main">
         <Outlet />
@@ -103,13 +103,13 @@ export default function Layout() {
             is used solely to describe the type of vessel owned by members. All trademarks, including
             the Swan name and logo, remain the property of Nautor's Swan Oy. No copyrighted materials,
             technical drawings, brochures or imagery belonging to Nautor's Swan Oy are reproduced on
-            this platform. All photographs are owner-uploaded images of their own vessels. Vessel
-            specification data is sourced from publicly available information only.
+            this platform. All photographs are owner-uploaded images of their own vessels.
+            Vessel specification data is sourced from publicly available information only.
           </p>
           <p className="footer-links-row">
-            <span className="footer-links-label">Official manufacturer's website:</span>
+            <span className="footer-links-label">Official manufacturer website:</span>
             <a href="https://www.nautorswan.com" target="_blank" rel="noopener noreferrer">
-              Nautor's Swan  -  nautorswan.com
+              Nautor's Swan - nautorswan.com
             </a>
           </p>
         </div>
