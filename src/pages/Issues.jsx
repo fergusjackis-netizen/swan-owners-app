@@ -107,10 +107,15 @@ export default function Issues() {
           {filtered.map(issue => (
             <Link key={issue.id} to={'/issues/' + issue.id} className="issue-card">
               <div className="issue-card-left">
-                <div className="issue-votes">
-                  <span className="vote-count">{issue.upvotes || 0}</span>
-                  <span className="vote-label">votes</span>
-                </div>
+                {issue.photos && issue.photos.length > 0 ? (
+                  <div className="issue-thumb-wrap">
+                    <img src={issue.photos[0].url} alt="Issue photo" className="issue-thumb" />
+                  </div>
+                ) : (
+                  <div className="issue-thumb-wrap issue-thumb-empty">
+                    <span className="issue-thumb-icon">!</span>
+                  </div>
+                )}
               </div>
               <div className="issue-card-body">
                 <div className="issue-tags">
