@@ -1,40 +1,44 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../hooks/useAuth'
-import { saveYacht, getYacht, updateLocation, hideLocation } from '../services/firestore'
+import { saveYacht, getYacht } from '../services/firestore'
 import { SWAN_MODELS, YACHT_STATUS } from '../data/swanModels'
 import PhotoUpload from '../components/PhotoUpload'
 import './MyYacht.css'
 
 const APPROACHABILITY = [
-  { id: 'open', label: 'Open to visitors', desc: 'Feel free to come say hi if you see us!' },
+  { id: 'open', label: 'Open to visitors', desc: 'Feel free to come say hi!' },
   { id: 'chat', label: 'Happy to chat', desc: 'Message us, we are friendly' },
   { id: 'private', label: 'Private', desc: 'Please message before approaching' },
 ]
 
+const EMPTY_FORM = {
+  name: '', model: '', hullNumber: '', year: '', flag: '',
+  currentStatus: 'berth', hullColour: '', approachability: 'chat',
+  phone: '', phonePublic: false, whatsapp: '', whatsappPublic: true,
+  skipperName: '', skipperEmail: '', skipperPhone: '', skipperPhonePublic: false,
+  skipperWhatsapp: '', skipperWebsite: '', skipperLanguages: '', skipperNationality: '', skipperUid: '',
+  gardienneName: '', gardienneEmail: '', gardiennePhone: '', gardiennePhonePublic: false,
+  gardienneWhatsapp: '', gardienneWebsite: '', gardienneLocation: '', gardienneLanguages: '', gardienneUid: '',
+  marineName: '', marinaCountry: '', notes: '',
+}
+
 export default function MyYacht() {
   const { user, userProfile } = useAuth()
   const [saving, setSaving] = useState(false)
-  const [photos, setPhotos] = useState([])
   const [saved, setSaved] = useState(false)
-  const [locationSharing, setLocationSharing] = useState(false)
+  const [loaded, setLoaded] = useState(false)
   const [skipperMode, setSkipperMode] = useState('owner')
   const [gardienneMode, setGardienneMode] = useState('none')
-
-  const [form, setForm] = useState({
-    name: '', model: '', hullNumber: '', year: '', flag: '',
-    currentStatus: 'berth', hullColour: '', approachability: 'chat',
-    skipperName: '', skipperEmail: '', skipperPhone: '', skipperWebsite: '',
-    skipperLanguages: '', skipperNationality: '', skipperUid: '',
-    gardienneName: '', gardienneEmail: '', gardiennePhone: '', gardienneWebsite: '',
-    gardienneLocation: '', gardienneLanguages: '', gardienneUid: '',
-    marineName: '', marinaCountry: '', notes: '',
-  })
+  const [photos, setPhotos] = useState([])
+  const [form, setForm] = useState(EMPTY_FORM)
 
   useEffect(() => {
+    if (!user?.uid) return
     getYacht(user.uid).then(data => {
       if (data) {
         setSkipperMode(data.skipperMode || 'owner')
         setGardienneMode(data.gardienneMode || 'none')
+        setPhotos(data.photos || [])
         setForm({
           name: data.name || '',
           model: data.model || '',
@@ -44,9 +48,15 @@ export default function MyYacht() {
           currentStatus: data.currentStatus || 'berth',
           hullColour: data.hullColour || '',
           approachability: data.approachability || 'chat',
+          phone: data.phone || '',
+          phonePublic: data.phonePublic || false,
+          whatsapp: data.whatsapp || '',
+          whatsappPublic: data.whatsappPublic !== false,
           skipperName: data.skipper?.name || '',
           skipperEmail: data.skipper?.email || '',
           skipperPhone: data.skipper?.phone || '',
+          skipperPhonePublic: data.skipper?.phonePublic || false,
+          skipperWhatsapp: data.skipper?.whatsapp || '',
           skipperWebsite: data.skipper?.website || '',
           skipperLanguages: data.skipper?.languages || '',
           skipperNationality: data.skipper?.nationality || '',
@@ -54,6 +64,8 @@ export default function MyYacht() {
           gardienneName: data.gardienne?.name || '',
           gardienneEmail: data.gardienne?.email || '',
           gardiennePhone: data.gardienne?.phone || '',
+          gardiennePhonePublic: data.gardienne?.phonePublic || false,
+          gardienneWhatsapp: data.gardienne?.whatsapp || '',
           gardienneWebsite: data.gardienne?.website || '',
           gardienneLocation: data.gardienne?.location || '',
           gardienneLanguages: data.gardienne?.languages || '',
@@ -62,12 +74,13 @@ export default function MyYacht() {
           marinaCountry: data.homeMarina?.country || '',
           notes: data.notes || '',
         })
-        setPhotos(data.photos || [])
-        setForm({
-        })
       }
+      setLoaded(true)
+    }).catch(e => {
+      console.error('Failed to load yacht:', e)
+      setLoaded(true)
     })
-  }, [user.uid])
+  }, [user?.uid])
 
   function update(field, value) {
     setForm(prev => ({ ...prev, [field]: value }))
@@ -77,91 +90,71 @@ export default function MyYacht() {
   async function handleSave() {
     setSaving(true)
 
-    let skipperData = {}
-    if (skipperMode === 'owner') {
-      skipperData = {
-        mode: 'owner',
-        name: userProfile?.name || '',
-        email: user.email || '',
-      }
-    } else if (skipperMode === 'linked') {
-      skipperData = { mode: 'linked', uid: form.skipperUid || '' }
-    } else {
-      skipperData = {
-        mode: 'manual',
-        name: form.skipperName || '',
-        email: form.skipperEmail || '',
-        phone: form.skipperPhone || '',
-        website: form.skipperWebsite || '',
-        languages: form.skipperLanguages || '',
-        nationality: form.skipperNationality || '',
-      }
+    const skipperData = skipperMode === 'owner'
+      ? { mode: 'owner', name: userProfile?.name || '', email: user?.email || '' }
+      : skipperMode === 'linked'
+      ? { mode: 'linked', uid: form.skipperUid || '' }
+      : {
+          mode: 'manual',
+          name: form.skipperName || '',
+          email: form.skipperEmail || '',
+          phone: form.skipperPhone || '',
+          phonePublic: form.skipperPhonePublic || false,
+          whatsapp: form.skipperWhatsapp || '',
+          website: form.skipperWebsite || '',
+          languages: form.skipperLanguages || '',
+          nationality: form.skipperNationality || '',
+        }
+
+    const gardienneData = gardienneMode === 'none' ? null
+      : gardienneMode === 'linked'
+      ? { mode: 'linked', uid: form.gardienneUid || '' }
+      : {
+          mode: 'manual',
+          name: form.gardienneName || '',
+          email: form.gardienneEmail || '',
+          phone: form.gardiennePhone || '',
+          phonePublic: form.gardiennePhonePublic || false,
+          whatsapp: form.gardienneWhatsapp || '',
+          website: form.gardienneWebsite || '',
+          location: form.gardienneLocation || '',
+          languages: form.gardienneLanguages || '',
+        }
+
+    try {
+      await saveYacht(user.uid, {
+        name: form.name || '',
+        model: form.model || '',
+        hullNumber: form.hullNumber || '',
+        year: parseInt(form.year) || '',
+        flag: (form.flag || '').toUpperCase(),
+        currentStatus: form.currentStatus || 'berth',
+        hullColour: form.hullColour || '',
+        approachability: form.approachability || 'chat',
+        phone: form.phone || '',
+        phonePublic: form.phonePublic || false,
+        whatsapp: form.whatsapp || '',
+        whatsappPublic: form.whatsappPublic !== false,
+        skipperMode,
+        skipper: skipperData,
+        gardienneMode,
+        gardienne: gardienneData,
+        homeMarina: { name: form.marineName || '', country: form.marinaCountry || '' },
+        notes: form.notes || '',
+        ownerName: userProfile?.name || '',
+        ownerEmail: user?.email || '',
+        photos: photos,
+      })
+      setSaved(true)
+      setTimeout(() => setSaved(false), 3000)
+    } catch (e) {
+      console.error('Save failed:', e)
+      alert('Save failed: ' + e.message)
     }
-
-    let gardienneData = null
-    if (gardienneMode === 'linked') {
-      gardienneData = { mode: 'linked', uid: form.gardienneUid || '' }
-    } else if (gardienneMode === 'manual') {
-      gardienneData = {
-        mode: 'manual',
-        name: form.gardienneName || '',
-        email: form.gardienneEmail || '',
-        phone: form.gardiennePhone || '',
-        website: form.gardienneWebsite || '',
-        location: form.gardienneLocation || '',
-        languages: form.gardienneLanguages || '',
-      }
-    }
-
-    await saveYacht(user.uid, {
-      name: form.name || '',
-      model: form.model || '',
-      hullNumber: form.hullNumber || '',
-      year: parseInt(form.year) || '',
-      flag: form.flag?.toUpperCase() || '',
-      currentStatus: form.currentStatus || 'berth',
-      hullColour: form.hullColour || '',
-      approachability: form.approachability || 'chat',
-      skipperMode,
-      skipper: skipperData,
-      gardienneMode,
-      gardienne: gardienneData,
-      homeMarina: {
-        name: form.marineName || '',
-        country: form.marinaCountry || '',
-      },
-      notes: form.notes || '',
-      ownerName: userProfile?.name || '',
-      ownerEmail: user?.email || '',
-      photos: photos,
-    })
-
     setSaving(false)
-    setSaved(true)
-    setTimeout(() => setSaved(false), 3000)
   }
 
-  async function handleLocationToggle() {
-    if (locationSharing) {
-      await hideLocation(user.uid)
-      setLocationSharing(false)
-    } else {
-      if (!navigator.geolocation) return alert('Geolocation not supported.')
-      navigator.geolocation.getCurrentPosition(
-        async (pos) => {
-          await updateLocation(user.uid, {
-            lat: pos.coords.latitude,
-            lng: pos.coords.longitude,
-            boatName: form.name || userProfile?.name || 'Swan',
-            model: form.model || '',
-            approachability: form.approachability || 'chat',
-          })
-          setLocationSharing(true)
-        },
-        () => alert('Could not get location. Please check browser permissions.')
-      )
-    }
-  }
+  if (!loaded) return <div className="loading-screen"><div className="spinner" /></div>
 
   const allModels = SWAN_MODELS.map(m => m.name)
 
@@ -186,16 +179,6 @@ export default function MyYacht() {
               style={form.currentStatus === s.id ? { background: s.color, borderColor: s.color, color: '#0a0f1e' } : {}}
               onClick={() => update('currentStatus', s.id)}>{s.label}</button>
           ))}
-        </div>
-        <div className="location-panel">
-          <div className="location-info">
-            <strong>Share position on Live Map</strong>
-            <p>Only visible to logged-in members. Turn off at any time.</p>
-          </div>
-          <label className="ios-toggle">
-            <input type="checkbox" checked={locationSharing} onChange={handleLocationToggle} />
-            <span className="toggle-slider" />
-          </label>
         </div>
       </section>
 
@@ -227,11 +210,36 @@ export default function MyYacht() {
           <label className="field"><span>Hull Number</span>
             <input value={form.hullNumber} onChange={e => update('hullNumber', e.target.value)} placeholder="e.g. 48-042" /></label>
           <label className="field"><span>Year Built</span>
-            <input type="number" value={form.year} onChange={e => update('year', e.target.value)} placeholder="e.g. 2004" min="1970" max="2030" /></label>
+            <input type="number" value={form.year} onChange={e => update('year', e.target.value)} placeholder="e.g. 2004" /></label>
           <label className="field"><span>Flag (3-letter code)</span>
             <input value={form.flag} onChange={e => update('flag', e.target.value)} placeholder="e.g. GBR" maxLength={3} /></label>
           <label className="field"><span>Hull Colour</span>
-            <input value={form.hullColour} onChange={e => update('hullColour', e.target.value)} placeholder="e.g. Navy blue with gold cove stripe" /></label>
+            <input value={form.hullColour} onChange={e => update('hullColour', e.target.value)} placeholder="e.g. Navy blue" /></label>
+        </div>
+      </section>
+
+      <section className="yacht-section">
+        <h2>Owner Contact</h2>
+        <p className="section-hint">Only visible to logged-in members. You control what is shown.</p>
+        <div className="form-grid">
+          <label className="field"><span>Phone Number</span>
+            <input type="tel" value={form.phone} onChange={e => update('phone', e.target.value)} placeholder="+44 7700 000000" /></label>
+          <div className="field">
+            <span>Show phone to members</span>
+            <label className="ios-toggle" style={{ marginTop: '0.5rem' }}>
+              <input type="checkbox" checked={form.phonePublic} onChange={e => update('phonePublic', e.target.checked)} />
+              <span className="toggle-slider" />
+            </label>
+          </div>
+          <label className="field"><span>WhatsApp (with country code)</span>
+            <input type="tel" value={form.whatsapp} onChange={e => update('whatsapp', e.target.value)} placeholder="+44 7700 000000" /></label>
+          <div className="field">
+            <span>Show WhatsApp to members</span>
+            <label className="ios-toggle" style={{ marginTop: '0.5rem' }}>
+              <input type="checkbox" checked={form.whatsappPublic} onChange={e => update('whatsappPublic', e.target.checked)} />
+              <span className="toggle-slider" />
+            </label>
+          </div>
         </div>
       </section>
 
@@ -243,7 +251,7 @@ export default function MyYacht() {
           ))}
         </div>
         {skipperMode === 'owner' && (
-          <div className="mode-info"><p>Your profile will be shown as the skipper: <strong>{userProfile?.name || user.email}</strong></p></div>
+          <div className="mode-info"><p>Your profile will be shown as the skipper: <strong>{userProfile?.name || user?.email}</strong></p></div>
         )}
         {skipperMode === 'linked' && (
           <div className="form-grid">
@@ -257,8 +265,16 @@ export default function MyYacht() {
             <label className="field"><span>Nationality</span><input value={form.skipperNationality} onChange={e => update('skipperNationality', e.target.value)} /></label>
             <label className="field"><span>Email</span><input type="email" value={form.skipperEmail} onChange={e => update('skipperEmail', e.target.value)} /></label>
             <label className="field"><span>Phone</span><input type="tel" value={form.skipperPhone} onChange={e => update('skipperPhone', e.target.value)} /></label>
+            <div className="field">
+              <span>Show phone to members</span>
+              <label className="ios-toggle" style={{ marginTop: '0.5rem' }}>
+                <input type="checkbox" checked={form.skipperPhonePublic} onChange={e => update('skipperPhonePublic', e.target.checked)} />
+                <span className="toggle-slider" />
+              </label>
+            </div>
+            <label className="field"><span>WhatsApp</span><input type="tel" value={form.skipperWhatsapp} onChange={e => update('skipperWhatsapp', e.target.value)} /></label>
             <label className="field"><span>Website</span><input value={form.skipperWebsite} onChange={e => update('skipperWebsite', e.target.value)} placeholder="https://" /></label>
-            <label className="field"><span>Languages</span><input value={form.skipperLanguages} onChange={e => update('skipperLanguages', e.target.value)} placeholder="e.g. English, French" /></label>
+            <label className="field"><span>Languages</span><input value={form.skipperLanguages} onChange={e => update('skipperLanguages', e.target.value)} /></label>
           </div>
         )}
       </section>
@@ -282,8 +298,16 @@ export default function MyYacht() {
             <label className="field"><span>Based at</span><input value={form.gardienneLocation} onChange={e => update('gardienneLocation', e.target.value)} /></label>
             <label className="field"><span>Email</span><input type="email" value={form.gardienneEmail} onChange={e => update('gardienneEmail', e.target.value)} /></label>
             <label className="field"><span>Phone</span><input type="tel" value={form.gardiennePhone} onChange={e => update('gardiennePhone', e.target.value)} /></label>
+            <div className="field">
+              <span>Show phone to members</span>
+              <label className="ios-toggle" style={{ marginTop: '0.5rem' }}>
+                <input type="checkbox" checked={form.gardiennePhonePublic} onChange={e => update('gardiennePhonePublic', e.target.checked)} />
+                <span className="toggle-slider" />
+              </label>
+            </div>
+            <label className="field"><span>WhatsApp</span><input type="tel" value={form.gardienneWhatsapp} onChange={e => update('gardienneWhatsapp', e.target.value)} /></label>
             <label className="field"><span>Website</span><input value={form.gardienneWebsite} onChange={e => update('gardienneWebsite', e.target.value)} placeholder="https://" /></label>
-            <label className="field"><span>Languages</span><input value={form.gardienneLanguages} onChange={e => update('gardienneLanguages', e.target.value)} placeholder="e.g. French, English" /></label>
+            <label className="field"><span>Languages</span><input value={form.gardienneLanguages} onChange={e => update('gardienneLanguages', e.target.value)} /></label>
           </div>
         )}
       </section>
@@ -297,31 +321,34 @@ export default function MyYacht() {
       </section>
 
       <section className="yacht-section">
-        <h2>Notes for Members</h2>
-        <div className="form-grid">
-          <label className="field field-full"><span>Anything you would like other members to know</span>
-            <textarea value={form.notes} onChange={e => update('notes', e.target.value)} rows={3}
-              placeholder="Sailing plans, current location, looking for crew, etc." /></label>
-        </div>
-      </section>
-
-      <section className="yacht-section">
         <h2>Yacht Photos</h2>
-        <p className="section-hint">Upload photos of your yacht. The first photo will appear on your fleet card and may be featured on the home page.</p>
+        <p className="section-hint">First photo appears on your fleet card and the home page. Up to 6 photos.</p>
         <div className="photos-grid">
           {photos.map((p, i) => (
             <div key={i} className="photo-thumb-wrap">
-              <img src={p.url} alt={"Yacht photo " + (i+1)} className="photo-thumb" />
+              <img src={p.url} alt={"Photo " + (i+1)} className="photo-thumb" />
               <button className="photo-remove" onClick={() => setPhotos(prev => prev.filter((_, idx) => idx !== i))}>x</button>
             </div>
           ))}
         </div>
-        <PhotoUpload
-          storagePath={"yachts/" + user.uid + "/photos"}
-          maxPhotos={6}
-          existingPhotos={photos}
-          onUploaded={newPhotos => setPhotos(prev => [...prev, ...newPhotos])}
-        />
+        {photos.length < 6 && (
+          <PhotoUpload
+            storagePath={"yachts/" + user.uid + "/photos"}
+            maxPhotos={6 - photos.length}
+            existingPhotos={photos}
+            onUploaded={newPhotos => setPhotos(prev => [...prev, ...newPhotos])}
+          />
+        )}
+      </section>
+
+      <section className="yacht-section">
+        <h2>Notes for Members</h2>
+        <div className="form-grid">
+          <label className="field field-full">
+            <span>Anything you would like other members to know</span>
+            <textarea value={form.notes} onChange={e => update('notes', e.target.value)} rows={3}
+              placeholder="Sailing plans, current location, looking for crew..." /></label>
+        </div>
       </section>
 
       <div className="save-footer">
