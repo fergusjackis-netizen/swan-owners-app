@@ -33,6 +33,7 @@ export default function YachtProfile() {
         toName: yacht.ownerName || 'Swan Owner',
         fromBoat: userProfile?.yachtName || 'a fellow Swan',
         fromName: userProfile?.name || '',
+        fromEmail: user?.email || '',
         message,
         marina: yacht.homeMarina?.name || '',
       })

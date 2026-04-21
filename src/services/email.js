@@ -1,8 +1,8 @@
-export async function sendContactEmail({ to, toName, fromBoat, fromName, message, marina }) {
+export async function sendContactEmail({ to, toName, fromBoat, fromName, fromEmail, message, marina }) {
   const res = await fetch('/api/send-email', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ type: 'contact', to, toName, fromBoat, fromName, message, marina }),
+    body: JSON.stringify({ type: 'contact', to, toName, fromBoat, fromName, fromEmail, message, marina }),
   })
   if (!res.ok) throw new Error('Failed to send email')
   return res.json()
