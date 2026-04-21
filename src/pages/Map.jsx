@@ -24,6 +24,8 @@ export default function Map() {
   const [locations, setLocations] = useState([])
   const [myYacht, setMyYacht] = useState(null)
   const [sharing, setSharing] = useState(false)
+  const [myPosition, setMyPosition] = useState(null)
+  const myMarker = useRef(null)
   const [selectedBoat, setSelectedBoat] = useState(null)
   const [mapReady, setMapReady] = useState(false)
   const [error, setError] = useState('')
@@ -38,9 +40,7 @@ export default function Map() {
     try {
       const yacht = await getYacht(user.uid)
       setMyYacht(yacht)
-    } catch (e) {
-      console.log('No yacht registered')
-    }
+    } catch (e) {}
   }
 
   async function loadLocations() {
@@ -48,10 +48,7 @@ export default function Map() {
       const locs = await getActiveLocations()
       setLocations(locs)
       return locs
-    } catch (e) {
-      console.log('Could not load locations:', e)
-      return []
-    }
+    } catch (e) { return [] }
   }
 
   async function initMap() {
@@ -69,32 +66,25 @@ export default function Map() {
       })
       map.current.addControl(new mapboxgl.NavigationControl(), 'top-right')
       map.current.on('load', () => setMapReady(true))
-    } catch (e) {
-      setError('Could not load map.')
-    }
+    } catch (e) { setError('Could not load map.') }
   }
 
+  // Draw other boats markers
   useEffect(() => {
     if (!mapReady || !mapboxRef.current) return
     const mapboxgl = mapboxRef.current
     Object.values(markers.current).forEach(m => m.remove())
     markers.current = {}
-    locations.forEach(loc => {
+    locations.filter(loc => loc.uid !== user?.uid).forEach(loc => {
       if (!loc.lat || !loc.lng) return
       const el = document.createElement('div')
-      el.className = 'map-marker'
+      el.className = 'map-marker-other'
       el.style.background = APPROACHABILITY_COLORS[loc.approachability] || '#c9a84c'
-      el.style.width = '14px'
-      el.style.height = '14px'
-      el.style.borderRadius = '50%'
-      el.style.border = '2px solid rgba(255,255,255,0.4)'
-      el.style.cursor = 'pointer'
-      el.style.boxShadow = '0 0 8px ' + (APPROACHABILITY_COLORS[loc.approachability] || '#c9a84c')
-      const popupHTML = '<div style="font-family:Georgia,serif;padding:4px;background:#0d1629;color:#e8e4d8">' +
-        '<strong style="display:block;margin-bottom:4px">' + (loc.boatName || 'Swan') + '</strong>' +
+      const popupHTML = '<div style="font-family:Georgia,serif;padding:6px 8px;min-width:120px">' +
+        '<strong style="color:#e8e4d8;display:block;margin-bottom:3px;font-size:14px">' + (loc.boatName || 'Swan') + '</strong>' +
         (loc.model ? '<span style="color:#6b8cae;font-size:12px;display:block">' + loc.model + '</span>' : '') +
-        '<span style="color:' + (APPROACHABILITY_COLORS[loc.approachability] || '#c9a84c') + ';font-size:11px;display:block;margin-top:4px">' +
-        (APPROACHABILITY_LABELS[loc.approachability] || 'At sea') + '</span>' +
+        '<span style="color:' + (APPROACHABILITY_COLORS[loc.approachability] || '#c9a84c') + ';font-size:11px;display:block;margin-top:4px;font-weight:600">' +
+        (APPROACHABILITY_LABELS[loc.approachability] || '') + '</span>' +
         '</div>'
       const popup = new mapboxgl.Popup({ offset: 20, closeButton: false }).setHTML(popupHTML)
       const marker = new mapboxgl.Marker(el).setLngLat([loc.lng, loc.lat]).setPopup(popup).addTo(map.current)
@@ -103,32 +93,60 @@ export default function Map() {
     })
   }, [mapReady, locations])
 
+  // Draw my own position marker separately with pulsing gold dot
+  useEffect(() => {
+    if (!mapReady || !mapboxRef.current || !myPosition) return
+    const mapboxgl = mapboxRef.current
+
+    if (myMarker.current) myMarker.current.remove()
+
+    const el = document.createElement('div')
+    el.className = 'map-marker-me'
+
+    myMarker.current = new mapboxgl.Marker(el)
+      .setLngLat([myPosition.lng, myPosition.lat])
+      .addTo(map.current)
+  }, [mapReady, myPosition])
+
+  // Remove my marker when not sharing
+  useEffect(() => {
+    if (!sharing && myMarker.current) {
+      myMarker.current.remove()
+      myMarker.current = null
+    }
+  }, [sharing])
+
   async function handleShareToggle() {
     if (sharing) {
       try {
         await hideLocation(user.uid)
         setSharing(false)
+        setMyPosition(null)
         setLocations(prev => prev.filter(l => l.uid !== user.uid))
       } catch (e) { setError('Could not hide location.') }
       return
     }
-    if (!navigator.geolocation) { setError('Geolocation is not supported on this device.'); return }
+    if (!navigator.geolocation) { setError('Geolocation not supported.'); return }
     navigator.geolocation.getCurrentPosition(
       async (pos) => {
         try {
-          await updateLocation(user.uid, {
+          const locationData = {
             lat: pos.coords.latitude,
             lng: pos.coords.longitude,
             boatName: myYacht?.name || userProfile?.name || 'Swan',
             model: myYacht?.model || '',
             approachability: myYacht?.approachability || 'chat',
-          })
+          }
+          await updateLocation(user.uid, locationData)
+          setMyPosition({ lat: pos.coords.latitude, lng: pos.coords.longitude })
           setSharing(true)
           await loadLocations()
-          if (map.current) map.current.flyTo({ center: [pos.coords.longitude, pos.coords.latitude], zoom: 9, duration: 2000 })
-        } catch (e) { setError('Could not share location. Please try again.'); console.error(e) }
+          if (map.current) {
+            map.current.flyTo({ center: [pos.coords.longitude, pos.coords.latitude], zoom: 9, duration: 2000 })
+          }
+        } catch (e) { setError('Could not share location.'); console.error(e) }
       },
-      () => setError('Could not get your location. Please allow location access in your browser settings.')
+      () => setError('Could not get location. Please allow location access.')
     )
   }
 
@@ -144,10 +162,11 @@ export default function Map() {
             model: myYacht?.model || '',
             approachability: myYacht?.approachability || 'chat',
           })
+          setMyPosition({ lat: pos.coords.latitude, lng: pos.coords.longitude })
           await loadLocations()
         } catch (e) { setError('Could not refresh location.') }
       },
-      () => setError('Could not get your location.')
+      () => setError('Could not get location.')
     )
   }
 
@@ -169,9 +188,7 @@ export default function Map() {
           <p className="map-subtitle">{locations.length} Swan{locations.length !== 1 ? 's' : ''} currently sharing position</p>
         </div>
         <div className="map-header-buttons">
-          {sharing && (
-            <button className="btn-refresh-location" onClick={handleRefresh}>Refresh Position</button>
-          )}
+          {sharing && <button className="btn-refresh-location" onClick={handleRefresh}>Refresh Position</button>}
           <button className={"btn-share-location" + (sharing ? " sharing" : "")} onClick={handleShareToggle}>
             {sharing ? 'Hide My Position' : 'Share My Position'}
           </button>
@@ -189,13 +206,12 @@ export default function Map() {
             <li>Tap Share My Position to appear on the map</li>
             <li>Tap Refresh Position to update your location while sharing</li>
             <li>Tap Hide My Position to disappear from the map at any time</li>
-            <li>Your approachability preference is set in My Yacht</li>
+            <li>Set your approachability preference in My Yacht</li>
           </ul>
           <p className="map-approachability">
             Your approachability: <strong style={{ color: APPROACHABILITY_COLORS[myApproachability] }}>
               {APPROACHABILITY_LABELS[myApproachability]}
-            </strong>
-            {' - '}<a href="/my-yacht">Change in My Yacht</a>
+            </strong>{' - '}<a href="/my-yacht">Change in My Yacht</a>
           </p>
         </div>
       )}
