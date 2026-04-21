@@ -1,7 +1,5 @@
 import { useState, useEffect, createContext, useContext } from 'react'
-import { onAuthStateChanged, signInWithEmailAndPassword, 
-  createUserWithEmailAndPassword, signOut, 
-  GoogleAuthProvider, signInWithPopup } from 'firebase/auth'
+import { onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, GoogleAuthProvider, signInWithPopup } from 'firebase/auth'
 import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore'
 import { auth, db } from '../firebase'
 
@@ -14,11 +12,21 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (firebaseUser) => {
-      setUser(firebaseUser)
       if (firebaseUser) {
-        const snap = await getDoc(doc(db, 'users', firebaseUser.uid))
-        setUserProfile(snap.exists() ? snap.data() : null)
+        setUser(firebaseUser)
+        try {
+          const snap = await getDoc(doc(db, 'users', firebaseUser.uid))
+          if (snap.exists()) {
+            setUserProfile({ id: snap.id, ...snap.data() })
+          } else {
+            setUserProfile(null)
+          }
+        } catch (e) {
+          console.error('Profile load error:', e)
+          setUserProfile(null)
+        }
       } else {
+        setUser(null)
         setUserProfile(null)
       }
       setLoading(false)
@@ -65,6 +73,7 @@ export function AuthProvider({ children }) {
 
   async function logout() {
     await signOut(auth)
+    setUser(null)
     setUserProfile(null)
   }
 
@@ -72,9 +81,9 @@ export function AuthProvider({ children }) {
   const isApproved = userProfile?.status === 'approved'
 
   return (
-    <AuthContext.Provider value={{ 
-      user, userProfile, loading, isAdmin, isApproved, 
-      registerWithEmail, loginWithEmail, loginWithGoogle, logout 
+    <AuthContext.Provider value={{
+      user, userProfile, loading, isAdmin, isApproved,
+      registerWithEmail, loginWithEmail, loginWithGoogle, logout
     }}>
       {children}
     </AuthContext.Provider>
