@@ -242,21 +242,3 @@ export async function approveModel(proposalId, modelData) {
 export async function deleteIssue(issueId) {
   await deleteDoc(doc(db, 'issues', issueId))
 }
-
-export async function persistLocation(uid, data) {
-  await setDoc(doc(db, 'locations', uid), {
-    ...data,
-    uid,
-    visible: true,
-    timestamp: serverTimestamp(),
-  })
-}
-
-export async function hideLocation(uid) {
-  await setDoc(doc(db, 'locations', uid), { visible: false, uid }, { merge: true })
-}
-
-export async function getActiveLocations() {
-  const snap = await getDocs(query(collection(db, 'locations'), where('visible', '==', true)))
-  return snap.docs.map(d => ({ id: d.id, ...d.data() }))
-}
