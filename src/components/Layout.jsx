@@ -21,13 +21,11 @@ export default function Layout() {
 
   const secondaryNav = user ? [
     { path: '/contacts', label: 'Contacts' },
-    { path: '/messages', label: 'Messages' },
     { path: '/my-yacht', label: 'My Yacht' },
     ...(isAdmin ? [{ path: '/admin', label: 'Admin Panel' }] : []),
   ] : []
 
   const allNav = [...primaryNav, ...secondaryNav]
-  const firstName = userProfile?.name?.split(' ')[0] || user?.email?.split('@')[0] || ''
 
   function closeMenu() { setMenuOpen(false) }
 
@@ -38,17 +36,7 @@ export default function Layout() {
           <span className="logo-swan">SWAN</span>
           <span className="logo-owners">OWNERS</span>
         </Link>
-
         <div className="header-actions">
-          {!user && (
-            <div className="auth-buttons-desktop">
-              <Link to="/login" className="btn-ghost">Sign in</Link>
-              <Link to="/register" className="btn-primary">Join</Link>
-            </div>
-          )}
-          {user && (
-            <span className="user-name-desktop">{firstName}</span>
-          )}
           <button
             className={"hamburger" + (menuOpen ? " open" : "")}
             onClick={() => setMenuOpen(o => !o)}
@@ -99,11 +87,9 @@ export default function Layout() {
         <div className="footer-disclaimer">
           <p className="footer-main">
             Swan Owners Community is an independent, member-run platform and is not affiliated with,
-            endorsed by, or connected to Nautor's Swan Oy or any of its subsidiaries. The name "Swan"
-            is used solely to describe the type of vessel owned by members. All trademarks, including
-            the Swan name and logo, remain the property of Nautor's Swan Oy. No copyrighted materials,
-            technical drawings, brochures or imagery belonging to Nautor's Swan Oy are reproduced on
-            this platform. All photographs are owner-uploaded images of their own vessels.
+            endorsed by, or connected to Nautor's Swan Oy or any of its subsidiaries. The name Swan
+            is used solely to describe the type of vessel owned by members. All trademarks remain the
+            property of Nautor's Swan Oy. All photographs are owner-uploaded images of their own vessels.
             Vessel specification data is sourced from publicly available information only.
           </p>
           <p className="footer-links-row">
