@@ -1,5 +1,5 @@
 import { useState, useEffect, createContext, useContext } from 'react'
-import { onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, GoogleAuthProvider, signInWithPopup } from 'firebase/auth'
+import { onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from 'firebase/auth'
 import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore'
 import { auth, db } from '../firebase'
 
@@ -17,12 +17,15 @@ export function AuthProvider({ children }) {
         try {
           const snap = await getDoc(doc(db, 'users', firebaseUser.uid))
           if (snap.exists()) {
-            setUserProfile({ id: snap.id, ...snap.data() })
+            const data = snap.data()
+            console.log('Profile loaded:', data.role, data.status)
+            setUserProfile({ id: snap.id, ...data })
           } else {
+            console.log('No profile found for', firebaseUser.uid)
             setUserProfile(null)
           }
         } catch (e) {
-          console.error('Profile load error:', e)
+          console.error('Profile load error:', e.message)
           setUserProfile(null)
         }
       } else {
@@ -40,8 +43,8 @@ export function AuthProvider({ children }) {
       uid: cred.user.uid,
       email,
       name: profileData.name,
-      nationality: profileData.nationality,
-      role: profileData.role,
+      nationality: profileData.nationality || '',
+      role: profileData.role || 'owner',
       status: 'pending',
       createdAt: serverTimestamp(),
     }
@@ -51,24 +54,6 @@ export function AuthProvider({ children }) {
 
   async function loginWithEmail(email, password) {
     return signInWithEmailAndPassword(auth, email, password)
-  }
-
-  async function loginWithGoogle() {
-    const provider = new GoogleAuthProvider()
-    const cred = await signInWithPopup(auth, provider)
-    const snap = await getDoc(doc(db, 'users', cred.user.uid))
-    if (!snap.exists()) {
-      await setDoc(doc(db, 'users', cred.user.uid), {
-        uid: cred.user.uid,
-        email: cred.user.email,
-        name: cred.user.displayName,
-        nationality: '',
-        role: 'owner',
-        status: 'pending',
-        createdAt: serverTimestamp(),
-      })
-    }
-    return cred
   }
 
   async function logout() {
@@ -83,7 +68,7 @@ export function AuthProvider({ children }) {
   return (
     <AuthContext.Provider value={{
       user, userProfile, loading, isAdmin, isApproved,
-      registerWithEmail, loginWithEmail, loginWithGoogle, logout
+      registerWithEmail, loginWithEmail, logout
     }}>
       {children}
     </AuthContext.Provider>
