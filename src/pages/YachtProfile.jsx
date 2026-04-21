@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { getYacht } from '../services/firestore'
 import { useAuth } from '../hooks/useAuth'
-import { sendContactEmail } from '../services/email'
 import { SWAN_MODELS, YACHT_STATUS } from '../data/swanModels'
 import './YachtProfile.css'
 
@@ -11,7 +10,7 @@ export default function YachtProfile() {
   const { user, userProfile } = useAuth()
   const [yacht, setYacht] = useState(null)
   const [loading, setLoading] = useState(true)
-  const [showContact, setShowContact] = useState(false)
+  const [showEmailModal, setShowEmailModal] = useState(false)
   const [message, setMessage] = useState('')
   const [sending, setSending] = useState(false)
   const [sent, setSent] = useState(false)
@@ -24,21 +23,42 @@ export default function YachtProfile() {
     })
   }, [yachtId])
 
+  // Pre-fill message when modal opens
+  useEffect(() => {
+    if (showEmailModal && yacht) {
+      setMessage(
+        'Hi! We are ' + (userProfile?.name || 'fellow Swan owners') +
+        (myYachtName ? ' on ' + myYachtName : '') +
+        '. We spotted ' + (yacht.name || 'your Swan') +
+        ' on Swan Owners and would love to connect. Are you around for a chat?'
+      )
+    }
+  }, [showEmailModal])
+
   async function handleSendEmail() {
-    if (!yacht?.ownerEmail) return setError('No contact email available for this yacht.')
+    if (!yacht?.ownerEmail && !yacht?.email) {
+      setError('No contact email available for this yacht.')
+      return
+    }
     setSending(true)
     try {
-      await sendContactEmail({
-        to: yacht.ownerEmail,
-        toName: yacht.ownerName || 'Swan Owner',
-        fromBoat: userProfile?.yachtName || 'a fellow Swan',
-        fromName: userProfile?.name || '',
-        fromEmail: user?.email || '',
-        message,
-        marina: yacht.homeMarina?.name || '',
+      const res = await fetch('/api/send-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'contact',
+          to: yacht.ownerEmail || yacht.email,
+          toName: yacht.ownerName || 'Swan Owner',
+          fromBoat: myYachtName || 'a Swan',
+          fromName: userProfile?.name || '',
+          fromEmail: user?.email || '',
+          message,
+          marina: yacht.homeMarina?.name || '',
+        }),
       })
+      if (!res.ok) throw new Error('Failed')
       setSent(true)
-      setShowContact(false)
+      setShowEmailModal(false)
     } catch (e) {
       setError('Could not send email. Please try again.')
     }
@@ -54,13 +74,14 @@ export default function YachtProfile() {
 
   const status = getStatusInfo(yacht.currentStatus)
   const modelData = SWAN_MODELS?.find(m => m.name === yacht.model)
+  const myYachtName = userProfile?.yachtName || ''
 
   const whatsappNumber = yacht.whatsappPublic && yacht.whatsapp
     ? yacht.whatsapp.replace(/[^0-9]/g, '')
     : null
 
   const whatsappMessage = encodeURIComponent(
-    'Hi! We spotted ' + (yacht.name || 'your Swan') + ' on Swan Owners Community and would love to connect. We are on ' + (userProfile?.name || 'a fellow Swan') + '.'
+    'Hi! We spotted ' + (yacht.name || 'your Swan') + ' on Swan Owners Community and would love to connect.'
   )
 
   return (
@@ -94,7 +115,7 @@ export default function YachtProfile() {
             </div>
           </section>
 
-          {yacht.skipper && (
+          {yacht.skipper && yacht.skipperMode !== 'none' && (
             <section className="profile-section">
               <h2>Skipper</h2>
               <div className="profile-details">
@@ -106,16 +127,14 @@ export default function YachtProfile() {
                   <div className="detail-row">
                     <span>WhatsApp</span>
                     <a href={'https://wa.me/' + yacht.skipper.whatsapp.replace(/[^0-9]/g,'') + '?text=' + whatsappMessage}
-                      target="_blank" rel="noopener noreferrer" className="btn-whatsapp-small">
-                      Message on WhatsApp
-                    </a>
+                      target="_blank" rel="noopener noreferrer" className="btn-whatsapp-small">Message on WhatsApp</a>
                   </div>
                 )}
               </div>
             </section>
           )}
 
-          {yacht.gardienne && yacht.gardienneMode !== 'none' && (
+          {yacht.gardienne && yacht.gardienneMode === 'manual' && (
             <section className="profile-section">
               <h2>Gardienne</h2>
               <div className="profile-details">
@@ -127,9 +146,7 @@ export default function YachtProfile() {
                   <div className="detail-row">
                     <span>WhatsApp</span>
                     <a href={'https://wa.me/' + yacht.gardienne.whatsapp.replace(/[^0-9]/g,'') + '?text=' + whatsappMessage}
-                      target="_blank" rel="noopener noreferrer" className="btn-whatsapp-small">
-                      Message on WhatsApp
-                    </a>
+                      target="_blank" rel="noopener noreferrer" className="btn-whatsapp-small">Message on WhatsApp</a>
                   </div>
                 )}
                 {yacht.gardienne.website && <div className="detail-row"><span>Website</span><a href={yacht.gardienne.website} target="_blank" rel="noopener noreferrer" className="profile-link">{yacht.gardienne.website}</a></div>}
@@ -149,11 +166,11 @@ export default function YachtProfile() {
           <div className="contact-card">
             <h3>Contact</h3>
             <div className="approachability-badge" style={{ borderColor: yacht.approachability === 'open' ? '#22c55e' : yacht.approachability === 'private' ? '#6b8cae' : '#c9a84c' }}>
-              <div style={{ width: 8, height: 8, borderRadius: '50%', background: yacht.approachability === 'open' ? '#22c55e' : yacht.approachability === 'private' ? '#6b8cae' : '#c9a84c' }} />
+              <div style={{ width: 8, height: 8, borderRadius: '50%', background: yacht.approachability === 'open' ? '#22c55e' : yacht.approachability === 'private' ? '#6b8cae' : '#c9a84c', flexShrink: 0 }} />
               <span>{yacht.approachability === 'open' ? 'Open to visitors' : yacht.approachability === 'private' ? 'Private' : 'Happy to chat'}</span>
             </div>
 
-            {sent && <p className="contact-sent">Message sent! They will receive an email from Swan Owners.</p>}
+            {sent && <p className="contact-sent">Message sent! They will be in touch if they would like to connect.</p>}
 
             {user && !sent && (
               <div className="contact-actions">
@@ -164,38 +181,64 @@ export default function YachtProfile() {
                   </a>
                 )}
                 {yacht.phonePublic && yacht.phone && (
-                  <a href={'tel:' + yacht.phone} className="btn-contact-phone">
-                    {yacht.phone}
-                  </a>
+                  <a href={'tel:' + yacht.phone} className="btn-contact-phone">{yacht.phone}</a>
                 )}
-                {!showContact ? (
-                  <button className="btn-contact-email" onClick={() => setShowContact(true)}>
-                    Send Email
-                  </button>
-                ) : (
-                  <div className="contact-form">
-                    <textarea
-                      value={message}
-                      onChange={e => setMessage(e.target.value)}
-                      placeholder="Optional message to include..."
-                      rows={3}
-                      className="contact-textarea"
-                    />
-                    {error && <p className="contact-error">{error}</p>}
-                    <div className="contact-form-buttons">
-                      <button className="btn-send-email" onClick={handleSendEmail} disabled={sending}>
-                        {sending ? 'Sending...' : 'Send'}
-                      </button>
-                      <button className="btn-cancel-email" onClick={() => setShowContact(false)}>Cancel</button>
-                    </div>
-                    <p className="contact-privacy">Your email address is not shared. They reply to hello@swan-owners.com.</p>
-                  </div>
-                )}
+                <button className="btn-contact-email" onClick={() => setShowEmailModal(true)}>
+                  Send Email
+                </button>
               </div>
+            )}
+
+            {!user && (
+              <p className="contact-login-prompt">
+                <Link to="/login">Sign in</Link> to contact this yacht.
+              </p>
             )}
           </div>
         </div>
       </div>
+
+      {showEmailModal && (
+        <div className="email-modal-overlay" onClick={() => setShowEmailModal(false)}>
+          <div className="email-modal" onClick={e => e.stopPropagation()}>
+            <div className="email-modal-header">
+              <div>
+                <h2>Send a message to {yacht.name}</h2>
+                <p>Sent from hello@swan-owners.com on your behalf. Your email address is included so they can reply directly to you.</p>
+              </div>
+              <button className="email-modal-close" onClick={() => setShowEmailModal(false)}>&#x2715;</button>
+            </div>
+            <div className="email-modal-body">
+              <div className="email-preview-row">
+                <span>From</span>
+                <strong>Swan Owners (hello@swan-owners.com)</strong>
+              </div>
+              <div className="email-preview-row">
+                <span>Your email</span>
+                <strong>{user?.email}</strong>
+              </div>
+              <div className="email-preview-row">
+                <span>To</span>
+                <strong>Owner of {yacht.name}</strong>
+              </div>
+              <div className="email-message-label">Your message</div>
+              <textarea
+                className="email-textarea"
+                value={message}
+                onChange={e => setMessage(e.target.value)}
+                rows={5}
+              />
+              {error && <p className="email-error">{error}</p>}
+            </div>
+            <div className="email-modal-footer">
+              <button className="btn-send-email" onClick={handleSendEmail} disabled={sending || !message.trim()}>
+                {sending ? 'Sending...' : 'Send Message'}
+              </button>
+              <button className="btn-cancel-email" onClick={() => setShowEmailModal(false)}>Cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
