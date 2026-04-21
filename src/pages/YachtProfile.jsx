@@ -90,7 +90,10 @@ export default function YachtProfile() {
 
       <div className="yacht-profile-hero">
         <div className="yacht-profile-photo">
-          <span>{yacht.name?.[0] || 'S'}</span>
+          {yacht.photos && yacht.photos.length > 0
+            ? <img src={yacht.photos[0].url} alt={yacht.name} style={{width:'100%',height:'100%',objectFit:'cover',borderRadius:'50%'}} />
+            : <span>{yacht.name?.[0] || 'S'}</span>
+          }
         </div>
         <div className="yacht-profile-title">
           <h1>{yacht.name}</h1>

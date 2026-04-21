@@ -117,13 +117,11 @@ export default function Fleet() {
             return (
               <div key={yacht.id} className={"yacht-card" + (!user ? " yacht-card-guest" : "")}
                 onClick={() => handleCardClick(yacht.id)}>
-                <div className="yacht-card-top">
-                  <div className="yacht-card-image">
-                    {yacht.photos && yacht.photos.length > 0
-                      ? <img src={yacht.photos[0].url} alt={yacht.name} className="yacht-card-photo" />
-                      : <div className="yacht-photo-placeholder"><span>{yacht.name?.[0] || '?'}</span></div>
-                    }
-                  </div>
+                <div className="yacht-card-image">
+                  {yacht.photos && yacht.photos.length > 0
+                    ? <img src={yacht.photos[0].url} alt={yacht.name} className="yacht-card-photo" />
+                    : <div className="yacht-photo-placeholder"><span>{yacht.name?.[0] || '?'}</span></div>
+                  }
                   {user && (
                     <div className="yacht-status-dot"
                       style={{ background: status.color }} title={status.label} />
