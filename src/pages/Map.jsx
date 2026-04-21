@@ -60,7 +60,7 @@ export default function Map() {
       mapboxgl.accessToken = token
       map.current = new mapboxgl.Map({
         container: mapContainer.current,
-        style: 'mapbox://styles/mapbox/dark-v11',
+        style: 'mapbox://styles/mapbox/dark-v12',
         center: [10, 45],
         zoom: 4,
       })
