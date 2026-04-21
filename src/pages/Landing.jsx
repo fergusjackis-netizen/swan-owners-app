@@ -1,4 +1,6 @@
 import { Link } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { getFleet } from '../services/firestore'
 import { useAuth } from '../hooks/useAuth'
 import './Landing.css'
 
@@ -17,6 +19,23 @@ const FEATURES = [
 ]
 
 export default function Landing() {
+  const [heroPhotos, setHeroPhotos] = useState([])
+  const [heroIndex, setHeroIndex] = useState(0)
+
+  useEffect(() => {
+    getFleet().then(yachts => {
+      const photos = yachts
+        .filter(y => y.photos && y.photos.length > 0)
+        .map(y => ({ url: y.photos[0].url, name: y.name, model: y.model }))
+      setHeroPhotos(photos)
+    })
+  }, [])
+
+  useEffect(() => {
+    if (heroPhotos.length < 2) return
+    const timer = setInterval(() => setHeroIndex(i => (i + 1) % heroPhotos.length), 5000)
+    return () => clearInterval(timer)
+  }, [heroPhotos])
   const { user } = useAuth()
   return (
     <div className="landing">

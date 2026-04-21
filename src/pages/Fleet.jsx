@@ -119,7 +119,10 @@ export default function Fleet() {
                 onClick={() => handleCardClick(yacht.id)}>
                 <div className="yacht-card-top">
                   <div className="yacht-photo-placeholder">
-                    <span>{yacht.name?.[0] || '?'}</span>
+                    {yacht.photos && yacht.photos.length > 0
+                      ? <img src={yacht.photos[0].url} alt={yacht.name} style={{width:'100%',height:'100%',objectFit:'cover'}} />
+                      : <span>{yacht.name?.[0] || '?'}</span>
+                    }
                   </div>
                   {user && (
                     <div className="yacht-status-dot"

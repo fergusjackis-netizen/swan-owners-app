@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '../hooks/useAuth'
 import { saveYacht, getYacht, updateLocation, hideLocation } from '../services/firestore'
 import { SWAN_MODELS, YACHT_STATUS } from '../data/swanModels'
+import PhotoUpload from '../components/PhotoUpload'
 import './MyYacht.css'
 
 const APPROACHABILITY = [
@@ -13,6 +14,7 @@ const APPROACHABILITY = [
 export default function MyYacht() {
   const { user, userProfile } = useAuth()
   const [saving, setSaving] = useState(false)
+  const [photos, setPhotos] = useState([])
   const [saved, setSaved] = useState(false)
   const [locationSharing, setLocationSharing] = useState(false)
   const [skipperMode, setSkipperMode] = useState('owner')
@@ -59,6 +61,9 @@ export default function MyYacht() {
           marineName: data.homeMarina?.name || '',
           marinaCountry: data.homeMarina?.country || '',
           notes: data.notes || '',
+        })
+        setPhotos(data.photos || [])
+        setForm({
         })
       }
     })
@@ -127,6 +132,8 @@ export default function MyYacht() {
       },
       notes: form.notes || '',
       ownerName: userProfile?.name || '',
+      ownerEmail: user?.email || '',
+      photos: photos,
     })
 
     setSaving(false)
@@ -296,6 +303,25 @@ export default function MyYacht() {
             <textarea value={form.notes} onChange={e => update('notes', e.target.value)} rows={3}
               placeholder="Sailing plans, current location, looking for crew, etc." /></label>
         </div>
+      </section>
+
+      <section className="yacht-section">
+        <h2>Yacht Photos</h2>
+        <p className="section-hint">Upload photos of your yacht. The first photo will appear on your fleet card and may be featured on the home page.</p>
+        <div className="photos-grid">
+          {photos.map((p, i) => (
+            <div key={i} className="photo-thumb-wrap">
+              <img src={p.url} alt={"Yacht photo " + (i+1)} className="photo-thumb" />
+              <button className="photo-remove" onClick={() => setPhotos(prev => prev.filter((_, idx) => idx !== i))}>x</button>
+            </div>
+          ))}
+        </div>
+        <PhotoUpload
+          storagePath={"yachts/" + user.uid + "/photos"}
+          maxPhotos={6}
+          existingPhotos={photos}
+          onUploaded={newPhotos => setPhotos(prev => [...prev, ...newPhotos])}
+        />
       </section>
 
       <div className="save-footer">
