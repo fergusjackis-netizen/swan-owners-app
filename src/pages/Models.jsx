@@ -22,7 +22,7 @@ export default function Models() {
   const [creating, setCreating] = useState(false)
 
   const [editingField, setEditingField] = useState(null)
-  const [editingRow, setEditingRow] = useState(null)
+  const [editModal, setEditModal] = useState(null)
   const [addingSection, setAddingSection] = useState(false)
   const [newSectionTitle, setNewSectionTitle] = useState('')
   const [addingField, setAddingField] = useState(null)
@@ -175,7 +175,7 @@ export default function Models() {
   }
 
   function saveRow(tableId, rowType, rowId, rowData) {
-    save({
+    const updated = {
       ...modelData,
       rigging: modelData.rigging.map(t => t.id !== tableId ? t : {
         ...t, rows: {
@@ -183,8 +183,8 @@ export default function Models() {
           [rowType]: (t.rows?.[rowType] || []).map(r => r.id !== rowId ? r : { ...r, ...rowData })
         }
       })
-    })
-    setEditingRow(null)
+    }
+    save(updated)
   }
 
   function deleteRow(tableId, rowType, rowId) {
@@ -215,12 +215,9 @@ export default function Models() {
     })
   }
 
-  // Only show models that exist in Firestore
   const displayModels = allModels.map(m => m.id || m.modelId).filter(Boolean)
   const inFleet = (name) => fleetModels.includes(name)
-
-  console.log('AUTH DEBUG:', { isAdmin, uid: userProfile?.uid, role: userProfile?.role })
-  const canEdit = (item) => isAdmin || item.addedBy === userProfile?.uid
+  const canEdit = (item) => isAdmin || (userProfile?.uid && item.addedBy === userProfile.uid)
 
   return (
     <div className="models-page">
@@ -344,26 +341,25 @@ export default function Models() {
                               <thead>
                                 <tr>
                                   <th>Description</th><th>Part No</th><th>Qty</th>
-                                  <th>Length</th><th>Product</th><th>Diameter</th><th>Hardware</th>
+                                  <th>Length</th><th>Product</th><th>Diam</th><th>Hardware</th>
                                   {approved && <th></th>}
                                 </tr>
                               </thead>
                               <tbody>
                                 {(table.rows?.[rowType] || []).map(row => (
                                   <tr key={row.id}>
-                                    {editingRow?.tableId === table.id && editingRow?.rowType === rowType && editingRow?.rowId === row.id ? (
-                                      <EditRiggingRow row={row} onSave={(data) => saveRow(table.id, rowType, row.id, data)} onCancel={() => setEditingRow(null)} />
-                                    ) : (
-                                      <>
-                                        <td>{row.description}</td><td>{row.partNo}</td><td>{row.qty}</td>
-                                        <td>{row.length}</td><td>{row.product}</td><td>{row.diameter}</td><td>{row.hardware}</td>
-                                        {approved && (
-                                          <td className="row-actions">
-                                            <button onClick={() => setEditingRow({ tableId: table.id, rowType, rowId: row.id })}>Edit</button>
-                                            {canEdit(table) && <button onClick={() => deleteRow(table.id, rowType, row.id)}>x</button>}
-                                          </td>
-                                        )}
-                                      </>
+                                    <td>{row.description}</td>
+                                    <td>{row.partNo}</td>
+                                    <td>{row.qty}</td>
+                                    <td>{row.length}</td>
+                                    <td>{row.product}</td>
+                                    <td>{row.diameter}</td>
+                                    <td>{row.hardware}</td>
+                                    {approved && (
+                                      <td className="row-actions">
+                                        <button onClick={() => setEditModal({ tableId: table.id, rowType, row: {...row} })}>Edit</button>
+                                        {canEdit(table) && <button onClick={() => deleteRow(table.id, rowType, row.id)}>x</button>}
+                                      </td>
                                     )}
                                   </tr>
                                 ))}
@@ -381,6 +377,19 @@ export default function Models() {
           </div>
         )}
       </div>
+
+      {editModal && (
+        <div className="modal-overlay" onClick={() => setEditModal(null)}>
+          <div className="modal-box edit-row-modal" onClick={e => e.stopPropagation()}>
+            <h2>Edit Row</h2>
+            <EditRiggingModal
+              row={editModal.row}
+              onSave={(data) => { saveRow(editModal.tableId, editModal.rowType, editModal.row.id, data); setEditModal(null) }}
+              onCancel={() => setEditModal(null)}
+            />
+          </div>
+        </div>
+      )}
 
       {showCreate && (
         <div className="modal-overlay" onClick={() => setShowCreate(false)}>
@@ -423,19 +432,30 @@ function EditFieldRow({ field, onSave, onCancel }) {
   )
 }
 
-function EditRiggingRow({ row, onSave, onCancel }) {
+function EditRiggingModal({ row, onSave, onCancel }) {
   const [data, setData] = useState({ ...row })
   const f = (key) => (e) => setData(d => ({ ...d, [key]: e.target.value }))
+  const fields = [
+    { key: 'description', label: 'Description' },
+    { key: 'partNo', label: 'Part No' },
+    { key: 'qty', label: 'Qty' },
+    { key: 'length', label: 'Length (m)' },
+    { key: 'product', label: 'Product' },
+    { key: 'diameter', label: 'Diameter (mm)' },
+    { key: 'hardware', label: 'Hardware' },
+  ]
   return (
     <>
-      <td><input value={data.description || ''} onChange={f('description')} /></td>
-      <td><input value={data.partNo || ''} onChange={f('partNo')} /></td>
-      <td><input value={data.qty || ''} onChange={f('qty')} style={{width:'50px'}} /></td>
-      <td><input value={data.length || ''} onChange={f('length')} style={{width:'70px'}} /></td>
-      <td><input value={data.product || ''} onChange={f('product')} /></td>
-      <td><input value={data.diameter || ''} onChange={f('diameter')} style={{width:'70px'}} /></td>
-      <td><input value={data.hardware || ''} onChange={f('hardware')} /></td>
-      <td><button onClick={() => onSave(data)}>Save</button><button onClick={onCancel}>Cancel</button></td>
+      {fields.map(({ key, label }) => (
+        <div className="form-row" key={key}>
+          <label>{label}</label>
+          <input value={data[key] || ''} onChange={f(key)} />
+        </div>
+      ))}
+      <div className="modal-actions">
+        <button onClick={onCancel}>Cancel</button>
+        <button className="btn-primary" onClick={() => onSave(data)}>Save</button>
+      </div>
     </>
   )
 }
