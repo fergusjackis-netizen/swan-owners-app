@@ -540,6 +540,7 @@ export default function MaintenanceLogs() {
   const [chatLoading, setChatLoading] = useState(false)
   const [chatOpen, setChatOpen] = useState(false)
   const [showDocs, setShowDocs] = useState(false)
+  const [chatImage, setChatImage] = useState(null) // {base64, mediaType, preview}
 
   useEffect(() => { if (user?.uid) loadAssignedYachts() }, [user?.uid])
 
@@ -696,10 +697,26 @@ export default function MaintenanceLogs() {
   }
 
   async function sendChat() {
-    if (!chatInput.trim() || chatLoading) return
+    if ((!chatInput.trim() && !chatImage) || chatLoading) return
     const userMsg = chatInput.trim()
+    const imgToSend = chatImage
     setChatInput('')
-    setChatMessages(prev => [...prev, { role: 'user', content: userMsg }])
+    setChatImage(null)
+
+    // Build user message content
+    const userContent = imgToSend
+      ? [
+          ...(userMsg ? [{ type: 'text', text: userMsg }] : [{ type: 'text', text: 'What do you see in this image?' }]),
+          { type: 'image', source: { type: 'base64', media_type: imgToSend.mediaType, data: imgToSend.base64 } }
+        ]
+      : userMsg
+
+    setChatMessages(prev => [...prev, {
+      role: 'user',
+      content: userContent,
+      preview: imgToSend?.preview,
+      text: userMsg || 'Photo sent'
+    }])
     setChatLoading(true)
     try {
       const docSummary = vesselDocs.length > 0
@@ -727,7 +744,7 @@ export default function MaintenanceLogs() {
           max_tokens: 1000,
           messages: [
             ...chatMessages.map(m => ({ role: m.role, content: m.content })),
-            { role: 'user', content: userMsg }
+            { role: 'user', content: userContent }
           ],
         })
       })
@@ -828,7 +845,8 @@ export default function MaintenanceLogs() {
               {chatMessages.map((msg, i) => (
                 <div key={i} className={'ask-claude-msg ask-claude-msg-' + msg.role}>
                   <span className="ask-claude-msg-label">{msg.role === 'user' ? 'You' : 'Claude'}</span>
-                  <p className="ask-claude-msg-text">{msg.content}</p>
+                  {msg.preview && <img src={msg.preview} alt="Sent photo" className="ask-claude-sent-img" />}
+                  <p className="ask-claude-msg-text">{msg.text || (typeof msg.content === 'string' ? msg.content : '')}</p>
                 </div>
               ))}
               {chatLoading && (
@@ -838,13 +856,40 @@ export default function MaintenanceLogs() {
                 </div>
               )}
             </div>
+            {chatImage && (
+              <div className="ask-claude-image-preview">
+                <img src={chatImage.preview} alt="Preview" />
+                <button className="ask-claude-image-remove" onClick={() => setChatImage(null)}>x</button>
+              </div>
+            )}
             <div className="ask-claude-input-row">
+              <label className="ask-claude-camera-btn" title="Attach photo">
+                <input type="file" accept="image/*" capture="environment" style={{display:'none'}}
+                  onChange={e => {
+                    const file = e.target.files[0]
+                    if (!file) return
+                    const reader = new FileReader()
+                    reader.onload = ev => {
+                      const dataUrl = ev.target.result
+                      const base64 = dataUrl.split(',')[1]
+                      const mediaType = file.type || 'image/jpeg'
+                      setChatImage({ base64, mediaType, preview: dataUrl })
+                    }
+                    reader.readAsDataURL(file)
+                    e.target.value = ''
+                  }}
+                />
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                  <circle cx="12" cy="13" r="4"/>
+                </svg>
+              </label>
               <input className="ask-claude-input" value={chatInput}
                 onChange={e => setChatInput(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && sendChat()}
-                placeholder={'Ask about your ' + (selected?.model || 'yacht') + '...'}
+                placeholder={chatImage ? 'Add a message or just send the photo...' : 'Ask about your ' + (selected?.model || 'yacht') + '...'}
                 disabled={chatLoading} />
-              <button className="ask-claude-send" onClick={sendChat} disabled={chatLoading || !chatInput.trim()}>Send</button>
+              <button className="ask-claude-send" onClick={sendChat} disabled={chatLoading || (!chatInput.trim() && !chatImage)}>Send</button>
             </div>
           </div>
         )}
