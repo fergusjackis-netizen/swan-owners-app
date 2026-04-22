@@ -17,6 +17,8 @@ export default function Models() {
   const [newHeading, setNewHeading] = useState('')
   const [newField, setNewField] = useState({ label: '', value: '' })
   const [saving, setSaving] = useState(false)
+  const [showAddRigging, setShowAddRigging] = useState(false)
+  const [newRigRow, setNewRigRow] = useState({ description: '', partNo: '', qty: '', length: '', product: '', diameter: '', hardware: '' })
 
   // Load only models that exist in the fleet
   useEffect(() => {
