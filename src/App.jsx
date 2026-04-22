@@ -53,6 +53,7 @@ export default function App() {
           <Route path="models" element={<Models />} />
 
           {/* Private routes */}
+          <Route path="maintenance-logs" element={<PrivateRoute><MaintenanceLogs /></PrivateRoute>} />
           <Route path="my-yacht" element={<PrivateRoute><MyYacht /></PrivateRoute>} />
           <Route path="map" element={<PrivateRoute><Map /></PrivateRoute>} />
           <Route path="forum" element={<PrivateRoute><Forum /></PrivateRoute>} />
