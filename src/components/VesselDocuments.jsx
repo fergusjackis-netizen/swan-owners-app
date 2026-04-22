@@ -68,7 +68,7 @@ export default function VesselDocuments({ yachtId, canUpload, compact }) {
       setShowUpload(false)
       setDisplayName('')
       setManufacturer('')
-      fileRef.current.value = ''
+      if (fileRef.current) fileRef.current.value = ''
     } catch(e) { alert('Upload failed: ' + e.message) }
     setUploading(false)
   }
