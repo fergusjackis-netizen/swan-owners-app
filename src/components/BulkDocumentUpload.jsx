@@ -38,7 +38,7 @@ function detectCategory(filePath) {
 }
 
 function detectManufacturer(filePath) {
-  const parts = filePath.split(/[/\]/)
+  const parts = filePath.split(/[\/\\]/)
   // Manufacturer is usually the second-to-last folder
   if (parts.length >= 2) {
     const candidate = parts[parts.length - 2]
