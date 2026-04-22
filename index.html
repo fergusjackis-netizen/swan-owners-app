@@ -3,18 +3,41 @@
   <head>
   <link href="https://api.mapbox.com/mapbox-gl-js/v3.0.0/mapbox-gl.css" rel="stylesheet" />
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="screen-orientation" content="portrait" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>Swan Owners</title>
-  <link rel="manifest" href="/manifest.json" />
-  <meta name="theme-color" content="#0a0f1e" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="apple-mobile-web-app-title" content="Swan Owners" />
+  <meta name="apple-touch-fullscreen" content="yes" />
   <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-  <meta name="description" content="The independent community for Nautor's Swan owners, skippers and gardienners worldwide." />
-  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-</head>
+  <link rel="manifest" href="/manifest.json" />
+  <title>Swan Owners</title>
+  <style>
+    @media screen and (orientation: landscape) and (max-height: 500px) {
+      body::before {
+        content: 'Please rotate your device to portrait mode';
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: fixed;
+        inset: 0;
+        background: #0a0f1e;
+        color: #c9a84c;
+        font-family: Georgia, serif;
+        font-size: 1.1rem;
+        text-align: center;
+        padding: 2rem;
+        z-index: 99999;
+      }
+      body > * { display: none; }
+    }
+  </style>
+  <script>
+    // Lock to portrait on supported browsers
+    if (screen.orientation && screen.orientation.lock) {
+      screen.orientation.lock('portrait').catch(() => {});
+    }
+  </script>
+  </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
