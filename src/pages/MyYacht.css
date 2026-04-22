@@ -126,3 +126,19 @@
 }
 
 .photo-remove:hover { background: #ef4444; }
+
+.linked-member-card {
+  background: #0d1526;
+  border: 1px solid #1e2d4a;
+  padding: 0.75rem 1rem;
+  margin-top: 0.5rem;
+  font-size: 0.85rem;
+  color: #e8dcc8;
+}
+.linked-member-card p {
+  margin: 0.2rem 0;
+  color: #6b8cae;
+}
+.linked-member-card strong {
+  color: #e8dcc8;
+}

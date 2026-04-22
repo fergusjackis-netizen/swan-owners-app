@@ -27,12 +27,27 @@ export default function MyYacht() {
   const [saving, setSaving] = useState(false)
   const [customModel, setCustomModel] = useState(false)
   const [fleetModels, setFleetModels] = useState([])
+  const [skippers, setSkippers] = useState([])
+  const [gardiennes, setGardiennes] = useState([])
   const [saved, setSaved] = useState(false)
   const [loaded, setLoaded] = useState(false)
   const [skipperMode, setSkipperMode] = useState('owner')
   const [gardienneMode, setGardienneMode] = useState('none')
   const [photos, setPhotos] = useState([])
   const [form, setForm] = useState(EMPTY_FORM)
+
+  useEffect(() => {
+    // Load registered skippers and gardiennes
+    import('firebase/firestore').then(({ collection, getDocs, query, where }) => {
+      import('../firebase').then(({ db }) => {
+        getDocs(query(collection(db, 'users'), where('status', '==', 'approved'))).then(snap => {
+          const members = snap.docs.map(d => ({ uid: d.id, ...d.data() }))
+          setSkippers(members.filter(m => m.role === 'skipper' || m.role === 'owner' || m.role === 'admin'))
+          setGardiennes(members.filter(m => m.role === 'gardienne' || m.role === 'admin'))
+        })
+      })
+    })
+  }, [])
 
   useEffect(() => {
     // Load existing models from fleet
@@ -287,8 +302,22 @@ export default function MyYacht() {
         )}
         {skipperMode === 'linked' && (
           <div className="form-grid">
-            <label className="field field-full"><span>Skipper email (registered member)</span>
-              <input value={form.skipperUid} onChange={e => update('skipperUid', e.target.value)} placeholder="their@email.com" /></label>
+            <label className="field field-full"><span>Select registered skipper</span>
+              <select value={form.skipperUid} onChange={e => update('skipperUid', e.target.value)}>
+                <option value="">Select a member...</option>
+                {skippers.map(m => (
+                  <option key={m.uid} value={m.uid}>{m.name}{m.nationality ? ' (' + m.nationality + ')' : ''}</option>
+                ))}
+              </select>
+            </label>
+            {form.skipperUid && skippers.find(m => m.uid === form.skipperUid) && (
+              <div className="linked-member-card">
+                <p><strong>{skippers.find(m => m.uid === form.skipperUid)?.name}</strong></p>
+                {skippers.find(m => m.uid === form.skipperUid)?.basedAt && (
+                  <p>Based at: {skippers.find(m => m.uid === form.skipperUid).basedAt}</p>
+                )}
+              </div>
+            )}
           </div>
         )}
         {skipperMode === 'manual' && (
@@ -320,8 +349,22 @@ export default function MyYacht() {
         </div>
         {gardienneMode === 'linked' && (
           <div className="form-grid">
-            <label className="field field-full"><span>Gardienne email (registered member)</span>
-              <input value={form.gardienneUid} onChange={e => update('gardienneUid', e.target.value)} placeholder="their@email.com" /></label>
+            <label className="field field-full"><span>Select registered gardienne</span>
+              <select value={form.gardienneUid} onChange={e => update('gardienneUid', e.target.value)}>
+                <option value="">Select a member...</option>
+                {gardiennes.map(m => (
+                  <option key={m.uid} value={m.uid}>{m.name}{m.basedAt ? ' — ' + m.basedAt : ''}</option>
+                ))}
+              </select>
+            </label>
+            {form.gardienneUid && gardiennes.find(m => m.uid === form.gardienneUid) && (
+              <div className="linked-member-card">
+                <p><strong>{gardiennes.find(m => m.uid === form.gardienneUid)?.name}</strong></p>
+                {gardiennes.find(m => m.uid === form.gardienneUid)?.basedAt && (
+                  <p>Based at: {gardiennes.find(m => m.uid === form.gardienneUid).basedAt}</p>
+                )}
+              </div>
+            )}
           </div>
         )}
         {gardienneMode === 'manual' && (
