@@ -276,3 +276,75 @@ export async function approveModel(proposalId, modelData) {
   })
   await updateDoc(doc(db, 'modelProposals', proposalId), { status: 'approved' })
 }
+
+// ── MAINTENANCE: CREW ISSUES ─────────────────────────────────────────────────
+
+export async function getCrewIssues(yachtId) {
+  const q = query(collection(db, 'yachts', yachtId, 'issues'), orderBy('createdAt', 'desc'))
+  const snap = await getDocs(q)
+  return snap.docs.map(d => ({ id: d.id, ...d.data() }))
+}
+
+export async function postCrewIssue(yachtId, uid, data) {
+  return addDoc(collection(db, 'yachts', yachtId, 'issues'), {
+    ...data, authorUid: uid, status: 'open',
+    createdAt: serverTimestamp(), publishedToBoard: false,
+  })
+}
+
+export async function updateCrewIssue(yachtId, issueId, data) {
+  await updateDoc(doc(db, 'yachts', yachtId, 'issues', issueId), data)
+}
+
+export async function resolveAndPublishIssue(yachtId, issueId, fix, uid, modelName, modelCount) {
+  const issueRef = doc(db, 'yachts', yachtId, 'issues', issueId)
+  const issueSnap = await getDoc(issueRef)
+  const issueData = issueSnap.data()
+  await updateDoc(issueRef, {
+    fix, resolvedBy: uid, resolvedAt: serverTimestamp(),
+    status: 'resolved', publishedToBoard: true,
+  })
+  const swanModel = modelCount >= 2 ? modelName : null
+  await addDoc(collection(db, 'issues'), {
+    title: issueData.title,
+    description: issueData.description,
+    fix,
+    swanModel,
+    system: issueData.system,
+    photos: [],
+    authorUid: uid,
+    upvotes: 0,
+    upvotedBy: [],
+    resolved: true,
+    flagged: false,
+    createdAt: serverTimestamp(),
+    resolvedAt: serverTimestamp(),
+    resolvedBy: uid,
+    fromCrewLog: true,
+  })
+}
+
+// ── MAINTENANCE: CHECKLIST TEMPLATE ──────────────────────────────────────────
+
+export async function getChecklistTemplate(yachtId) {
+  const snap = await getDoc(doc(db, 'yachts', yachtId, 'meta', 'checklistTemplate'))
+  return snap.exists() ? snap.data() : null
+}
+
+export async function saveChecklistTemplate(yachtId, template) {
+  await setDoc(doc(db, 'yachts', yachtId, 'meta', 'checklistTemplate'), template)
+}
+
+// ── MAINTENANCE: COMPLETED CHECKLISTS ────────────────────────────────────────
+
+export async function saveCompletedChecklist(yachtId, data) {
+  return addDoc(collection(db, 'yachts', yachtId, 'checklists'), {
+    ...data, completedAt: serverTimestamp(),
+  })
+}
+
+export async function getCompletedChecklists(yachtId) {
+  const q = query(collection(db, 'yachts', yachtId, 'checklists'), orderBy('completedAt', 'desc'))
+  const snap = await getDocs(q)
+  return snap.docs.map(d => ({ id: d.id, ...d.data() }))
+}

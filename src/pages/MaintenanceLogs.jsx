@@ -1,17 +1,540 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../hooks/useAuth'
+import {
+  getCrewIssues, postCrewIssue, resolveAndPublishIssue,
+  getChecklistTemplate, saveChecklistTemplate, saveCompletedChecklist
+} from '../services/firestore'
 import './MaintenanceLogs.css'
+
+const SYSTEMS = ["Deck & Rig","Engine","Bow Thruster","Generator","24v Electrical","240v Shore Power","Electronics","Safety","Below Decks","Domestic Systems","Air Conditioning","Heating","Water System","Calorifier","Washing Machine","Rig & Sails","Hull & Deck","Other"]
+const DEFAULT_WEEKLY = [
+  {
+    "id": "w01",
+    "category": "Deck & Rig",
+    "item": "Inspect running rigging for chafe, wear and broken strands"
+  },
+  {
+    "id": "w02",
+    "category": "Deck & Rig",
+    "item": "Check standing rigging — shrouds, stays, turnbuckles, toggles"
+  },
+  {
+    "id": "w03",
+    "category": "Deck & Rig",
+    "item": "Inspect furling systems — jib and main — for smooth operation"
+  },
+  {
+    "id": "w04",
+    "category": "Deck & Rig",
+    "item": "Check all blocks, clutches and winches"
+  },
+  {
+    "id": "w05",
+    "category": "Deck & Rig",
+    "item": "Check electric winches — operation and deck connections"
+  },
+  {
+    "id": "w06",
+    "category": "Deck & Rig",
+    "item": "Inspect mast base, deck fittings and chainplates"
+  },
+  {
+    "id": "w07",
+    "category": "Deck & Rig",
+    "item": "Check anchor, chain and windlass operation"
+  },
+  {
+    "id": "w08",
+    "category": "Deck & Rig",
+    "item": "Inspect stanchions, lifelines and jackstays"
+  },
+  {
+    "id": "w09",
+    "category": "Engine",
+    "item": "Check engine oil level"
+  },
+  {
+    "id": "w10",
+    "category": "Engine",
+    "item": "Check coolant level"
+  },
+  {
+    "id": "w11",
+    "category": "Engine",
+    "item": "Check raw water strainer — clear if needed"
+  },
+  {
+    "id": "w12",
+    "category": "Engine",
+    "item": "Check bilges — note any unusual ingress"
+  },
+  {
+    "id": "w13",
+    "category": "Engine",
+    "item": "Test automatic bilge pumps — float switch operation"
+  },
+  {
+    "id": "w14",
+    "category": "Engine",
+    "item": "Run engine — check for noise, smoke or overheating"
+  },
+  {
+    "id": "w15",
+    "category": "Engine",
+    "item": "Check alternator charging voltage"
+  },
+  {
+    "id": "w16",
+    "category": "Bow Thruster",
+    "item": "Test operation — port and starboard"
+  },
+  {
+    "id": "w17",
+    "category": "Bow Thruster",
+    "item": "Check for unusual noise or reduced thrust"
+  },
+  {
+    "id": "w18",
+    "category": "Generator",
+    "item": "Run generator under load — check for smoke or overheating"
+  },
+  {
+    "id": "w19",
+    "category": "Generator",
+    "item": "Check generator oil level"
+  },
+  {
+    "id": "w20",
+    "category": "Generator",
+    "item": "Check generator raw water strainer"
+  },
+  {
+    "id": "w21",
+    "category": "Generator",
+    "item": "Check output voltage — should read 230-240v"
+  },
+  {
+    "id": "w22",
+    "category": "24v Electrical",
+    "item": "Check battery state of charge — all banks"
+  },
+  {
+    "id": "w23",
+    "category": "24v Electrical",
+    "item": "Check alternator and battery charger output"
+  },
+  {
+    "id": "w24",
+    "category": "24v Electrical",
+    "item": "Inspect battery terminals for corrosion"
+  },
+  {
+    "id": "w25",
+    "category": "24v Electrical",
+    "item": "Test navigation lights"
+  },
+  {
+    "id": "w26",
+    "category": "24v Electrical",
+    "item": "Check VHF operation"
+  },
+  {
+    "id": "w27",
+    "category": "240v Shore Power",
+    "item": "Check shore power connection — cable and plug condition"
+  },
+  {
+    "id": "w28",
+    "category": "240v Shore Power",
+    "item": "Check RCD/circuit breakers — all functioning"
+  },
+  {
+    "id": "w29",
+    "category": "240v Shore Power",
+    "item": "Check shore power indicator light"
+  },
+  {
+    "id": "w30",
+    "category": "Electronics",
+    "item": "Check chartplotter operation and GPS fix"
+  },
+  {
+    "id": "w31",
+    "category": "Electronics",
+    "item": "Check AIS — transmitting and receiving"
+  },
+  {
+    "id": "w32",
+    "category": "Electronics",
+    "item": "Check depth sounder, wind instruments, autopilot"
+  },
+  {
+    "id": "w33",
+    "category": "Safety",
+    "item": "Inspect flares — in date and accessible"
+  },
+  {
+    "id": "w34",
+    "category": "Safety",
+    "item": "Check fire extinguishers — in date and accessible"
+  },
+  {
+    "id": "w35",
+    "category": "Safety",
+    "item": "Test manual bilge pump"
+  },
+  {
+    "id": "w36",
+    "category": "Below Decks",
+    "item": "Check all seacocks — operate and grease if stiff"
+  },
+  {
+    "id": "w37",
+    "category": "Below Decks",
+    "item": "Check stern gland — adjust drip rate if needed"
+  },
+  {
+    "id": "w38",
+    "category": "Below Decks",
+    "item": "Inspect hoses and clips for chafe or weeping"
+  },
+  {
+    "id": "w39",
+    "category": "Below Decks",
+    "item": "Check heads operation and holding tank level"
+  },
+  {
+    "id": "w40",
+    "category": "Domestic Systems",
+    "item": "Check pressurised water system — pressure, any air in lines"
+  },
+  {
+    "id": "w41",
+    "category": "Domestic Systems",
+    "item": "Check hot water calorifier — temperature and pressure relief valve"
+  },
+  {
+    "id": "w42",
+    "category": "Domestic Systems",
+    "item": "Check washing machine — hose connections and drain"
+  },
+  {
+    "id": "w43",
+    "category": "Domestic Systems",
+    "item": "Run air conditioning — check cooling and drainage"
+  },
+  {
+    "id": "w44",
+    "category": "Domestic Systems",
+    "item": "Check heating system — operation and fuel level"
+  }
+]
+const DEFAULT_MONTHLY = [
+  {
+    "id": "m01",
+    "category": "Rig & Sails",
+    "item": "Full rig inspection aloft — masthead, spreaders, sheaves"
+  },
+  {
+    "id": "m02",
+    "category": "Rig & Sails",
+    "item": "Inspect sails for UV damage, seam separation, batten pockets"
+  },
+  {
+    "id": "m03",
+    "category": "Rig & Sails",
+    "item": "Lubricate all blocks, furlers and tracks"
+  },
+  {
+    "id": "m04",
+    "category": "Rig & Sails",
+    "item": "Check boom vang, kicker and reefing lines end to end"
+  },
+  {
+    "id": "m05",
+    "category": "Rig & Sails",
+    "item": "Inspect electric winch motors, wiring and deck glands"
+  },
+  {
+    "id": "m06",
+    "category": "Engine",
+    "item": "Check and top up gearbox oil"
+  },
+  {
+    "id": "m07",
+    "category": "Engine",
+    "item": "Inspect raw water impeller — replace every 200 hours"
+  },
+  {
+    "id": "m08",
+    "category": "Engine",
+    "item": "Check belts — alternator, AC compressor"
+  },
+  {
+    "id": "m09",
+    "category": "Engine",
+    "item": "Check propeller shaft — play, alignment, anode condition"
+  },
+  {
+    "id": "m10",
+    "category": "Engine",
+    "item": "Inspect cutlass bearing"
+  },
+  {
+    "id": "m11",
+    "category": "Engine",
+    "item": "Check fuel filters — primary and secondary"
+  },
+  {
+    "id": "m12",
+    "category": "Bow Thruster",
+    "item": "Inspect thruster tunnel anode"
+  },
+  {
+    "id": "m13",
+    "category": "Bow Thruster",
+    "item": "Check thruster shaft seal for weeping"
+  },
+  {
+    "id": "m14",
+    "category": "Bow Thruster",
+    "item": "Inspect motor mounting bolts"
+  },
+  {
+    "id": "m15",
+    "category": "Generator",
+    "item": "Check and top up generator oil"
+  },
+  {
+    "id": "m16",
+    "category": "Generator",
+    "item": "Inspect generator raw water impeller"
+  },
+  {
+    "id": "m17",
+    "category": "Generator",
+    "item": "Check generator fuel filter"
+  },
+  {
+    "id": "m18",
+    "category": "Generator",
+    "item": "Check exhaust system — water flow and hose condition"
+  },
+  {
+    "id": "m19",
+    "category": "Generator",
+    "item": "Log generator hours run"
+  },
+  {
+    "id": "m20",
+    "category": "24v Electrical",
+    "item": "Full battery capacity test"
+  },
+  {
+    "id": "m21",
+    "category": "24v Electrical",
+    "item": "Clean and tighten all battery terminals"
+  },
+  {
+    "id": "m22",
+    "category": "24v Electrical",
+    "item": "Test all automatic bilge pumps under load"
+  },
+  {
+    "id": "m23",
+    "category": "24v Electrical",
+    "item": "Check inverter operation"
+  },
+  {
+    "id": "m24",
+    "category": "240v Shore Power",
+    "item": "Inspect all 240v connections — galley, heads, AC, charger"
+  },
+  {
+    "id": "m25",
+    "category": "240v Shore Power",
+    "item": "Test all RCDs"
+  },
+  {
+    "id": "m26",
+    "category": "240v Shore Power",
+    "item": "Check shore power cable for wear"
+  },
+  {
+    "id": "m27",
+    "category": "240v Shore Power",
+    "item": "Check battery charger — output current"
+  },
+  {
+    "id": "m28",
+    "category": "Air Conditioning",
+    "item": "Clean sea water strainer"
+  },
+  {
+    "id": "m29",
+    "category": "Air Conditioning",
+    "item": "Clean or replace air filters"
+  },
+  {
+    "id": "m30",
+    "category": "Air Conditioning",
+    "item": "Inspect condensate drain — clear if blocked"
+  },
+  {
+    "id": "m31",
+    "category": "Air Conditioning",
+    "item": "Inspect seacock and raw water hose"
+  },
+  {
+    "id": "m32",
+    "category": "Heating",
+    "item": "Check diesel fuel supply and filter"
+  },
+  {
+    "id": "m33",
+    "category": "Heating",
+    "item": "Inspect exhaust outlet — clear, no carbon build-up"
+  },
+  {
+    "id": "m34",
+    "category": "Heating",
+    "item": "Check thermostat operation"
+  },
+  {
+    "id": "m35",
+    "category": "Water System",
+    "item": "Check accumulator tank pressure — typically 1.5-2 bar"
+  },
+  {
+    "id": "m36",
+    "category": "Water System",
+    "item": "Inspect all hose connections for weeping"
+  },
+  {
+    "id": "m37",
+    "category": "Water System",
+    "item": "Clean strainer on pump inlet"
+  },
+  {
+    "id": "m38",
+    "category": "Water System",
+    "item": "Sanitise water tank if not done in past 3 months"
+  },
+  {
+    "id": "m39",
+    "category": "Calorifier",
+    "item": "Check anode — replace if more than 50% depleted"
+  },
+  {
+    "id": "m40",
+    "category": "Calorifier",
+    "item": "Inspect pressure relief valve — operate briefly"
+  },
+  {
+    "id": "m41",
+    "category": "Calorifier",
+    "item": "Check immersion heater element"
+  },
+  {
+    "id": "m42",
+    "category": "Washing Machine",
+    "item": "Clean filter"
+  },
+  {
+    "id": "m43",
+    "category": "Washing Machine",
+    "item": "Check hose connections — inlet and drain"
+  },
+  {
+    "id": "m44",
+    "category": "Washing Machine",
+    "item": "Inspect door seal"
+  },
+  {
+    "id": "m45",
+    "category": "Electronics",
+    "item": "Update chartplotter charts if subscription current"
+  },
+  {
+    "id": "m46",
+    "category": "Electronics",
+    "item": "Test EPIRB — registered and in date"
+  },
+  {
+    "id": "m47",
+    "category": "Electronics",
+    "item": "Check liferaft service date"
+  },
+  {
+    "id": "m48",
+    "category": "Electronics",
+    "item": "Verify AIS MMSI and vessel data correct"
+  },
+  {
+    "id": "m49",
+    "category": "Electronics",
+    "item": "Test autopilot drive unit — rams, cables, feedback unit"
+  },
+  {
+    "id": "m50",
+    "category": "Hull & Deck",
+    "item": "Inspect hull below waterline — weed, osmosis, anodes"
+  },
+  {
+    "id": "m51",
+    "category": "Hull & Deck",
+    "item": "Check keel bolts — any weeping or rust staining"
+  },
+  {
+    "id": "m52",
+    "category": "Hull & Deck",
+    "item": "Inspect rudder bearings for play"
+  },
+  {
+    "id": "m53",
+    "category": "Hull & Deck",
+    "item": "Check all deck fittings — stanchion bases, cleats, winch bases"
+  },
+  {
+    "id": "m54",
+    "category": "Hull & Deck",
+    "item": "Lubricate all hatches and ports"
+  },
+  {
+    "id": "m55",
+    "category": "Safety",
+    "item": "Check first aid kit — stock and expiry dates"
+  },
+  {
+    "id": "m56",
+    "category": "Safety",
+    "item": "Confirm insurance, registration and safety certificate in date"
+  }
+]
+const newId = () => Math.random().toString(36).slice(2,10)
 
 export default function MaintenanceLogs() {
   const { user, userProfile } = useAuth()
   const [assignedYachts, setAssignedYachts] = useState([])
   const [loading, setLoading] = useState(true)
   const [selected, setSelected] = useState(null)
+  const [view, setView] = useState('overview')
+  const [checklistType, setChecklistType] = useState('weekly')
+  const [template, setTemplate] = useState(null)
+  const [checklistRun, setChecklistRun] = useState({})
+  const [submittingChecklist, setSubmittingChecklist] = useState(false)
+  const [emailOnSubmit, setEmailOnSubmit] = useState(false)
+  const [issues, setIssues] = useState([])
+  const [issuesLoading, setIssuesLoading] = useState(false)
+  const [resolvingIssue, setResolvingIssue] = useState(null)
+  const [fixText, setFixText] = useState('')
+  const [modelCount, setModelCount] = useState(0)
+  const [issueForm, setIssueForm] = useState({ title: '', description: '', system: 'Other' })
+  const [loggingIssue, setLoggingIssue] = useState(false)
+  const [newItemText, setNewItemText] = useState('')
+  const [newItemCategory, setNewItemCategory] = useState('Other')
 
-  useEffect(() => {
-    if (!user?.uid) return
-    loadAssignedYachts()
-  }, [user?.uid])
+  useEffect(() => { if (user?.uid) loadAssignedYachts() }, [user?.uid])
 
   async function loadAssignedYachts() {
     try {
@@ -22,91 +545,416 @@ export default function MaintenanceLogs() {
       const mine = all.filter(y => {
         if (y.id === user.uid) return true
         const crew = y.crew || {}
-        return (
-          (crew.linkedSkippers || []).includes(user.uid) ||
-          (crew.linkedGardiennes || []).includes(user.uid)
-        )
+        return (crew.linkedSkippers||[]).includes(user.uid) || (crew.linkedGardiennes||[]).includes(user.uid)
       })
       setAssignedYachts(mine)
-    } catch (e) { console.error(e) }
+    } catch(e) { console.error(e) }
     setLoading(false)
+  }
+
+  async function selectYacht(yacht) {
+    setSelected(yacht)
+    setView('overview')
+    setIssuesLoading(true)
+    try {
+      const { getDocs, collection } = await import('firebase/firestore')
+      const { db } = await import('../firebase')
+      const [issueList, tmpl, yachtsSnap] = await Promise.all([
+        getCrewIssues(yacht.id),
+        getChecklistTemplate(yacht.id),
+        getDocs(collection(db, 'yachts'))
+      ])
+      setIssues(issueList)
+      setTemplate(tmpl || { weekly: DEFAULT_WEEKLY, monthly: DEFAULT_MONTHLY })
+      setModelCount(yachtsSnap.docs.filter(d => d.data().model === yacht.model).length)
+    } catch(e) { console.error(e) }
+    setIssuesLoading(false)
   }
 
   function crewRole(yacht) {
     if (yacht.id === user.uid) return 'Owner'
     const crew = yacht.crew || {}
-    if ((crew.linkedSkippers || []).includes(user.uid)) return 'Skipper'
-    if ((crew.linkedGardiennes || []).includes(user.uid)) return 'Gardienne'
+    if ((crew.linkedSkippers||[]).includes(user.uid)) return 'Skipper'
+    if ((crew.linkedGardiennes||[]).includes(user.uid)) return 'Gardienne'
     return 'Crew'
   }
 
-  if (loading) return <div className="loading-screen"><div className="spinner" /></div>
+  function startChecklist(type) {
+    setChecklistType(type)
+    const run = {}
+    const items = type === 'weekly' ? template.weekly : template.monthly
+    items.forEach(item => { run[item.id] = { status: 'pending', comment: '' } })
+    issues.filter(i => i.status === 'open').forEach(issue => {
+      run['issue_' + issue.id] = { status: 'pending', comment: '' }
+    })
+    setChecklistRun(run)
+    setView('checklist')
+  }
 
-  return (
+  function setItemStatus(id, status) {
+    setChecklistRun(prev => ({ ...prev, [id]: { ...prev[id], status } }))
+  }
+  function setItemComment(id, comment) {
+    setChecklistRun(prev => ({ ...prev, [id]: { ...prev[id], comment } }))
+  }
+
+  async function submitChecklist() {
+    setSubmittingChecklist(true)
+    try {
+      const items = checklistType === 'weekly' ? template.weekly : template.monthly
+      for (const item of items) {
+        const run = checklistRun[item.id]
+        if (run?.status === 'issue') {
+          await postCrewIssue(selected.id, user.uid, {
+            title: item.item,
+            description: run.comment || 'Flagged during ' + checklistType + ' inspection',
+            system: item.category,
+            fromChecklist: true,
+          })
+        }
+      }
+      await saveCompletedChecklist(selected.id, {
+        type: checklistType,
+        completedBy: user.uid,
+        completedByName: userProfile?.name || user.email,
+        items: checklistRun,
+        emailSent: emailOnSubmit,
+      })
+      if (emailOnSubmit && selected.ownerEmail) {
+        const itemList = items.map(item => {
+          const r = checklistRun[item.id]
+          return item.item + ': ' + (r?.status||'pending') + (r?.comment ? ' — ' + r.comment : '')
+        }).join('\n')
+        await fetch('/api/send-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            to: selected.ownerEmail,
+            subject: (checklistType === 'weekly' ? 'Weekly' : 'Monthly') + ' inspection completed — ' + selected.name,
+            text: 'Completed by: ' + (userProfile?.name || user.email) + '\n\n' + itemList,
+          })
+        })
+      }
+      const updated = await getCrewIssues(selected.id)
+      setIssues(updated)
+      setView('overview')
+      alert('Checklist submitted' + (emailOnSubmit ? ' and email sent to owner.' : '.'))
+    } catch(e) { alert('Error: ' + e.message) }
+    setSubmittingChecklist(false)
+  }
+
+  function addTemplateItem() {
+    if (!newItemText.trim()) return
+    const item = { id: newId(), category: newItemCategory, item: newItemText.trim() }
+    const updated = { ...template, [checklistType]: [...(template[checklistType]||[]), item] }
+    setTemplate(updated)
+    saveChecklistTemplate(selected.id, updated)
+    setNewItemText('')
+  }
+
+  function removeTemplateItem(type, id) {
+    const updated = { ...template, [type]: template[type].filter(i => i.id !== id) }
+    setTemplate(updated)
+    saveChecklistTemplate(selected.id, updated)
+  }
+
+  async function submitIssue() {
+    if (!issueForm.title.trim()) return
+    setLoggingIssue(true)
+    try {
+      await postCrewIssue(selected.id, user.uid, issueForm)
+      const updated = await getCrewIssues(selected.id)
+      setIssues(updated)
+      setIssueForm({ title: '', description: '', system: 'Other' })
+      setView('overview')
+    } catch(e) { alert('Error: ' + e.message) }
+    setLoggingIssue(false)
+  }
+
+  async function submitResolve() {
+    if (!fixText.trim() || !resolvingIssue) return
+    try {
+      await resolveAndPublishIssue(selected.id, resolvingIssue.id, fixText, user.uid, selected.model, modelCount)
+      const updated = await getCrewIssues(selected.id)
+      setIssues(updated)
+      setResolvingIssue(null)
+      setFixText('')
+      setView('overview')
+      alert(modelCount >= 2
+        ? 'Issue resolved and posted to Issues & Fixes, attributed to ' + selected.model + '.'
+        : 'Issue resolved and posted to Issues & Fixes without model attribution — yours is the only ' + selected.model + ' registered.')
+    } catch(e) { alert('Error: ' + e.message) }
+  }
+
+  if (loading) return <div className="loading-screen"><div className="spinner"/></div>
+
+  // ── VESSEL LIST ─────────────────────────────────────────────────────────────
+  if (!selected) return (
     <div className="maintlogs-page">
       <div className="maintlogs-header">
         <h1>Maintenance Log{assignedYachts.length !== 1 ? 's' : ''}</h1>
         <p className="maintlogs-subtitle">
-          {assignedYachts.length === 0
-            ? 'No vessels assigned'
-            : assignedYachts.length === 1
-            ? '1 vessel assigned'
+          {assignedYachts.length === 0 ? 'No vessels assigned'
+            : assignedYachts.length === 1 ? '1 vessel assigned'
             : assignedYachts.length + ' vessels assigned'}
         </p>
       </div>
-
       {assignedYachts.length === 0 && (
         <div className="maintlogs-empty">
           <p>You are not currently linked as crew on any vessel.</p>
           <p>Ask the yacht owner to add you from their My Yacht page.</p>
         </div>
       )}
+      <div className="maintlogs-fleet">
+        {assignedYachts.map(yacht => (
+          <button key={yacht.id} className="maintlogs-card" onClick={() => selectYacht(yacht)}>
+            <div className="maintlogs-card-main">
+              <span className="maintlogs-boat-name">{yacht.name || 'Unnamed vessel'}</span>
+              <span className="maintlogs-model">{yacht.model || 'Unknown model'}</span>
+              {yacht.homeMarina?.name && <span className="maintlogs-marina">{yacht.homeMarina.name}{yacht.homeMarina.country ? ', ' + yacht.homeMarina.country : ''}</span>}
+            </div>
+            <div className="maintlogs-card-right">
+              <span className="maintlogs-role">{crewRole(yacht)}</span>
+              {yacht.flag && <span className="maintlogs-flag">{yacht.flag}</span>}
+              <span className="maintlogs-arrow">›</span>
+            </div>
+          </button>
+        ))}
+      </div>
+    </div>
+  )
 
-      {!selected && assignedYachts.length > 0 && (
-        <div className="maintlogs-fleet">
-          {assignedYachts.map(yacht => (
-            <button key={yacht.id} className="maintlogs-card" onClick={() => setSelected(yacht)}>
-              <div className="maintlogs-card-main">
-                <span className="maintlogs-boat-name">{yacht.name || 'Unnamed vessel'}</span>
-                <span className="maintlogs-model">{yacht.model || 'Unknown model'}</span>
-                {yacht.homeMarina?.name && (
-                  <span className="maintlogs-marina">{yacht.homeMarina.name}{yacht.homeMarina.country ? ', ' + yacht.homeMarina.country : ''}</span>
-                )}
+  const openIssues = issues.filter(i => i.status === 'open')
+  const resolvedIssues = issues.filter(i => i.status === 'resolved')
+  const currentItems = template ? (checklistType === 'weekly' ? template.weekly : template.monthly) : []
+
+  // ── OVERVIEW ────────────────────────────────────────────────────────────────
+  if (view === 'overview') return (
+    <div className="maintlogs-page">
+      <div className="maintlogs-header">
+        <button className="maintlogs-back" onClick={() => setSelected(null)}>‹ All vessels</button>
+        <h1>{selected.name}</h1>
+        <p className="maintlogs-subtitle">{selected.model}{selected.flag ? ' — ' + selected.flag : ''}</p>
+      </div>
+      <div className="mlog-action-grid">
+        <button className="mlog-action-btn" onClick={() => startChecklist('weekly')}>
+          <span className="mlog-action-title">Weekly Check</span>
+          <span className="mlog-action-desc">Run through weekly inspection</span>
+        </button>
+        <button className="mlog-action-btn" onClick={() => startChecklist('monthly')}>
+          <span className="mlog-action-title">Monthly Check</span>
+          <span className="mlog-action-desc">Run through monthly inspection</span>
+        </button>
+        <button className="mlog-action-btn mlog-action-issue" onClick={() => setView('log-issue')}>
+          <span className="mlog-action-title">Log an Issue</span>
+          <span className="mlog-action-desc">Report a problem to the crew</span>
+        </button>
+        <button className="mlog-action-btn" onClick={() => setView('template')}>
+          <span className="mlog-action-title">Edit Checklist</span>
+          <span className="mlog-action-desc">Customise inspection items</span>
+        </button>
+      </div>
+      {issuesLoading && <p className="mlog-loading">Loading...</p>}
+      {openIssues.length > 0 && (
+        <div className="mlog-section">
+          <h2>Outstanding Issues <span className="mlog-count">{openIssues.length}</span></h2>
+          {openIssues.map(issue => (
+            <div key={issue.id} className="mlog-issue-card mlog-issue-open">
+              <div className="mlog-issue-info">
+                <span className="mlog-issue-title">{issue.title}</span>
+                <span className="mlog-issue-system">{issue.system}</span>
+                {issue.description && <span className="mlog-issue-desc">{issue.description}</span>}
               </div>
-              <div className="maintlogs-card-right">
-                <span className="maintlogs-role">{crewRole(yacht)}</span>
-                {yacht.flag && <span className="maintlogs-flag">{yacht.flag}</span>}
-                <span className="maintlogs-arrow">›</span>
-              </div>
-            </button>
+              <button className="btn-resolve" onClick={() => { setResolvingIssue(issue); setView('resolve') }}>Mark resolved</button>
+            </div>
           ))}
         </div>
       )}
-
-      {selected && (
-        <div className="maintlogs-detail">
-          <button className="maintlogs-back" onClick={() => setSelected(null)}>
-            ‹ Back to vessels
-          </button>
-          <div className="maintlogs-detail-header">
-            <h2>{selected.name || 'Unnamed vessel'}</h2>
-            <span className="maintlogs-detail-model">{selected.model}{selected.flag ? ' — ' + selected.flag : ''}</span>
-          </div>
-          <div className="log-holding">
-            <div className="log-holding-lock">
-              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#c9a84c" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-              </svg>
-              <span className="log-holding-soon">Coming soon</span>
+      {resolvedIssues.length > 0 && (
+        <div className="mlog-section">
+          <h2>Resolved <span className="mlog-count">{resolvedIssues.length}</span></h2>
+          {resolvedIssues.map(issue => (
+            <div key={issue.id} className="mlog-issue-card mlog-issue-resolved">
+              <div className="mlog-issue-info">
+                <span className="mlog-issue-title">{issue.title}</span>
+                <span className="mlog-issue-system">{issue.system}</span>
+                {issue.fix && <span className="mlog-issue-fix">Fix: {issue.fix}</span>}
+              </div>
+              {issue.publishedToBoard && <span className="mlog-issue-shared">Shared with community</span>}
             </div>
-            <p className="log-holding-text">A private workspace for your yacht's crew team — owner, skippers and gardiennes together.</p>
-            <p className="log-holding-text">Log ongoing issues, track repairs and share updates across your team. Run through routine checks — engine, rigging, safety equipment, bilges — and sign them off watch by watch.</p>
-            <p className="log-holding-text">Issues logged here are automatically shared anonymously to the community Issues &amp; Fixes board, attributed only to your Swan model. If yours is the only vessel of that model registered, the issue will be held privately until a second vessel of the same model joins the community.</p>
-            <p className="log-holding-restricted">Access is restricted to your linked crew only.</p>
-          </div>
+          ))}
         </div>
+      )}
+      {issues.length === 0 && !issuesLoading && (
+        <p className="mlog-no-issues">No issues logged. Use the checklist or log an issue above.</p>
       )}
     </div>
   )
+
+  // ── LOG ISSUE ───────────────────────────────────────────────────────────────
+  if (view === 'log-issue') return (
+    <div className="maintlogs-page">
+      <div className="maintlogs-header">
+        <button className="maintlogs-back" onClick={() => setView('overview')}>‹ Back</button>
+        <h1>Log an Issue</h1>
+        <p className="maintlogs-subtitle">{selected.name}</p>
+      </div>
+      <div className="mlog-form">
+        <div className="mlog-field">
+          <label>Title</label>
+          <input value={issueForm.title} onChange={e => setIssueForm(p=>({...p,title:e.target.value}))} placeholder="Brief description of the issue" autoFocus />
+        </div>
+        <div className="mlog-field">
+          <label>System</label>
+          <select value={issueForm.system} onChange={e => setIssueForm(p=>({...p,system:e.target.value}))}>
+            {SYSTEMS.map(s => <option key={s} value={s}>{s}</option>)}
+          </select>
+        </div>
+        <div className="mlog-field">
+          <label>Details</label>
+          <textarea value={issueForm.description} onChange={e => setIssueForm(p=>({...p,description:e.target.value}))}
+            placeholder="Describe the issue in detail — when first noticed, any relevant symptoms..." rows={4} />
+        </div>
+        <p className="mlog-privacy-note">This issue is private to your crew until marked as resolved, at which point it will be shared anonymously with the community{modelCount < 2 ? ' without model attribution — yours is the only ' + selected.model + ' registered' : ', attributed to ' + selected.model}.</p>
+        <div className="mlog-form-actions">
+          <button onClick={() => setView('overview')}>Cancel</button>
+          <button className="btn-primary-mlog" onClick={submitIssue} disabled={loggingIssue || !issueForm.title.trim()}>
+            {loggingIssue ? 'Saving...' : 'Log Issue'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+
+  // ── RESOLVE ─────────────────────────────────────────────────────────────────
+  if (view === 'resolve' && resolvingIssue) return (
+    <div className="maintlogs-page">
+      <div className="maintlogs-header">
+        <button className="maintlogs-back" onClick={() => { setView('overview'); setResolvingIssue(null) }}>‹ Back</button>
+        <h1>Mark as Resolved</h1>
+        <p className="maintlogs-subtitle">{resolvingIssue.title}</p>
+      </div>
+      <div className="mlog-form">
+        <div className="mlog-issue-card mlog-issue-open" style={{marginBottom:'1.5rem'}}>
+          <div className="mlog-issue-info">
+            <span className="mlog-issue-title">{resolvingIssue.title}</span>
+            <span className="mlog-issue-system">{resolvingIssue.system}</span>
+            {resolvingIssue.description && <span className="mlog-issue-desc">{resolvingIssue.description}</span>}
+          </div>
+        </div>
+        <div className="mlog-field">
+          <label>How was it fixed?</label>
+          <textarea value={fixText} onChange={e => setFixText(e.target.value)}
+            placeholder="Describe the fix in detail — parts used, procedure, any notes for future reference..." rows={5} autoFocus />
+        </div>
+        <p className="mlog-privacy-note">On submission this will be posted to the community Issues &amp; Fixes board{modelCount >= 2 ? ', attributed to ' + selected.model + '.' : ' without model attribution — yours is the only ' + selected.model + ' registered.'}</p>
+        <div className="mlog-form-actions">
+          <button onClick={() => { setView('overview'); setResolvingIssue(null) }}>Cancel</button>
+          <button className="btn-primary-mlog" onClick={submitResolve} disabled={!fixText.trim()}>Resolve &amp; Share with Community</button>
+        </div>
+      </div>
+    </div>
+  )
+
+  // ── CHECKLIST RUN ───────────────────────────────────────────────────────────
+  if (view === 'checklist') return (
+    <div className="maintlogs-page">
+      <div className="maintlogs-header">
+        <button className="maintlogs-back" onClick={() => setView('overview')}>‹ Back</button>
+        <h1>{checklistType === 'weekly' ? 'Weekly' : 'Monthly'} Inspection</h1>
+        <p className="maintlogs-subtitle">{selected.name}</p>
+      </div>
+      {openIssues.length > 0 && (
+        <div className="mlog-section">
+          <h2>Outstanding Issues</h2>
+          <p className="mlog-section-hint">Tap "Mark resolved" to enter fix details and share with community.</p>
+          {openIssues.map(issue => (
+            <div key={issue.id} className="mlog-check-item mlog-check-issue">
+              <div className="mlog-check-left">
+                <button className="mlog-status-btn" onClick={() => { setResolvingIssue(issue); setView('resolve') }}>Mark resolved</button>
+                <div>
+                  <span className="mlog-check-text">{issue.title}</span>
+                  <span className="mlog-check-category" style={{display:'block'}}>{issue.system} — outstanding issue</span>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+      <div className="mlog-section">
+        <h2>Inspection Items</h2>
+        {[...new Set(currentItems.map(i => i.category))].map(cat => (
+          <div key={cat} className="mlog-check-category-group">
+            <h3 className="mlog-check-category-header">{cat}</h3>
+            {currentItems.filter(i => i.category === cat).map(item => {
+              const run = checklistRun[item.id] || {}
+              return (
+                <div key={item.id} className={'mlog-check-item' + (run.status==='ok'?' mlog-check-done':'') + (run.status==='issue'?' mlog-check-flagged':'')}>
+                  <div className="mlog-check-left">
+                    <div className="mlog-check-status-btns">
+                      <button className={'mlog-status-btn'+(run.status==='ok'?' active-ok':'')} onClick={() => setItemStatus(item.id, run.status==='ok'?'pending':'ok')}>Ok</button>
+                      <button className={'mlog-status-btn'+(run.status==='issue'?' active-issue':'')} onClick={() => setItemStatus(item.id, run.status==='issue'?'pending':'issue')}>Issue</button>
+                    </div>
+                    <span className="mlog-check-text">{item.item}</span>
+                  </div>
+                  {run.status === 'issue' && (
+                    <input className="mlog-check-comment" placeholder="Describe the issue..."
+                      value={run.comment||''} onChange={e => setItemComment(item.id, e.target.value)} />
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        ))}
+      </div>
+      <div className="mlog-submit-section">
+        <div className="mlog-email-toggle">
+          <label className="ios-toggle">
+            <input type="checkbox" checked={emailOnSubmit} onChange={e => setEmailOnSubmit(e.target.checked)} />
+            <span className="toggle-slider" />
+          </label>
+          <span>Email summary to owner on submission</span>
+        </div>
+        <button className="btn-primary-mlog btn-submit-checklist" onClick={submitChecklist} disabled={submittingChecklist}>
+          {submittingChecklist ? 'Submitting...' : 'Submit Completed Checklist'}
+        </button>
+      </div>
+    </div>
+  )
+
+  // ── EDIT TEMPLATE ───────────────────────────────────────────────────────────
+  if (view === 'template') return (
+    <div className="maintlogs-page">
+      <div className="maintlogs-header">
+        <button className="maintlogs-back" onClick={() => setView('overview')}>‹ Back</button>
+        <h1>Edit Checklist</h1>
+        <p className="maintlogs-subtitle">{selected.name}</p>
+      </div>
+      <div className="mlog-template-tabs">
+        <button className={'mlog-tab'+(checklistType==='weekly'?' active':'')} onClick={() => setChecklistType('weekly')}>Weekly</button>
+        <button className={'mlog-tab'+(checklistType==='monthly'?' active':'')} onClick={() => setChecklistType('monthly')}>Monthly</button>
+      </div>
+      <div className="mlog-add-item-form">
+        <select value={newItemCategory} onChange={e => setNewItemCategory(e.target.value)}>
+          {SYSTEMS.map(s => <option key={s} value={s}>{s}</option>)}
+        </select>
+        <input value={newItemText} onChange={e => setNewItemText(e.target.value)}
+          placeholder="New checklist item..." onKeyDown={e => e.key==='Enter' && addTemplateItem()} />
+        <button onClick={addTemplateItem} disabled={!newItemText.trim()}>Add</button>
+      </div>
+      {[...new Set(currentItems.map(i => i.category))].map(cat => (
+        <div key={cat} className="mlog-check-category-group">
+          <h3 className="mlog-check-category-header">{cat}</h3>
+          {currentItems.filter(i => i.category === cat).map(item => (
+            <div key={item.id} className="mlog-template-item">
+              <span>{item.item}</span>
+              <button className="btn-remove-item" onClick={() => removeTemplateItem(checklistType, item.id)}>Remove</button>
+            </div>
+          ))}
+        </div>
+      ))}
+    </div>
+  )
+
+  return null
 }

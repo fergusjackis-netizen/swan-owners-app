@@ -1,184 +1,88 @@
-
 .maintlogs-page {
-  padding: 1.5rem 1rem 4rem;
-  max-width: 600px;
+  padding: 1.5rem 1rem 5rem;
+  max-width: 640px;
   margin: 0 auto;
   font-family: Georgia, serif;
   color: #e8dcc8;
 }
-
-.maintlogs-header {
-  margin-bottom: 1.75rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid #1e2d4a;
-}
-
-.maintlogs-header h1 {
-  font-size: 1.5rem;
-  color: #c9a84c;
-  margin: 0 0 0.25rem;
-}
-
-.maintlogs-subtitle {
-  font-size: 0.8rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: #6b8cae;
-  margin: 0;
-}
-
-.maintlogs-empty {
-  text-align: center;
-  padding: 3rem 1rem;
-  color: #6b8cae;
-  font-size: 0.9rem;
-  line-height: 1.7;
-}
-
-.maintlogs-fleet {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.maintlogs-card {
-  width: 100%;
-  background: #0d1526;
-  border: 1px solid #1e2d4a;
-  padding: 1rem 1.1rem;
-  cursor: pointer;
-  text-align: left;
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  transition: border-color 0.15s;
-  font-family: Georgia, serif;
-}
-
-.maintlogs-card:hover {
-  border-color: #c9a84c44;
-}
-
-.maintlogs-card-main {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 0.2rem;
-}
-
-.maintlogs-boat-name {
-  font-size: 1rem;
-  color: #e8dcc8;
-}
-
-.maintlogs-model {
-  font-size: 0.78rem;
-  color: #6b8cae;
-}
-
-.maintlogs-card-meta {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 0.2rem;
-}
-
-.maintlogs-role {
-  font-size: 0.68rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: #4caf78;
-  border: 1px solid #4caf78;
-  padding: 0.1rem 0.35rem;
-}
-
-.maintlogs-flag {
-  font-size: 0.75rem;
-  color: #6b8cae;
-}
-
-.maintlogs-marina {
-  font-size: 0.72rem;
-  color: #6b8cae;
-  font-style: italic;
-}
-
-.maintlogs-arrow {
-  color: #c9a84c;
-  font-size: 1.4rem;
-  line-height: 1;
-}
-
-.maintlogs-back {
-  background: none;
-  border: none;
-  color: #6b8cae;
-  font-family: Georgia, serif;
-  font-size: 0.85rem;
-  cursor: pointer;
-  padding: 0;
-  margin-bottom: 1.25rem;
-  display: block;
-}
-
+.maintlogs-header { margin-bottom: 1.75rem; padding-bottom: 1rem; border-bottom: 1px solid #1e2d4a; }
+.maintlogs-header h1 { font-size: 1.5rem; color: #c9a84c; margin: 0 0 0.25rem; }
+.maintlogs-subtitle { font-size: 0.8rem; letter-spacing: 0.06em; color: #6b8cae; margin: 0; }
+.maintlogs-back { background: none; border: none; color: #6b8cae; font-family: Georgia, serif; font-size: 0.85rem; cursor: pointer; padding: 0; margin-bottom: 0.75rem; display: block; }
 .maintlogs-back:hover { color: #c9a84c; }
-
-.maintlogs-detail-header {
-  margin-bottom: 1.5rem;
-  padding-bottom: 0.75rem;
-  border-bottom: 1px solid #1e2d4a;
-}
-
-.maintlogs-detail-header h2 {
-  font-size: 1.3rem;
-  color: #c9a84c;
-  margin: 0 0 0.2rem;
-}
-
-.maintlogs-detail-model {
-  font-size: 0.8rem;
-  color: #6b8cae;
-  letter-spacing: 0.05em;
-}
-
-/* Reuse holding styles from MyYacht */
-.log-holding {
-  border: 1px dashed #1e2d4a;
-  background: #0a0f1e;
-  padding: 1.25rem;
-}
-
-.log-holding-inner { padding: 0.5rem 0; }
-
-.log-holding-lock {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  margin-bottom: 1.25rem;
-}
-
-.log-holding-soon {
-  font-size: 0.72rem;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: #c9a84c;
-  border: 1px solid #c9a84c44;
-  padding: 0.2rem 0.6rem;
-}
-
-.log-holding-text {
-  font-size: 0.88rem;
-  color: #6b8cae;
-  line-height: 1.7;
-  margin-bottom: 0.75rem;
-  font-style: italic;
-}
-
-.log-holding-restricted {
-  color: #4a6a8a;
-  font-size: 0.78rem;
-  margin-bottom: 0;
-  border-top: 1px solid #1e2d4a;
-  padding-top: 0.75rem;
-  margin-top: 0.25rem;
-}
+.maintlogs-empty { text-align: center; padding: 3rem 1rem; color: #6b8cae; font-size: 0.9rem; line-height: 1.7; }
+.maintlogs-fleet { display: flex; flex-direction: column; gap: 0.5rem; }
+.maintlogs-card { width: 100%; background: #0d1526; border: 1px solid #1e2d4a; padding: 1rem 1.1rem; cursor: pointer; text-align: left; display: flex; align-items: center; gap: 1rem; font-family: Georgia, serif; transition: border-color 0.15s; }
+.maintlogs-card:hover { border-color: #c9a84c44; }
+.maintlogs-card-main { flex: 1; display: flex; flex-direction: column; gap: 0.2rem; }
+.maintlogs-boat-name { font-size: 1rem; color: #e8dcc8; }
+.maintlogs-model { font-size: 0.78rem; color: #6b8cae; }
+.maintlogs-marina { font-size: 0.72rem; color: #6b8cae; font-style: italic; }
+.maintlogs-card-right { display: flex; flex-direction: column; align-items: flex-end; gap: 0.2rem; }
+.maintlogs-role { font-size: 0.68rem; letter-spacing: 0.08em; text-transform: uppercase; color: #4caf78; border: 1px solid #4caf78; padding: 0.1rem 0.35rem; }
+.maintlogs-flag { font-size: 0.75rem; color: #6b8cae; }
+.maintlogs-arrow { color: #c9a84c; font-size: 1.4rem; line-height: 1; }
+.mlog-action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 2rem; }
+.mlog-action-btn { background: #0d1526; border: 1px solid #1e2d4a; padding: 1rem; cursor: pointer; text-align: left; font-family: Georgia, serif; display: flex; flex-direction: column; gap: 0.3rem; transition: border-color 0.15s; }
+.mlog-action-btn:hover { border-color: #c9a84c44; }
+.mlog-action-issue { border-color: #c9a84c33; }
+.mlog-action-title { font-size: 0.88rem; color: #c9a84c; letter-spacing: 0.04em; }
+.mlog-action-desc { font-size: 0.75rem; color: #6b8cae; }
+.mlog-section { margin-bottom: 2rem; }
+.mlog-section h2 { font-size: 0.8rem; letter-spacing: 0.1em; text-transform: uppercase; color: #6b8cae; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem; }
+.mlog-section-hint { font-size: 0.78rem; color: #6b8cae; font-style: italic; margin-bottom: 0.75rem; }
+.mlog-count { background: #1e2d4a; color: #c9a84c; font-size: 0.7rem; padding: 0.1rem 0.4rem; border-radius: 10px; }
+.mlog-issue-card { display: flex; align-items: flex-start; justify-content: space-between; padding: 0.75rem 0.9rem; margin-bottom: 0.4rem; gap: 0.75rem; border: 1px solid; }
+.mlog-issue-open { background: #0d1526; border-color: #c9a84c33; }
+.mlog-issue-resolved { background: #0a1520; border-color: #1e2d4a; opacity: 0.7; }
+.mlog-issue-info { flex: 1; display: flex; flex-direction: column; gap: 0.2rem; }
+.mlog-issue-title { font-size: 0.9rem; color: #e8dcc8; }
+.mlog-issue-system { font-size: 0.7rem; letter-spacing: 0.06em; text-transform: uppercase; color: #6b8cae; }
+.mlog-issue-desc { font-size: 0.78rem; color: #6b8cae; font-style: italic; margin-top: 0.2rem; }
+.mlog-issue-fix { font-size: 0.78rem; color: #4caf78; font-style: italic; margin-top: 0.2rem; }
+.mlog-issue-shared { font-size: 0.65rem; color: #4caf78; white-space: nowrap; }
+.btn-resolve { background: none; border: 1px solid #c9a84c; color: #c9a84c; font-family: Georgia, serif; font-size: 0.75rem; padding: 0.3rem 0.6rem; cursor: pointer; white-space: nowrap; }
+.mlog-no-issues { color: #6b8cae; font-size: 0.85rem; font-style: italic; text-align: center; padding: 2rem 0; }
+.mlog-loading { color: #6b8cae; font-size: 0.85rem; font-style: italic; }
+.mlog-form { display: flex; flex-direction: column; gap: 1.25rem; }
+.mlog-field { display: flex; flex-direction: column; gap: 0.4rem; }
+.mlog-field label { font-size: 0.75rem; letter-spacing: 0.08em; text-transform: uppercase; color: #6b8cae; }
+.mlog-field input, .mlog-field select, .mlog-field textarea { background: #0d1526; border: 1px solid #1e2d4a; color: #e8dcc8; padding: 0.5rem 0.7rem; font-family: Georgia, serif; font-size: 0.9rem; }
+.mlog-field textarea { resize: vertical; }
+.mlog-privacy-note { font-size: 0.78rem; color: #6b8cae; font-style: italic; line-height: 1.6; border-left: 2px solid #1e2d4a; padding-left: 0.75rem; }
+.mlog-form-actions { display: flex; gap: 0.75rem; justify-content: flex-end; }
+.mlog-form-actions button { background: none; border: 1px solid #6b8cae; color: #6b8cae; padding: 0.4rem 1rem; cursor: pointer; font-family: Georgia, serif; font-size: 0.85rem; }
+.btn-primary-mlog { border-color: #c9a84c !important; color: #c9a84c !important; }
+.btn-primary-mlog:disabled { opacity: 0.4; cursor: not-allowed; }
+.mlog-check-category-group { margin-bottom: 1.25rem; }
+.mlog-check-category-header { font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; color: #6b8cae; margin-bottom: 0.4rem; padding-bottom: 0.3rem; border-bottom: 1px solid #1e2d4a; }
+.mlog-check-item { padding: 0.6rem 0.75rem; margin-bottom: 0.3rem; background: #0d1526; border: 1px solid #1a2540; display: flex; flex-direction: column; gap: 0.4rem; }
+.mlog-check-done { border-color: #4caf7844 !important; background: #0a1a12 !important; }
+.mlog-check-flagged { border-color: #c9a84c44 !important; background: #1a1408 !important; }
+.mlog-check-issue { border-color: #c9a84c33; }
+.mlog-check-left { display: flex; align-items: flex-start; gap: 0.6rem; }
+.mlog-check-status-btns { display: flex; gap: 0.3rem; flex-shrink: 0; }
+.mlog-status-btn { background: none; border: 1px solid #1e2d4a; color: #6b8cae; font-size: 0.7rem; padding: 0.2rem 0.45rem; cursor: pointer; font-family: Georgia, serif; white-space: nowrap; }
+.active-ok { border-color: #4caf78 !important; color: #4caf78 !important; }
+.active-issue { border-color: #c9a84c !important; color: #c9a84c !important; }
+.mlog-check-text { font-size: 0.85rem; color: #e8dcc8; line-height: 1.4; }
+.mlog-check-category { font-size: 0.7rem; color: #6b8cae; }
+.mlog-check-comment { width: 100%; background: #141f38; border: 1px solid #1e2d4a; color: #e8dcc8; padding: 0.35rem 0.5rem; font-family: Georgia, serif; font-size: 0.82rem; box-sizing: border-box; }
+.mlog-submit-section { margin-top: 2rem; display: flex; flex-direction: column; gap: 1rem; padding-top: 1.5rem; border-top: 1px solid #1e2d4a; }
+.mlog-email-toggle { display: flex; align-items: center; gap: 0.75rem; font-size: 0.85rem; color: #6b8cae; }
+.btn-submit-checklist { padding: 0.75rem !important; text-align: center; font-size: 0.9rem !important; letter-spacing: 0.05em; }
+.mlog-template-tabs { display: flex; margin-bottom: 1.5rem; border-bottom: 1px solid #1e2d4a; }
+.mlog-tab { background: none; border: none; border-bottom: 2px solid transparent; color: #6b8cae; font-family: Georgia, serif; font-size: 0.85rem; padding: 0.5rem 1.25rem; cursor: pointer; margin-bottom: -1px; }
+.mlog-tab.active { color: #c9a84c; border-bottom-color: #c9a84c; }
+.mlog-add-item-form { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
+.mlog-add-item-form select, .mlog-add-item-form input { background: #0d1526; border: 1px solid #1e2d4a; color: #e8dcc8; padding: 0.4rem 0.6rem; font-family: Georgia, serif; font-size: 0.85rem; }
+.mlog-add-item-form input { flex: 1; min-width: 150px; }
+.mlog-add-item-form button { background: none; border: 1px solid #c9a84c; color: #c9a84c; padding: 0.4rem 0.8rem; cursor: pointer; font-family: Georgia, serif; }
+.mlog-template-item { display: flex; align-items: center; justify-content: space-between; padding: 0.5rem 0.75rem; margin-bottom: 0.3rem; background: #0d1526; border: 1px solid #1a2540; font-size: 0.85rem; color: #e8dcc8; gap: 0.5rem; }
+.btn-remove-item { background: none; border: 1px solid #8b2020; color: #c04040; font-size: 0.7rem; padding: 0.15rem 0.4rem; cursor: pointer; font-family: Georgia, serif; white-space: nowrap; flex-shrink: 0; }
+.ios-toggle { position: relative; display: inline-block; width: 44px; height: 26px; flex-shrink: 0; }
+.ios-toggle input { opacity: 0; width: 0; height: 0; }
+.toggle-slider { position: absolute; cursor: pointer; inset: 0; background: #1e2d4a; border-radius: 26px; transition: 0.3s; }
+.toggle-slider:before { content: ''; position: absolute; height: 20px; width: 20px; left: 3px; bottom: 3px; background: #6b8cae; border-radius: 50%; transition: 0.3s; }
+.ios-toggle input:checked + .toggle-slider { background: #c9a84c33; }
+.ios-toggle input:checked + .toggle-slider:before { transform: translateX(18px); background: #c9a84c; }
