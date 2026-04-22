@@ -89,7 +89,22 @@ export default function BulkDocumentUpload({ yachtId, onComplete }) {
     const doneList = []
     const errorList = []
 
+    // Get existing filenames to avoid duplicates
+    let existingNames = new Set()
+    try {
+      const { getVesselDocuments } = await import('../services/firestore')
+      const existing = await getVesselDocuments(yachtId)
+      existingNames = new Set(existing.map(d => d.filename))
+    } catch(e) { console.error('Could not check existing docs', e) }
+
     for (const f of files) {
+      // Skip if already uploaded
+      if (existingNames.has(f.filename)) {
+        console.log('SKIP duplicate: ' + f.filename)
+        doneList.push(f.id)
+        setDone([...doneList])
+        continue
+      }
       try {
         const safeName = f.filename.replace(/[^a-zA-Z0-9._\- ]/g, '_')
         const storagePath = 'yachts/' + yachtId + '/documents/' + f.category + '/' + (f.manufacturer ? f.manufacturer + '/' : '') + safeName
