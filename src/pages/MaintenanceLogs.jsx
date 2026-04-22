@@ -696,6 +696,71 @@ export default function MaintenanceLogs() {
     } catch(e) { alert('Error: ' + e.message) }
   }
 
+  function getRelevantDocs(query, docs) {
+    const q = query.toLowerCase()
+    const keywords = {
+      'engine': ['engine', 'motor', 'yanmar', 'diesel', 'fuel', 'cooling', 'oil', 'impeller', 'raw water', 'exhaust', 'gearbox'],
+      'electrical': ['electrical', 'electric', 'battery', 'charge', 'shore power', 'generator', 'inverter', 'fuse', 'circuit', 'wiring', '24v', '240v', 'volt'],
+      'plumbing': ['water', 'pump', 'plumb', 'pipe', 'hose', 'seacock', 'bilge', 'tank', 'fresh water', 'grey water', 'black water', 'heads', 'toilet'],
+      'ac': ['ac', 'air con', 'cooling', 'dometic', 'refriger', 'temperature', 'aircon', 'air-con'],
+      'heating': ['heating', 'heat', 'webasto', 'warm', 'temperature'],
+      'rig': ['rig', 'sail', 'mast', 'boom', 'shroud', 'stay', 'halyard', 'sheet', 'winch', 'furler', 'jib', 'main'],
+      'navigation': ['nav', 'gps', 'chart', 'plotter', 'ais', 'vhf', 'radio', 'nmea', 'autopilot', 'pilot', 'compass'],
+      'hull': ['hull', 'keel', 'rudder', 'steering', 'helm', 'through-hull', 'seacock'],
+      'deck': ['deck', 'anchor', 'windlass', 'winch', 'stanchion', 'lifeline'],
+      'thruster': ['thruster', 'bow thruster', 'lateral', 'quick'],
+      'generator': ['generator', 'genset', 'gen set', 'shore power'],
+    }
+    
+    // Find matching categories
+    const matchingCats = new Set()
+    for (const [cat, words] of Object.entries(keywords)) {
+      if (words.some(w => q.includes(w))) matchingCats.add(cat)
+    }
+    
+    // Score each document
+    const scored = docs.map(doc => {
+      const name = (doc.displayName || doc.filename || '').toLowerCase()
+      const cat = (doc.category || '').toLowerCase()
+      let score = 0
+      
+      // Direct query word match in filename
+      const queryWords = q.split(' ').filter(w => w.length > 3)
+      queryWords.forEach(w => { if (name.includes(w)) score += 3 })
+      
+      // Category match
+      for (const [catKey, words] of Object.entries(keywords)) {
+        if (matchingCats.has(catKey)) {
+          if (words.some(w => name.includes(w) || cat.includes(w))) score += 2
+        }
+      }
+      
+      return { ...doc, score }
+    })
+    
+    // Return top 4 most relevant docs with score > 0
+    return scored
+      .filter(d => d.score > 0)
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 4)
+  }
+
+  async function fetchPdfAsBase64(url) {
+    try {
+      const response = await fetch(url)
+      const blob = await response.blob()
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader()
+        reader.onload = () => resolve(reader.result.split(',')[1])
+        reader.onerror = reject
+        reader.readAsDataURL(blob)
+      })
+    } catch(e) {
+      console.error('Failed to fetch PDF:', e)
+      return null
+    }
+  }
+
   async function sendChat() {
     if ((!chatInput.trim() && !chatImage) || chatLoading) return
     const userMsg = chatInput.trim()
@@ -737,12 +802,28 @@ export default function MaintenanceLogs() {
         'Keep asking for more information and photos until you are fully confident in your diagnosis. Never stop at one question if more information would help.',
       ].filter(Boolean).join(' ')
 
+      // Fetch relevant PDFs
+      let documents = []
+      if (vesselDocs.length > 0 && !imgToSend) {
+        const relevantDocs = getRelevantDocs(userMsg, vesselDocs)
+        if (relevantDocs.length > 0) {
+          const fetched = await Promise.all(
+            relevantDocs.map(async doc => {
+              const base64 = await fetchPdfAsBase64(doc.url)
+              return base64 ? { name: doc.displayName || doc.filename, category: doc.category, base64 } : null
+            })
+          )
+          documents = fetched.filter(Boolean)
+        }
+      }
+
       const response = await fetch('/api/ask', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           system,
-          max_tokens: 1000,
+          max_tokens: 2048,
+          documents,
           messages: [
             ...chatMessages.map(m => ({ role: m.role, content: m.content })),
             { role: 'user', content: userContent }
@@ -840,7 +921,7 @@ export default function MaintenanceLogs() {
         {chatOpen && (
           <div className="ask-claude-body">
             {vesselDocs.length > 0 && (
-              <p className="ask-claude-context-note">{vesselDocs.length} vessel document{vesselDocs.length !== 1 ? 's' : ''} available as context</p>
+              <p className="ask-claude-context-note">{vesselDocs.length} vessel documents available — relevant PDFs are read automatically per question</p>
             )}
             {chatMessages.length === 0 && (
               <p className="ask-claude-empty">Ask anything about maintaining your {selected?.model} — troubleshooting, procedures, parts, checks. I know about your outstanding issues{vesselDocs.length > 0 ? ' and have access to your vessel documents' : ''}.</p>
