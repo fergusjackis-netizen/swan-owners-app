@@ -219,6 +219,7 @@ export default function Models() {
   const displayModels = allModels.map(m => m.id || m.modelId).filter(Boolean)
   const inFleet = (name) => fleetModels.includes(name)
 
+  console.log('AUTH DEBUG:', { isAdmin, uid: userProfile?.uid, role: userProfile?.role })
   const canEdit = (item) => isAdmin || item.addedBy === userProfile?.uid
 
   return (
