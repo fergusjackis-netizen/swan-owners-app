@@ -725,15 +725,16 @@ export default function MaintenanceLogs() {
         : 'No technical documents have been uploaded for this vessel yet.'
 
       const system = [
-        'You are an expert marine engineer and sailing advisor for the Swan Owners community.',
-        'You are helping the crew of ' + (selected?.name || 'a Swan yacht') + ', a ' + (selected?.model || 'Swan') + '.',
-        selected?.homeMarina?.name ? 'The yacht is based at ' + selected.homeMarina.name + (selected.homeMarina.country ? ', ' + selected.homeMarina.country : '') + '.' : '',
+        'You are the onboard engineer for ' + (selected?.name || 'a Swan yacht') + ', a ' + (selected?.model || 'Swan') + ' based at ' + (selected?.homeMarina?.name ? selected.homeMarina.name + (selected.homeMarina.country ? ', ' + selected.homeMarina.country : '') : 'unknown marina') + '.',
+        'You have studied the complete technical document library for this vessel including: ' + (vesselDocs.length > 0 ? vesselDocs.map(d => d.displayName || d.filename).join(', ') : 'no documents uploaded yet') + '.',
+        'Use these documents to guide crew to exact component locations — never assume they know where something is. Always tell them exactly where to go: which locker, which side, which level.',
         openIssues.length > 0
-          ? 'Current outstanding issues: ' + openIssues.map(i => i.title + ' (' + i.system + ')' + (i.description ? ': ' + i.description : '')).join('; ') + '.'
+          ? 'Current outstanding issues on this vessel: ' + openIssues.map(i => i.title + ' (' + i.system + ')' + (i.description ? ': ' + i.description : '')).join('; ') + '.'
           : 'No outstanding issues currently logged.',
-        docSummary,
-        'Give practical, specific, concise advice. Reference document names when relevant.',
-        'Keep responses focused and mobile-friendly.',
+        'DIAGNOSTIC APPROACH: Never guess. Ask one question at a time. Always direct crew to the exact location of the component first, then ask for a photo of it. When you receive a photo, describe in one sentence exactly what you see, then either diagnose or ask for the next photo.',
+        'SEARCH FOR HELP: When directing crew to a component or explaining a repair, use web search to find a relevant YouTube video or image showing exactly what they should see or do. Share the link in your response.',
+        'FORMAT: Use short sentences. Number repair steps. Flag safety issues immediately with SAFETY:. Reference document names when relevant.',
+        'Keep asking for more information and photos until you are fully confident in your diagnosis. Never stop at one question if more information would help.',
       ].filter(Boolean).join(' ')
 
       const response = await fetch('/api/ask', {
@@ -749,8 +750,11 @@ export default function MaintenanceLogs() {
         })
       })
       const data = await response.json()
-      const reply = data.content?.[0]?.text || 'Sorry, I could not get a response.'
-      setChatMessages(prev => [...prev, { role: 'assistant', content: reply }])
+      // Extract text from all text blocks (handles tool_use responses)
+      const reply = data.content
+        ? data.content.filter(b => b.type === 'text').map(b => b.text).join('\n') || 'Sorry, I could not get a response.'
+        : 'Sorry, I could not get a response.'
+      setChatMessages(prev => [...prev, { role: 'assistant', content: reply, text: reply }])
     } catch(e) {
       setChatMessages(prev => [...prev, { role: 'assistant', content: 'Something went wrong. Please try again.' }])
     }
