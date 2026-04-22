@@ -89,18 +89,18 @@ export default function Models() {
             fields: (s.fields || []).map(f => ({
               ...f,
               id: newId(),
-              addedBy: userProfile?.name || 'Unknown',
+              addedBy: userProfile?.uid || '',
               addedAt: new Date().toISOString(),
               copiedFrom: copyFrom
             })),
-            addedBy: userProfile?.name || 'Unknown',
+            addedBy: userProfile?.uid || '',
             addedAt: new Date().toISOString(),
             copiedFrom: copyFrom
           }))
           base.rigging = (src.rigging || []).map(t => ({
             ...t,
             id: newId(),
-            addedBy: userProfile?.name || 'Unknown',
+            addedBy: userProfile?.uid || '',
             addedAt: new Date().toISOString(),
             copiedFrom: copyFrom,
             source: 'Copied from ' + copyFrom + ' — please verify values',
@@ -146,7 +146,7 @@ export default function Models() {
         id: newId(),
         title: newSectionTitle.trim(),
         fields: [],
-        addedBy: userProfile?.name || 'Unknown',
+        addedBy: userProfile?.uid || '',
         addedAt: new Date().toISOString()
       }]
     }
@@ -170,7 +170,7 @@ export default function Models() {
           id: newId(),
           label: newFieldLabel.trim(),
           value: newFieldValue.trim(),
-          addedBy: userProfile?.name || 'Unknown',
+          addedBy: userProfile?.uid || '',
           addedAt: new Date().toISOString()
         }]
       })
@@ -357,7 +357,7 @@ export default function Models() {
                           + Field
                         </button>
                       )}
-                      {(isAdmin || section.addedBy === userProfile?.name) && (
+                      {(isAdmin || section.addedBy === userProfile?.uid) && (
                         <button className="btn-delete-section" onClick={() => deleteSection(section.id)}>
                           Delete section
                         </button>
@@ -380,7 +380,7 @@ export default function Models() {
                               <td className="kb-label">{field.label}</td>
                               <td className="kb-value">{field.value}</td>
                               <td className="kb-actions">
-                                {(isAdmin || field.addedBy === userProfile?.name) && (
+                                {(isAdmin || field.addedBy === userProfile?.uid) && (
                                   <>
                                     <button onClick={() => setEditingField({ sectionId: section.id, fieldId: field.id })}>Edit</button>
                                     <button onClick={() => deleteField(section.id, field.id)}>x</button>
@@ -484,7 +484,7 @@ export default function Models() {
                                         {approved && (
                                           <td className="row-actions">
                                             <button onClick={() => setEditingRow({ tableId: table.id, rowType, rowId: row.id })}>Edit</button>
-                                            {(isAdmin || table.addedBy === userProfile?.name) && (
+                                            {(isAdmin || table.addedBy === userProfile?.uid) && (
                                               <button onClick={() => deleteRow(table.id, rowType, row.id)}>x</button>
                                             )}
                                           </td>
