@@ -1,7 +1,9 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
-import { getActiveLocations, updateLocation, hideLocation, getYacht } from '../services/firestore'
+import { db } from '../firebase'
+import { doc, setDoc, collection, query, where, getDocs, serverTimestamp, getDoc } from 'firebase/firestore'
+import { getYacht } from '../services/firestore'
 import './Map.css'
 
 const APPROACHABILITY_COLORS = {
@@ -16,6 +18,21 @@ const APPROACHABILITY_LABELS = {
   private: 'Private',
 }
 
+async function saveLocation(uid, data) {
+  await setDoc(doc(db, 'locations', uid), {
+    ...data, uid, visible: true, timestamp: serverTimestamp(),
+  })
+}
+
+async function hideLocationDoc(uid) {
+  await setDoc(doc(db, 'locations', uid), { visible: false, uid }, { merge: true })
+}
+
+async function loadLocations() {
+  const snap = await getDocs(query(collection(db, 'locations'), where('visible', '==', true)))
+  return snap.docs.map(d => ({ id: d.id, ...d.data() }))
+}
+
 export default function Map() {
   const { user, userProfile } = useAuth()
   const navigate = useNavigate()
@@ -26,15 +43,19 @@ export default function Map() {
   const myMarker = useRef(null)
   const [locations, setLocations] = useState([])
   const [myYacht, setMyYacht] = useState(null)
+  const [myLocation, setMyLocation] = useState(null)
   const [sharing, setSharing] = useState(false)
-  const [myPosition, setMyPosition] = useState(null)
   const [mapReady, setMapReady] = useState(false)
   const [error, setError] = useState('')
+  const [refreshing, setRefreshing] = useState(false)
 
   useEffect(() => {
     initMap()
-    if (user) loadMyYacht()
-    loadLocations()
+    if (user) {
+      loadMyYacht()
+      checkExistingLocation()
+    }
+    fetchLocations()
   }, [user])
 
   async function loadMyYacht() {
@@ -44,9 +65,20 @@ export default function Map() {
     } catch (e) {}
   }
 
-  async function loadLocations() {
+  async function checkExistingLocation() {
+    // Check if user already has a saved location from previous session
     try {
-      const locs = await getActiveLocations()
+      const snap = await getDoc(doc(db, 'locations', user.uid))
+      if (snap.exists() && snap.data().visible) {
+        setMyLocation(snap.data())
+        setSharing(true)
+      }
+    } catch (e) {}
+  }
+
+  async function fetchLocations() {
+    try {
+      const locs = await loadLocations()
       setLocations(locs)
       return locs
     } catch (e) { return [] }
@@ -70,7 +102,7 @@ export default function Map() {
     } catch (e) { setError('Could not load map.') }
   }
 
-  // Draw other boats - clicking navigates to their yacht profile
+  // Draw other boats
   useEffect(() => {
     if (!mapReady || !mapboxRef.current) return
     const mapboxgl = mapboxRef.current
@@ -82,126 +114,125 @@ export default function Map() {
       const el = document.createElement('div')
       el.className = 'map-marker-other'
       el.style.background = APPROACHABILITY_COLORS[loc.approachability] || '#c9a84c'
-      el.style.cursor = 'pointer'
-      el.title = loc.boatName || 'Swan'
 
-      const popupHTML = '<div style="font-family:Georgia,serif;padding:6px 8px;min-width:130px;background:#0d1629;border:1px solid #1e3a5f;">' +
-        '<strong style="color:#e8e4d8;display:block;margin-bottom:3px;font-size:14px">' + (loc.boatName || 'Swan') + '</strong>' +
-        (loc.model ? '<span style="color:#6b8cae;font-size:12px;display:block;margin-bottom:4px">' + loc.model + '</span>' : '') +
-        '<span style="color:' + (APPROACHABILITY_COLORS[loc.approachability] || '#c9a84c') + ';font-size:11px;display:block;font-weight:600">' +
-        (APPROACHABILITY_LABELS[loc.approachability] || '') + '</span>' +
-        '<span style="color:#c9a84c;font-size:11px;display:block;margin-top:6px;cursor:pointer;">Click to view profile</span>' +
+      const lastSeen = loc.timestamp?.toMillis ? timeAgo(loc.timestamp) : 'recently'
+      const popupHTML = '<div style="font-family:Georgia,serif;padding:6px 8px;min-width:140px;background:#0d1629;border:1px solid #1e3a5f;">' +
+        '<strong style="color:#e8e4d8;display:block;margin-bottom:2px">' + (loc.boatName || 'Swan') + '</strong>' +
+        (loc.model ? '<span style="color:#6b8cae;font-size:12px;display:block">' + loc.model + '</span>' : '') +
+        '<span style="color:' + (APPROACHABILITY_COLORS[loc.approachability] || '#c9a84c') + ';font-size:11px;display:block;margin-top:3px;font-weight:600">' + (APPROACHABILITY_LABELS[loc.approachability] || '') + '</span>' +
+        '<span style="color:#3d5a78;font-size:11px;display:block;margin-top:2px">Last seen ' + lastSeen + '</span>' +
+        '<span style="color:#c9a84c;font-size:11px;display:block;margin-top:4px">Click to view profile</span>' +
         '</div>'
 
       const popup = new mapboxgl.Popup({ offset: 20, closeButton: false }).setHTML(popupHTML)
-
-      const marker = new mapboxgl.Marker(el)
-        .setLngLat([loc.lng, loc.lat])
-        .setPopup(popup)
-        .addTo(map.current)
-
-      el.addEventListener('click', () => {
-        if (loc.yachtId) {
-          navigate('/fleet/' + loc.yachtId)
-        }
-      })
-
+      const marker = new mapboxgl.Marker(el).setLngLat([loc.lng, loc.lat]).setPopup(popup).addTo(map.current)
+      el.addEventListener('click', () => { if (loc.yachtId) navigate('/fleet/' + loc.yachtId) })
       markers.current[loc.uid] = marker
     })
   }, [mapReady, locations])
 
-  // My own pulsing gold marker
+  // Draw my own marker
   useEffect(() => {
-    if (!mapReady || !mapboxRef.current || !myPosition) return
+    if (!mapReady || !mapboxRef.current) return
     const mapboxgl = mapboxRef.current
-    if (myMarker.current) myMarker.current.remove()
-    const el = document.createElement('div')
-    el.className = 'map-marker-me'
-    myMarker.current = new mapboxgl.Marker(el)
-      .setLngLat([myPosition.lng, myPosition.lat])
-      .addTo(map.current)
-  }, [mapReady, myPosition])
 
-  useEffect(() => {
-    if (!sharing && myMarker.current) {
-      myMarker.current.remove()
-      myMarker.current = null
+    if (myMarker.current) myMarker.current.remove()
+
+    if (myLocation && sharing) {
+      const el = document.createElement('div')
+      el.className = 'map-marker-me'
+      myMarker.current = new mapboxgl.Marker(el)
+        .setLngLat([myLocation.lng, myLocation.lat])
+        .addTo(map.current)
     }
-  }, [sharing])
+  }, [mapReady, myLocation, sharing])
 
   async function handleShareToggle() {
     if (sharing) {
       try {
-        await hideLocation(user.uid)
+        await hideLocationDoc(user.uid)
         setSharing(false)
-        setMyPosition(null)
+        setMyLocation(null)
+        if (myMarker.current) { myMarker.current.remove(); myMarker.current = null }
         setLocations(prev => prev.filter(l => l.uid !== user.uid))
       } catch (e) { setError('Could not hide location.') }
       return
     }
+
     if (!navigator.geolocation) { setError('Geolocation not supported.'); return }
+
     navigator.geolocation.getCurrentPosition(
       async (pos) => {
         try {
-          await updateLocation(user.uid, {
+          const locationData = {
             lat: pos.coords.latitude,
             lng: pos.coords.longitude,
             boatName: myYacht?.name || userProfile?.name || 'Swan',
             model: myYacht?.model || '',
             approachability: myYacht?.approachability || 'chat',
             yachtId: user.uid,
-          })
-          setMyPosition({ lat: pos.coords.latitude, lng: pos.coords.longitude, timestamp: { toMillis: () => Date.now() } })
+          }
+          await saveLocation(user.uid, locationData)
+          setMyLocation({ ...locationData, timestamp: { toMillis: () => Date.now() } })
           setSharing(true)
-          await loadLocations()
+          await fetchLocations()
           if (map.current) map.current.flyTo({ center: [pos.coords.longitude, pos.coords.latitude], zoom: 9, duration: 2000 })
-        } catch (e) { setError('Could not share location.'); console.error(e) }
+        } catch (e) { setError('Could not share location.') }
       },
       () => setError('Could not get location. Please allow location access.')
     )
   }
 
   async function handleRefresh() {
-    if (!sharing) return
+    if (!navigator.geolocation) return
+    setRefreshing(true)
     navigator.geolocation.getCurrentPosition(
       async (pos) => {
         try {
-          await updateLocation(user.uid, {
+          const locationData = {
             lat: pos.coords.latitude,
             lng: pos.coords.longitude,
             boatName: myYacht?.name || userProfile?.name || 'Swan',
             model: myYacht?.model || '',
             approachability: myYacht?.approachability || 'chat',
             yachtId: user.uid,
-          })
-          setMyPosition({ lat: pos.coords.latitude, lng: pos.coords.longitude })
-          await loadLocations()
+          }
+          await saveLocation(user.uid, locationData)
+          setMyLocation({ ...locationData, timestamp: { toMillis: () => Date.now() } })
+          await fetchLocations()
         } catch (e) { setError('Could not refresh location.') }
+        setRefreshing(false)
       },
-      () => setError('Could not get location.')
+      () => { setError('Could not get location.'); setRefreshing(false) }
     )
   }
 
   function timeAgo(ts) {
-    if (!ts) return ''
+    if (!ts?.toMillis) return 'recently'
     const seconds = Math.floor((Date.now() - ts.toMillis()) / 1000)
     if (seconds < 60) return 'just now'
     if (seconds < 3600) return Math.floor(seconds / 60) + 'm ago'
     if (seconds < 86400) return Math.floor(seconds / 3600) + 'h ago'
-    return Math.floor(seconds / 86400) + 'd ago'
+    if (seconds < 604800) return Math.floor(seconds / 86400) + 'd ago'
+    return Math.floor(seconds / 604800) + 'w ago'
   }
 
   const myApproachability = myYacht?.approachability || 'chat'
+  const visibleCount = locations.filter(l => l.uid !== user?.uid).length + (sharing ? 1 : 0)
 
   return (
     <div className="map-page">
       <div className="map-header">
         <div>
           <h1>Live Map</h1>
-          <p className="map-subtitle">{locations.length} Swan{locations.length !== 1 ? 's' : ''} currently sharing position</p>
+          <p className="map-subtitle">{visibleCount} Swan{visibleCount !== 1 ? 's' : ''} currently visible</p>
         </div>
         <div className="map-header-buttons">
-          {sharing && <button className="btn-refresh-location" onClick={handleRefresh}>Refresh Position</button>}
+          {sharing && (
+            <button className={"btn-refresh-location" + (refreshing ? " refreshing" : "")} onClick={handleRefresh} disabled={refreshing}>
+              {refreshing ? 'Updating...' : 'Update Position'}
+            </button>
+          )}
           <button className={"btn-share-location" + (sharing ? " sharing" : "")} onClick={handleShareToggle}>
             {sharing ? 'Hide My Position' : 'Share My Position'}
           </button>
@@ -210,38 +241,37 @@ export default function Map() {
 
       {error && <p className="map-error">{error}</p>}
 
+      {sharing && myLocation && (
+        <div className="map-sharing-banner">
+          <div className="sharing-dot" style={{ background: APPROACHABILITY_COLORS[myApproachability] }} />
+          <div style={{ flex: 1 }}>
+            <span>Visible as <strong>{myYacht?.name || userProfile?.name || 'Swan'}</strong></span>
+            <span className="sharing-approachability" style={{ color: APPROACHABILITY_COLORS[myApproachability] }}>
+              {' '}{APPROACHABILITY_LABELS[myApproachability]}
+            </span>
+            {myLocation.timestamp && (
+              <span className="sharing-time"> - last updated {timeAgo(myLocation.timestamp)}</span>
+            )}
+          </div>
+        </div>
+      )}
+
       {!sharing && (
         <div className="map-notice">
           <p className="notice-title">How the Live Map works</p>
           <ul className="notice-list">
-            <li>The app must be open and active to share your position</li>
-            <li>Your position is never shared without your explicit consent</li>
             <li>Tap Share My Position to appear on the map</li>
-            <li>Tap a dot to view that yacht's profile and make contact</li>
-            <li>Tap Refresh Position to update your location while sharing</li>
-            <li>Tap Hide My Position to disappear from the map at any time</li>
-            <li>Set your approachability preference in My Yacht</li>
+            <li>Your position is saved and remains visible even when you close the app</li>
+            <li>Tap Update Position to refresh your location to where you are now</li>
+            <li>Tap Hide My Position to disappear completely at any time</li>
+            <li>Other boats show how long ago they last updated their position</li>
+            <li>Set your approachability in My Yacht</li>
           </ul>
           <p className="map-approachability">
             Your approachability: <strong style={{ color: APPROACHABILITY_COLORS[myApproachability] }}>
               {APPROACHABILITY_LABELS[myApproachability]}
             </strong>{' - '}<a href="/my-yacht">Change in My Yacht</a>
           </p>
-        </div>
-      )}
-
-      {sharing && (
-        <div className="map-sharing-banner">
-          <div className="sharing-dot" style={{ background: APPROACHABILITY_COLORS[myApproachability] }} />
-          <div style={{ flex: 1 }}>
-            <span>You are visible as <strong>{myYacht?.name || userProfile?.name || 'Swan'}</strong></span>
-            <span className="sharing-approachability" style={{ color: APPROACHABILITY_COLORS[myApproachability], marginLeft: '0.5rem' }}>
-              {APPROACHABILITY_LABELS[myApproachability]}
-            </span>
-            {myPosition?.timestamp && (
-              <span className="sharing-time"> - updated {timeAgo(myPosition.timestamp)}</span>
-            )}
-          </div>
         </div>
       )}
 
