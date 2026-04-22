@@ -105,6 +105,11 @@ export async function markIssueResolved(issueId, resolvedByUid) {
   })
 }
 
+
+export async function deleteIssue(issueId) {
+  await deleteDoc(doc(db, 'issues', issueId))
+}
+
 // ── FORUM ────────────────────────────────────────────────────────────────────
 
 export async function createForumTopic(uid, data) {
