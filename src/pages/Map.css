@@ -118,3 +118,5 @@
   .map-container { height: 70vh; }
   .boat-panel { position: fixed; bottom: 2rem; right: 2rem; left: auto; width: 300px; border: 1px solid #c9a84c; }
 }
+
+.sharing-time { font-size: 0.75rem; color: #3d5a78; margin-left: 0.5rem; }

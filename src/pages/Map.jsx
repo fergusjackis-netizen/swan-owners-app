@@ -151,7 +151,7 @@ export default function Map() {
             approachability: myYacht?.approachability || 'chat',
             yachtId: user.uid,
           })
-          setMyPosition({ lat: pos.coords.latitude, lng: pos.coords.longitude })
+          setMyPosition({ lat: pos.coords.latitude, lng: pos.coords.longitude, timestamp: { toMillis: () => Date.now() } })
           setSharing(true)
           await loadLocations()
           if (map.current) map.current.flyTo({ center: [pos.coords.longitude, pos.coords.latitude], zoom: 9, duration: 2000 })
@@ -180,6 +180,15 @@ export default function Map() {
       },
       () => setError('Could not get location.')
     )
+  }
+
+  function timeAgo(ts) {
+    if (!ts) return ''
+    const seconds = Math.floor((Date.now() - ts.toMillis()) / 1000)
+    if (seconds < 60) return 'just now'
+    if (seconds < 3600) return Math.floor(seconds / 60) + 'm ago'
+    if (seconds < 86400) return Math.floor(seconds / 3600) + 'h ago'
+    return Math.floor(seconds / 86400) + 'd ago'
   }
 
   const myApproachability = myYacht?.approachability || 'chat'
@@ -224,10 +233,15 @@ export default function Map() {
       {sharing && (
         <div className="map-sharing-banner">
           <div className="sharing-dot" style={{ background: APPROACHABILITY_COLORS[myApproachability] }} />
-          <span>You are visible as <strong>{myYacht?.name || userProfile?.name || 'Swan'}</strong></span>
-          <span className="sharing-approachability" style={{ color: APPROACHABILITY_COLORS[myApproachability] }}>
-            {APPROACHABILITY_LABELS[myApproachability]}
-          </span>
+          <div style={{ flex: 1 }}>
+            <span>You are visible as <strong>{myYacht?.name || userProfile?.name || 'Swan'}</strong></span>
+            <span className="sharing-approachability" style={{ color: APPROACHABILITY_COLORS[myApproachability], marginLeft: '0.5rem' }}>
+              {APPROACHABILITY_LABELS[myApproachability]}
+            </span>
+            {myPosition?.timestamp && (
+              <span className="sharing-time"> - updated {timeAgo(myPosition.timestamp)}</span>
+            )}
+          </div>
         </div>
       )}
 
