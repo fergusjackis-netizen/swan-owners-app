@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../hooks/useAuth'
 import { saveYacht, getYacht } from '../services/firestore'
-import { SWAN_MODELS, YACHT_STATUS } from '../data/swanModels'
+import { YACHT_STATUS } from '../data/swanModels'
 import PhotoUpload from '../components/PhotoUpload'
 import './MyYacht.css'
 
@@ -26,12 +26,25 @@ export default function MyYacht() {
   const { user, userProfile } = useAuth()
   const [saving, setSaving] = useState(false)
   const [customModel, setCustomModel] = useState(false)
+  const [fleetModels, setFleetModels] = useState([])
   const [saved, setSaved] = useState(false)
   const [loaded, setLoaded] = useState(false)
   const [skipperMode, setSkipperMode] = useState('owner')
   const [gardienneMode, setGardienneMode] = useState('none')
   const [photos, setPhotos] = useState([])
   const [form, setForm] = useState(EMPTY_FORM)
+
+  useEffect(() => {
+    // Load existing models from fleet
+    import('firebase/firestore').then(({ collection, getDocs }) => {
+      import('../firebase').then(({ db }) => {
+        getDocs(collection(db, 'yachts')).then(snap => {
+          const models = [...new Set(snap.docs.map(d => d.data().model).filter(Boolean))].sort()
+          setFleetModels(models)
+        })
+      })
+    })
+  }, [])
 
   useEffect(() => {
     if (!user?.uid) return
@@ -157,8 +170,6 @@ export default function MyYacht() {
 
   if (!loaded) return <div className="loading-screen"><div className="spinner" /></div>
 
-  const allModels = SWAN_MODELS.map(m => m.name)
-
   return (
     <div className="my-yacht-page">
       <div className="my-yacht-header">
@@ -214,16 +225,16 @@ export default function MyYacht() {
                 }
               }}>
                 <option value="">Select model</option>
-                {allModels.map(m => <option key={m} value={m}>{m}</option>)}
-                <option value="__custom__">My model is not listed...</option>
+                {fleetModels.map(m => <option key={m} value={m}>{m}</option>)}
+                <option value="__custom__">My model is not listed - add it</option>
               </select>
             ) : (
               <div style={{ display: 'flex', gap: '0.5rem' }}>
                 <input value={form.model} onChange={e => update('model', e.target.value)}
-                  placeholder="e.g. Swan 48 Mk2" style={{ flex: 1 }} />
+                  placeholder="e.g. Swan 48 Mk2" style={{ flex: 1 }} autoFocus />
                 <button type="button" onClick={() => setCustomModel(false)}
                   style={{ background: 'transparent', border: '1px solid #1e3a5f', color: '#6b8cae', padding: '0 0.75rem', cursor: 'pointer', fontFamily: 'inherit', fontSize: '0.78rem', whiteSpace: 'nowrap' }}>
-                  Use list
+                  Cancel
                 </button>
               </div>
             )}
