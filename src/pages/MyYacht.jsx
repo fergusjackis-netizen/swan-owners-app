@@ -25,6 +25,7 @@ const EMPTY_FORM = {
 export default function MyYacht() {
   const { user, userProfile } = useAuth()
   const [saving, setSaving] = useState(false)
+  const [customModel, setCustomModel] = useState(false)
   const [saved, setSaved] = useState(false)
   const [loaded, setLoaded] = useState(false)
   const [skipperMode, setSkipperMode] = useState('owner')
@@ -156,7 +157,6 @@ export default function MyYacht() {
 
   if (!loaded) return <div className="loading-screen"><div className="spinner" /></div>
 
-  const [customModel, setCustomModel] = useState(false)
   const allModels = SWAN_MODELS.map(m => m.name)
 
   return (

@@ -1,221 +1,64 @@
 
-.admin-page {
-  padding-bottom: 4rem;
-  max-width: 900px;
-}
+.admin-page { padding-bottom: 4rem; max-width: 1000px; }
 
-.admin-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 2rem;
-  padding-bottom: 1.5rem;
-  border-bottom: 1px solid #1e3a5f;
-}
+.admin-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem; padding-bottom: 1.5rem; border-bottom: 1px solid #1e3a5f; flex-wrap: wrap; gap: 1rem; }
+.admin-header h1 { font-size: 1.8rem; color: #c9a84c; }
 
-.admin-header h1 {
-  font-size: 2rem;
-  color: #c9a84c;
-  letter-spacing: 0.03em;
-  margin-bottom: 0.25rem;
-}
+.admin-stats { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+.stat-pill { font-size: 0.75rem; letter-spacing: 0.08em; text-transform: uppercase; padding: 0.3rem 0.85rem; background: #0d1629; border: 1px solid #1e3a5f; color: #6b8cae; }
+.stat-pill.pending { border-color: #c9a84c; color: #c9a84c; }
+.stat-pill.flagged { border-color: #ef4444; color: #ef4444; }
 
-.admin-subtitle {
-  font-size: 0.82rem;
-  color: #6b8cae;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-}
+.admin-section { margin-bottom: 2.5rem; }
+.admin-section h2 { font-size: 0.75rem; letter-spacing: 0.2em; text-transform: uppercase; color: #6b8cae; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid #1e3a5f; }
 
-.btn-refresh {
-  background: transparent;
-  border: 1px solid #1e3a5f;
-  color: #6b8cae;
-  padding: 0.5rem 1.25rem;
-  font-size: 0.78rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  cursor: pointer;
-  font-family: inherit;
-  transition: all 0.2s;
-}
+.section-header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.75rem; }
+.section-header-row h2 { margin-bottom: 0; border-bottom: none; padding-bottom: 0; }
 
-.btn-refresh:hover { border-color: #c9a84c; color: #c9a84c; }
+.admin-filters { display: flex; gap: 0.35rem; flex-wrap: wrap; }
+.admin-filter { background: transparent; border: 1px solid #1e3a5f; color: #6b8cae; padding: 0.3rem 0.75rem; font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer; font-family: inherit; transition: all 0.2s; }
+.admin-filter:hover { border-color: #6b8cae; color: #e8e4d8; }
+.admin-filter.active { background: #c9a84c; border-color: #c9a84c; color: #0a0f1e; font-weight: 700; }
 
-.admin-tabs {
-  display: flex;
-  gap: 0;
-  margin-bottom: 2rem;
-  border-bottom: 1px solid #1e3a5f;
-}
+.admin-card { display: flex; justify-content: space-between; align-items: center; background: #0d1629; border: 1px solid #1e3a5f; padding: 1rem 1.25rem; margin-bottom: 0.5rem; gap: 1rem; flex-wrap: wrap; }
+.pending-card { border-left: 3px solid #c9a84c; }
+.flagged-card { border-left: 3px solid #ef4444; }
 
-.admin-tab {
-  background: transparent;
-  border: none;
-  border-bottom: 2px solid transparent;
-  color: #6b8cae;
-  padding: 0.75rem 1.5rem;
-  font-size: 0.82rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  cursor: pointer;
-  font-family: inherit;
-  transition: all 0.2s;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-bottom: -1px;
-}
+.admin-card-info { display: flex; flex-direction: column; gap: 0.2rem; flex: 1; }
+.admin-card-info strong { color: #e8e4d8; font-size: 0.95rem; }
+.admin-card-info span { color: #6b8cae; font-size: 0.8rem; }
 
-.admin-tab:hover { color: #e8e4d8; }
+.admin-card-actions { display: flex; gap: 0.5rem; flex-shrink: 0; }
 
-.admin-tab.active {
-  color: #c9a84c;
-  border-bottom-color: #c9a84c;
-}
+.members-table { border: 1px solid #1e3a5f; overflow-x: auto; }
+.members-table-header { display: grid; grid-template-columns: 2fr 1fr 2fr 1fr 1.5fr; gap: 1rem; padding: 0.65rem 1rem; background: #0a0f1e; font-size: 0.7rem; letter-spacing: 0.12em; text-transform: uppercase; color: #3d5a78; }
+.members-table-row { display: grid; grid-template-columns: 2fr 1fr 2fr 1fr 1.5fr; gap: 1rem; padding: 0.85rem 1rem; border-top: 1px solid #1e3a5f; align-items: center; font-size: 0.83rem; transition: background 0.15s; }
+.members-table-row:hover { background: #0d1629; }
 
-.tab-badge {
-  background: #c9a84c;
-  color: #0a0f1e;
-  font-size: 0.65rem;
-  font-weight: 700;
-  padding: 0.15rem 0.45rem;
-  border-radius: 10px;
-  min-width: 18px;
-  text-align: center;
-}
+.member-name-cell { display: flex; flex-direction: column; gap: 0.15rem; }
+.member-name-cell strong { color: #e8e4d8; }
+.member-email { color: #3d5a78; font-size: 0.75rem; }
+.member-yacht { color: #6b8cae; font-size: 0.8rem; }
 
-.admin-loading {
-  display: flex;
-  justify-content: center;
-  padding: 4rem;
-}
+.role-badge { font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase; padding: 0.2rem 0.5rem; display: inline-block; width: fit-content; }
+.role-owner { background: #1e3a5f; color: #6b8cae; }
+.role-skipper { background: #1a2a3a; color: #5a9cc5; }
+.role-gardienne { background: #1a2a1a; color: #4a8c4a; }
+.role-enthusiast { background: #2a2a1a; color: #8c7a4a; }
+.role-admin { background: rgba(201,168,76,0.15); color: #c9a84c; }
 
-.admin-section h2 {
-  font-size: 0.75rem;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: #6b8cae;
-  margin-bottom: 0.5rem;
-}
+.status-badge { font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase; padding: 0.2rem 0.5rem; display: inline-block; width: fit-content; }
+.status-approved { background: rgba(34,197,94,0.1); color: #22c55e; }
+.status-pending { background: rgba(201,168,76,0.1); color: #c9a84c; }
 
-.admin-hint {
-  font-size: 0.82rem;
-  color: #3d5a78;
-  margin-bottom: 1.25rem;
-  line-height: 1.5;
-}
+.member-actions { display: flex; gap: 0.35rem; flex-wrap: wrap; }
+.role-tag { font-size: 0.72rem; color: #c9a84c; letter-spacing: 0.08em; }
 
-.admin-empty {
-  font-size: 0.88rem;
-  color: #3d5a78;
-  padding: 2rem;
-  text-align: center;
-  background: #0d1629;
-  border: 1px solid #1e3a5f;
-}
-
-.admin-card {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 1.5rem;
-  background: #0d1629;
-  border: 1px solid #1e3a5f;
-  padding: 1.25rem;
-  margin-bottom: 0.75rem;
-}
-
-.admin-card.flagged {
-  border-left: 3px solid #ef4444;
-}
-
-.admin-card-info {
-  display: flex;
-  flex-direction: column;
-  gap: 0.3rem;
-  flex: 1;
-  min-width: 0;
-}
-
-.admin-card-name {
-  font-size: 1rem;
-  color: #e8e4d8;
-}
-
-.admin-card-email {
-  font-size: 0.82rem;
-  color: #6b8cae;
-}
-
-.admin-card-preview {
-  font-size: 0.82rem;
-  color: #6b8cae;
-  line-height: 1.4;
-}
-
-.admin-card-meta {
-  display: flex;
-  gap: 0.75rem;
-  align-items: center;
-  font-size: 0.78rem;
-  color: #3d5a78;
-  margin-top: 0.15rem;
-}
-
-.role-tag {
-  background: #1e3a5f;
-  color: #6b8cae;
-  font-size: 0.68rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  padding: 0.2rem 0.6rem;
-}
-
-.type-tag {
-  background: #2a1a1a;
-  color: #ef4444;
-  font-size: 0.68rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  padding: 0.2rem 0.6rem;
-  width: fit-content;
-}
-
-.admin-card-actions {
-  display: flex;
-  gap: 0.5rem;
-  flex-shrink: 0;
-}
-
-.btn-approve {
-  background: transparent;
-  border: 1px solid #22c55e;
-  color: #22c55e;
-  padding: 0.5rem 1rem;
-  font-size: 0.75rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  cursor: pointer;
-  font-family: inherit;
-  transition: all 0.2s;
-  white-space: nowrap;
-}
-
-.btn-approve:hover { background: rgba(34,197,94,0.1); }
-
-.btn-reject {
-  background: transparent;
-  border: 1px solid #ef4444;
-  color: #ef4444;
-  padding: 0.5rem 1rem;
-  font-size: 0.75rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  cursor: pointer;
-  font-family: inherit;
-  transition: all 0.2s;
-  white-space: nowrap;
-}
-
+.btn-approve { background: #22c55e; color: #0a0f1e; border: none; padding: 0.5rem 1.25rem; font-size: 0.78rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer; font-family: inherit; transition: background 0.2s; }
+.btn-approve:hover { background: #16a34a; }
+.btn-approve-sm { background: #22c55e; color: #0a0f1e; border: none; padding: 0.3rem 0.75rem; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.06em; cursor: pointer; font-family: inherit; }
+.btn-reject { background: transparent; border: 1px solid #ef4444; color: #ef4444; padding: 0.5rem 1.25rem; font-size: 0.78rem; letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer; font-family: inherit; transition: all 0.2s; }
 .btn-reject:hover { background: rgba(239,68,68,0.1); }
+.btn-reject-sm { background: transparent; border: 1px solid #ef4444; color: #ef4444; padding: 0.3rem 0.6rem; font-size: 0.72rem; cursor: pointer; font-family: inherit; }
+.btn-clear { background: transparent; border: 1px solid #6b8cae; color: #6b8cae; padding: 0.5rem 1.25rem; font-size: 0.78rem; letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer; font-family: inherit; transition: all 0.2s; }
+.btn-clear:hover { border-color: #e8e4d8; color: #e8e4d8; }
