@@ -538,6 +538,7 @@ export default function MaintenanceLogs() {
   const [chatMessages, setChatMessages] = useState([])
   const [chatInput, setChatInput] = useState('')
   const [chatLoading, setChatLoading] = useState(false)
+  const [chatStatus, setChatStatus] = useState('')
   const [chatOpen, setChatOpen] = useState(false)
   const [showDocs, setShowDocs] = useState(false)
   const [chatImage, setChatImage] = useState(null) // {base64, mediaType, preview}
@@ -817,6 +818,7 @@ export default function MaintenanceLogs() {
         }
       }
 
+      setChatStatus('Thinking...')
       const response = await fetch('/api/ask', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -836,6 +838,7 @@ export default function MaintenanceLogs() {
         ? data.content.filter(b => b.type === 'text').map(b => b.text).join('\n') || 'Sorry, I could not get a response.'
         : 'Sorry, I could not get a response.'
       setChatMessages(prev => [...prev, { role: 'assistant', content: reply, text: reply }])
+      setChatStatus('')
     } catch(e) {
       setChatMessages(prev => [...prev, { role: 'assistant', content: 'Something went wrong. Please try again.' }])
     }
@@ -937,7 +940,7 @@ export default function MaintenanceLogs() {
               {chatLoading && (
                 <div className="ask-claude-msg ask-claude-msg-assistant">
                   <span className="ask-claude-msg-label">Claude</span>
-                  <p className="ask-claude-msg-text ask-claude-thinking">Thinking...</p>
+                  <p className="ask-claude-msg-text ask-claude-thinking">{chatStatus || 'Thinking...'}</p>
                 </div>
               )}
             </div>
