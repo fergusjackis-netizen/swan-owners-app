@@ -15,44 +15,45 @@ const EMPTY_FORM = {
   name: '', model: '', hullNumber: '', year: '', flag: '',
   currentStatus: 'berth', hullColour: '', approachability: 'chat',
   phone: '', phonePublic: false, whatsapp: '', whatsappPublic: true,
-  skipperName: '', skipperEmail: '', skipperPhone: '', skipperPhonePublic: false,
-  skipperWhatsapp: '', skipperWebsite: '', skipperLanguages: '', skipperNationality: '', skipperUid: '',
-  gardienneName: '', gardienneEmail: '', gardiennePhone: '', gardiennePhonePublic: false,
-  gardienneWhatsapp: '', gardienneWebsite: '', gardienneLocation: '', gardienneLanguages: '', gardienneUid: '',
   marineName: '', marinaCountry: '', notes: '',
+}
+
+const EMPTY_MANUAL = {
+  name: '', email: '', phone: '', phonePublic: false,
+  whatsapp: '', website: '', languages: '', nationality: '', location: ''
 }
 
 export default function MyYacht() {
   const { user, userProfile } = useAuth()
   const [saving, setSaving] = useState(false)
-  const [customModel, setCustomModel] = useState(false)
-  const [fleetModels, setFleetModels] = useState([])
-  const [skippers, setSkippers] = useState([])
-  const [gardiennes, setGardiennes] = useState([])
   const [saved, setSaved] = useState(false)
   const [loaded, setLoaded] = useState(false)
-  const [skipperMode, setSkipperMode] = useState('owner')
-  const [gardienneMode, setGardienneMode] = useState('none')
+  const [customModel, setCustomModel] = useState(false)
+  const [fleetModels, setFleetModels] = useState([])
+  const [allMembers, setAllMembers] = useState([])
   const [photos, setPhotos] = useState([])
   const [form, setForm] = useState(EMPTY_FORM)
 
+  // Crew team state
+  const [linkedSkippers, setLinkedSkippers] = useState([])   // array of uids
+  const [linkedGardiennes, setLinkedGardiennes] = useState([]) // array of uids
+  const [manualSkippers, setManualSkippers] = useState([])   // array of manual entries
+  const [manualGardiennes, setManualGardiennes] = useState([]) // array of manual entries
+
+  // UI state
+  const [addingSkipper, setAddingSkipper] = useState(null)   // 'linked' | 'manual' | null
+  const [addingGardienne, setAddingGardienne] = useState(null)
+  const [newSkipperUid, setNewSkipperUid] = useState('')
+  const [newGardienneUid, setNewGardienneUid] = useState('')
+  const [newSkipperManual, setNewSkipperManual] = useState(EMPTY_MANUAL)
+  const [newGardienneManual, setNewGardienneManual] = useState(EMPTY_MANUAL)
+
   useEffect(() => {
-    // Load registered skippers and gardiennes
     import('firebase/firestore').then(({ collection, getDocs, query, where }) => {
       import('../firebase').then(({ db }) => {
         getDocs(query(collection(db, 'users'), where('status', '==', 'approved'))).then(snap => {
-          const members = snap.docs.map(d => ({ uid: d.id, ...d.data() }))
-          setSkippers(members.filter(m => m.role === 'skipper' || m.role === 'owner' || m.role === 'admin'))
-          setGardiennes(members.filter(m => m.role === 'gardienne' || m.role === 'admin'))
+          setAllMembers(snap.docs.map(d => ({ uid: d.id, ...d.data() })))
         })
-      })
-    })
-  }, [])
-
-  useEffect(() => {
-    // Load existing models from fleet
-    import('firebase/firestore').then(({ collection, getDocs }) => {
-      import('../firebase').then(({ db }) => {
         getDocs(collection(db, 'yachts')).then(snap => {
           const models = [...new Set(snap.docs.map(d => d.data().model).filter(Boolean))].sort()
           setFleetModels(models)
@@ -65,8 +66,6 @@ export default function MyYacht() {
     if (!user?.uid) return
     getYacht(user.uid).then(data => {
       if (data) {
-        setSkipperMode(data.skipperMode || 'owner')
-        setGardienneMode(data.gardienneMode || 'none')
         setPhotos(data.photos || [])
         setForm({
           name: data.name || '',
@@ -81,34 +80,18 @@ export default function MyYacht() {
           phonePublic: data.phonePublic || false,
           whatsapp: data.whatsapp || '',
           whatsappPublic: data.whatsappPublic !== false,
-          skipperName: data.skipper?.name || '',
-          skipperEmail: data.skipper?.email || '',
-          skipperPhone: data.skipper?.phone || '',
-          skipperPhonePublic: data.skipper?.phonePublic || false,
-          skipperWhatsapp: data.skipper?.whatsapp || '',
-          skipperWebsite: data.skipper?.website || '',
-          skipperLanguages: data.skipper?.languages || '',
-          skipperNationality: data.skipper?.nationality || '',
-          skipperUid: data.skipper?.uid || '',
-          gardienneName: data.gardienne?.name || '',
-          gardienneEmail: data.gardienne?.email || '',
-          gardiennePhone: data.gardienne?.phone || '',
-          gardiennePhonePublic: data.gardienne?.phonePublic || false,
-          gardienneWhatsapp: data.gardienne?.whatsapp || '',
-          gardienneWebsite: data.gardienne?.website || '',
-          gardienneLocation: data.gardienne?.location || '',
-          gardienneLanguages: data.gardienne?.languages || '',
-          gardienneUid: data.gardienne?.uid || '',
           marineName: data.homeMarina?.name || '',
           marinaCountry: data.homeMarina?.country || '',
           notes: data.notes || '',
         })
+        // Load crew arrays - handle legacy single skipper/gardienne format too
+        setLinkedSkippers(data.crew?.linkedSkippers || (data.skipper?.uid ? [data.skipper.uid] : []))
+        setLinkedGardiennes(data.crew?.linkedGardiennes || (data.gardienne?.uid ? [data.gardienne.uid] : []))
+        setManualSkippers(data.crew?.manualSkippers || (data.skipper?.mode === 'manual' ? [data.skipper] : []))
+        setManualGardiennes(data.crew?.manualGardiennes || (data.gardienne?.mode === 'manual' ? [data.gardienne] : []))
       }
       setLoaded(true)
-    }).catch(e => {
-      console.error('Failed to load yacht:', e)
-      setLoaded(true)
-    })
+    }).catch(() => setLoaded(true))
   }, [user?.uid])
 
   function update(field, value) {
@@ -116,72 +99,81 @@ export default function MyYacht() {
     setSaved(false)
   }
 
+  function addLinkedSkipper() {
+    if (!newSkipperUid || linkedSkippers.includes(newSkipperUid)) return
+    setLinkedSkippers(prev => [...prev, newSkipperUid])
+    setNewSkipperUid('')
+    setAddingSkipper(null)
+  }
+
+  function addManualSkipper() {
+    if (!newSkipperManual.name.trim()) return
+    setManualSkippers(prev => [...prev, { ...newSkipperManual, id: Date.now().toString() }])
+    setNewSkipperManual(EMPTY_MANUAL)
+    setAddingSkipper(null)
+  }
+
+  function addLinkedGardienne() {
+    if (!newGardienneUid || linkedGardiennes.includes(newGardienneUid)) return
+    setLinkedGardiennes(prev => [...prev, newGardienneUid])
+    setNewGardienneUid('')
+    setAddingGardienne(null)
+  }
+
+  function addManualGardienne() {
+    if (!newGardienneManual.name.trim()) return
+    setManualGardiennes(prev => [...prev, { ...newGardienneManual, id: Date.now().toString() }])
+    setNewGardienneManual(EMPTY_MANUAL)
+    setAddingGardienne(null)
+  }
+
   async function handleSave() {
     setSaving(true)
-
-    const skipperData = skipperMode === 'owner'
-      ? { mode: 'owner', name: userProfile?.name || '', email: user?.email || '' }
-      : skipperMode === 'linked'
-      ? { mode: 'linked', uid: form.skipperUid || '' }
-      : {
-          mode: 'manual',
-          name: form.skipperName || '',
-          email: form.skipperEmail || '',
-          phone: form.skipperPhone || '',
-          phonePublic: form.skipperPhonePublic || false,
-          whatsapp: form.skipperWhatsapp || '',
-          website: form.skipperWebsite || '',
-          languages: form.skipperLanguages || '',
-          nationality: form.skipperNationality || '',
-        }
-
-    const gardienneData = gardienneMode === 'none' ? null
-      : gardienneMode === 'linked'
-      ? { mode: 'linked', uid: form.gardienneUid || '' }
-      : {
-          mode: 'manual',
-          name: form.gardienneName || '',
-          email: form.gardienneEmail || '',
-          phone: form.gardiennePhone || '',
-          phonePublic: form.gardiennePhonePublic || false,
-          whatsapp: form.gardienneWhatsapp || '',
-          website: form.gardienneWebsite || '',
-          location: form.gardienneLocation || '',
-          languages: form.gardienneLanguages || '',
-        }
-
     try {
       await saveYacht(user.uid, {
-        name: form.name || '',
-        model: form.model || '',
-        hullNumber: form.hullNumber || '',
-        year: parseInt(form.year) || '',
+        ...form,
         flag: (form.flag || '').toUpperCase(),
-        currentStatus: form.currentStatus || 'berth',
-        hullColour: form.hullColour || '',
-        approachability: form.approachability || 'chat',
-        phone: form.phone || '',
-        phonePublic: form.phonePublic || false,
-        whatsapp: form.whatsapp || '',
-        whatsappPublic: form.whatsappPublic !== false,
-        skipperMode,
-        skipper: skipperData,
-        gardienneMode,
-        gardienne: gardienneData,
+        year: parseInt(form.year) || '',
         homeMarina: { name: form.marineName || '', country: form.marinaCountry || '' },
-        notes: form.notes || '',
         ownerName: userProfile?.name || '',
         ownerEmail: user?.email || '',
-        photos: photos,
+        photos,
+        crew: {
+          ownerUid: user.uid,
+          linkedSkippers,
+          linkedGardiennes,
+          manualSkippers,
+          manualGardiennes,
+        },
+        // Keep legacy fields for YachtProfile compatibility during transition
+        skipperMode: linkedSkippers.length > 0 ? 'linked' : manualSkippers.length > 0 ? 'manual' : 'owner',
+        skipper: linkedSkippers.length > 0
+          ? { mode: 'linked', uid: linkedSkippers[0] }
+          : manualSkippers.length > 0
+          ? { mode: 'manual', ...manualSkippers[0] }
+          : { mode: 'owner', name: userProfile?.name || '', email: user?.email || '' },
+        gardienneMode: linkedGardiennes.length > 0 ? 'linked' : manualGardiennes.length > 0 ? 'manual' : 'none',
+        gardienne: linkedGardiennes.length > 0
+          ? { mode: 'linked', uid: linkedGardiennes[0] }
+          : manualGardiennes.length > 0
+          ? { mode: 'manual', ...manualGardiennes[0] }
+          : null,
       })
       setSaved(true)
       setTimeout(() => setSaved(false), 3000)
     } catch (e) {
-      console.error('Save failed:', e)
       alert('Save failed: ' + e.message)
     }
     setSaving(false)
   }
+
+  const memberById = (uid) => allMembers.find(m => m.uid === uid)
+  const availableSkippers = allMembers.filter(m =>
+    ['skipper', 'owner', 'admin'].includes(m.role) && !linkedSkippers.includes(m.uid)
+  )
+  const availableGardiennes = allMembers.filter(m =>
+    ['gardienne', 'admin'].includes(m.role) && !linkedGardiennes.includes(m.uid)
+  )
 
   if (!loaded) return <div className="loading-screen"><div className="spinner" /></div>
 
@@ -232,12 +224,8 @@ export default function MyYacht() {
           <label className="field"><span>Model</span>
             {!customModel ? (
               <select value={form.model} onChange={e => {
-                if (e.target.value === '__custom__') {
-                  setCustomModel(true)
-                  update('model', '')
-                } else {
-                  update('model', e.target.value)
-                }
+                if (e.target.value === '__custom__') { setCustomModel(true); update('model', '') }
+                else update('model', e.target.value)
               }}>
                 <option value="">Select model</option>
                 {fleetModels.map(m => <option key={m} value={m}>{m}</option>)}
@@ -245,8 +233,7 @@ export default function MyYacht() {
               </select>
             ) : (
               <div style={{ display: 'flex', gap: '0.5rem' }}>
-                <input value={form.model} onChange={e => update('model', e.target.value)}
-                  placeholder="e.g. Swan 48 Mk2" style={{ flex: 1 }} autoFocus />
+                <input value={form.model} onChange={e => update('model', e.target.value)} placeholder="e.g. Swan 48 Mk2" style={{ flex: 1 }} autoFocus />
                 <button type="button" onClick={() => setCustomModel(false)}
                   style={{ background: 'transparent', border: '1px solid #1e3a5f', color: '#6b8cae', padding: '0 0.75rem', cursor: 'pointer', fontFamily: 'inherit', fontSize: '0.78rem', whiteSpace: 'nowrap' }}>
                   Cancel
@@ -267,7 +254,7 @@ export default function MyYacht() {
 
       <section className="yacht-section">
         <h2>Owner Contact</h2>
-        <p className="section-hint">Only visible to logged-in members. You control what is shown.</p>
+        <p className="section-hint">Only visible to logged-in members.</p>
         <div className="form-grid">
           <label className="field"><span>Phone Number</span>
             <input type="tel" value={form.phone} onChange={e => update('phone', e.target.value)} placeholder="+44 7700 000000" /></label>
@@ -290,99 +277,156 @@ export default function MyYacht() {
         </div>
       </section>
 
-      <section className="yacht-section">
-        <h2>Skipper / Captain</h2>
-        <div className="mode-selector">
-          {[{ id: 'owner', label: 'I am the skipper' }, { id: 'linked', label: 'Link a member' }, { id: 'manual', label: 'Enter manually' }].map(m => (
-            <button key={m.id} className={"mode-btn" + (skipperMode === m.id ? " active" : "")} onClick={() => setSkipperMode(m.id)}>{m.label}</button>
-          ))}
-        </div>
-        {skipperMode === 'owner' && (
-          <div className="mode-info"><p>Your profile will be shown as the skipper: <strong>{userProfile?.name || user?.email}</strong></p></div>
-        )}
-        {skipperMode === 'linked' && (
-          <div className="form-grid">
-            <label className="field field-full"><span>Select registered skipper</span>
-              <select value={form.skipperUid} onChange={e => update('skipperUid', e.target.value)}>
-                <option value="">Select a member...</option>
-                {skippers.map(m => (
-                  <option key={m.uid} value={m.uid}>{m.name}{m.nationality ? ' (' + m.nationality + ')' : ''}</option>
-                ))}
-              </select>
-            </label>
-            {form.skipperUid && skippers.find(m => m.uid === form.skipperUid) && (
-              <div className="linked-member-card">
-                <p><strong>{skippers.find(m => m.uid === form.skipperUid)?.name}</strong></p>
-                {skippers.find(m => m.uid === form.skipperUid)?.basedAt && (
-                  <p>Based at: {skippers.find(m => m.uid === form.skipperUid).basedAt}</p>
-                )}
-              </div>
-            )}
-          </div>
-        )}
-        {skipperMode === 'manual' && (
-          <div className="form-grid">
-            <label className="field"><span>Full Name</span><input value={form.skipperName} onChange={e => update('skipperName', e.target.value)} /></label>
-            <label className="field"><span>Nationality</span><input value={form.skipperNationality} onChange={e => update('skipperNationality', e.target.value)} /></label>
-            <label className="field"><span>Email</span><input type="email" value={form.skipperEmail} onChange={e => update('skipperEmail', e.target.value)} /></label>
-            <label className="field"><span>Phone</span><input type="tel" value={form.skipperPhone} onChange={e => update('skipperPhone', e.target.value)} /></label>
-            <div className="field">
-              <span>Show phone to members</span>
-              <label className="ios-toggle" style={{ marginTop: '0.5rem' }}>
-                <input type="checkbox" checked={form.skipperPhonePublic} onChange={e => update('skipperPhonePublic', e.target.checked)} />
-                <span className="toggle-slider" />
-              </label>
-            </div>
-            <label className="field"><span>WhatsApp</span><input type="tel" value={form.skipperWhatsapp} onChange={e => update('skipperWhatsapp', e.target.value)} /></label>
-            <label className="field"><span>Website</span><input value={form.skipperWebsite} onChange={e => update('skipperWebsite', e.target.value)} placeholder="https://" /></label>
-            <label className="field"><span>Languages</span><input value={form.skipperLanguages} onChange={e => update('skipperLanguages', e.target.value)} /></label>
-          </div>
-        )}
-      </section>
+      {/* ── CREW TEAM ─────────────────────────────────────────── */}
 
       <section className="yacht-section">
-        <h2>Gardienne</h2>
-        <div className="mode-selector">
-          {[{ id: 'none', label: 'No gardienne' }, { id: 'linked', label: 'Link a member' }, { id: 'manual', label: 'Enter manually' }].map(m => (
-            <button key={m.id} className={"mode-btn" + (gardienneMode === m.id ? " active" : "")} onClick={() => setGardienneMode(m.id)}>{m.label}</button>
-          ))}
+        <h2>Yacht Crew</h2>
+        <p className="section-hint">Link registered members or add contacts manually. All linked members will have access to the private maintenance log.</p>
+
+        {/* Owner - always shown */}
+        <div className="crew-role-header"><span className="crew-role-label">Owner</span></div>
+        <div className="crew-card crew-card-owner">
+          <span className="crew-name">{userProfile?.name || user?.email}</span>
+          <span className="crew-badge">You</span>
         </div>
-        {gardienneMode === 'linked' && (
-          <div className="form-grid">
-            <label className="field field-full"><span>Select registered gardienne</span>
-              <select value={form.gardienneUid} onChange={e => update('gardienneUid', e.target.value)}>
-                <option value="">Select a member...</option>
-                {gardiennes.map(m => (
-                  <option key={m.uid} value={m.uid}>{m.name}{m.basedAt ? ' — ' + m.basedAt : ''}</option>
-                ))}
-              </select>
-            </label>
-            {form.gardienneUid && gardiennes.find(m => m.uid === form.gardienneUid) && (
-              <div className="linked-member-card">
-                <p><strong>{gardiennes.find(m => m.uid === form.gardienneUid)?.name}</strong></p>
-                {gardiennes.find(m => m.uid === form.gardienneUid)?.basedAt && (
-                  <p>Based at: {gardiennes.find(m => m.uid === form.gardienneUid).basedAt}</p>
-                )}
+
+        {/* Skippers */}
+        <div className="crew-role-header">
+          <span className="crew-role-label">Skippers / Captains</span>
+          {!addingSkipper && (
+            <div className="crew-add-btns">
+              {availableSkippers.length > 0 && <button className="btn-crew-add" onClick={() => setAddingSkipper('linked')}>+ Link member</button>}
+              <button className="btn-crew-add" onClick={() => setAddingSkipper('manual')}>+ Add manually</button>
+            </div>
+          )}
+        </div>
+
+        {linkedSkippers.map(uid => {
+          const m = memberById(uid)
+          return m ? (
+            <div key={uid} className="crew-card">
+              <div className="crew-card-info">
+                <span className="crew-name">{m.name}</span>
+                {m.nationality && <span className="crew-detail">{m.nationality}</span>}
+                <span className="crew-badge crew-badge-linked">Linked member</span>
               </div>
-            )}
+              <button className="btn-crew-remove" onClick={() => setLinkedSkippers(prev => prev.filter(u => u !== uid))}>Remove</button>
+            </div>
+          ) : null
+        })}
+
+        {manualSkippers.map((s, i) => (
+          <div key={s.id || i} className="crew-card">
+            <div className="crew-card-info">
+              <span className="crew-name">{s.name}</span>
+              {s.nationality && <span className="crew-detail">{s.nationality}</span>}
+              <span className="crew-badge">Manual entry</span>
+            </div>
+            <button className="btn-crew-remove" onClick={() => setManualSkippers(prev => prev.filter((_, idx) => idx !== i))}>Remove</button>
+          </div>
+        ))}
+
+        {linkedSkippers.length === 0 && manualSkippers.length === 0 && !addingSkipper && (
+          <p className="crew-empty">No skipper linked. Owner shown by default.</p>
+        )}
+
+        {addingSkipper === 'linked' && (
+          <div className="crew-add-form">
+            <select value={newSkipperUid} onChange={e => setNewSkipperUid(e.target.value)} autoFocus>
+              <option value="">Select a member...</option>
+              {availableSkippers.map(m => (
+                <option key={m.uid} value={m.uid}>{m.name}{m.nationality ? ' (' + m.nationality + ')' : ''}</option>
+              ))}
+            </select>
+            <button className="btn-crew-confirm" onClick={addLinkedSkipper} disabled={!newSkipperUid}>Add</button>
+            <button className="btn-crew-cancel" onClick={() => { setAddingSkipper(null); setNewSkipperUid('') }}>Cancel</button>
           </div>
         )}
-        {gardienneMode === 'manual' && (
-          <div className="form-grid">
-            <label className="field"><span>Full Name</span><input value={form.gardienneName} onChange={e => update('gardienneName', e.target.value)} /></label>
-            <label className="field"><span>Based at</span><input value={form.gardienneLocation} onChange={e => update('gardienneLocation', e.target.value)} /></label>
-            <label className="field"><span>Email</span><input type="email" value={form.gardienneEmail} onChange={e => update('gardienneEmail', e.target.value)} /></label>
-            <label className="field"><span>Phone</span><input type="tel" value={form.gardiennePhone} onChange={e => update('gardiennePhone', e.target.value)} /></label>
-            <div className="field">
-              <span>Show phone to members</span>
-              <label className="ios-toggle" style={{ marginTop: '0.5rem' }}>
-                <input type="checkbox" checked={form.gardiennePhonePublic} onChange={e => update('gardiennePhonePublic', e.target.checked)} />
-                <span className="toggle-slider" />
-              </label>
+
+        {addingSkipper === 'manual' && (
+          <div className="crew-manual-form">
+            <div className="form-grid">
+              <label className="field"><span>Full Name</span><input value={newSkipperManual.name} onChange={e => setNewSkipperManual(p => ({...p, name: e.target.value}))} autoFocus /></label>
+              <label className="field"><span>Nationality</span><input value={newSkipperManual.nationality} onChange={e => setNewSkipperManual(p => ({...p, nationality: e.target.value}))} /></label>
+              <label className="field"><span>Email</span><input type="email" value={newSkipperManual.email} onChange={e => setNewSkipperManual(p => ({...p, email: e.target.value}))} /></label>
+              <label className="field"><span>Phone</span><input type="tel" value={newSkipperManual.phone} onChange={e => setNewSkipperManual(p => ({...p, phone: e.target.value}))} /></label>
+              <label className="field"><span>WhatsApp</span><input type="tel" value={newSkipperManual.whatsapp} onChange={e => setNewSkipperManual(p => ({...p, whatsapp: e.target.value}))} /></label>
+              <label className="field"><span>Languages</span><input value={newSkipperManual.languages} onChange={e => setNewSkipperManual(p => ({...p, languages: e.target.value}))} /></label>
             </div>
-            <label className="field"><span>WhatsApp</span><input type="tel" value={form.gardienneWhatsapp} onChange={e => update('gardienneWhatsapp', e.target.value)} /></label>
-            <label className="field"><span>Website</span><input value={form.gardienneWebsite} onChange={e => update('gardienneWebsite', e.target.value)} placeholder="https://" /></label>
-            <label className="field"><span>Languages</span><input value={form.gardienneLanguages} onChange={e => update('gardienneLanguages', e.target.value)} /></label>
+            <div className="crew-form-actions">
+              <button className="btn-crew-confirm" onClick={addManualSkipper} disabled={!newSkipperManual.name.trim()}>Add Skipper</button>
+              <button className="btn-crew-cancel" onClick={() => { setAddingSkipper(null); setNewSkipperManual(EMPTY_MANUAL) }}>Cancel</button>
+            </div>
+          </div>
+        )}
+
+        {/* Gardiennes */}
+        <div className="crew-role-header" style={{ marginTop: '1.5rem' }}>
+          <span className="crew-role-label">Gardiennes</span>
+          {!addingGardienne && (
+            <div className="crew-add-btns">
+              {availableGardiennes.length > 0 && <button className="btn-crew-add" onClick={() => setAddingGardienne('linked')}>+ Link member</button>}
+              <button className="btn-crew-add" onClick={() => setAddingGardienne('manual')}>+ Add manually</button>
+            </div>
+          )}
+        </div>
+
+        {linkedGardiennes.map(uid => {
+          const m = memberById(uid)
+          return m ? (
+            <div key={uid} className="crew-card">
+              <div className="crew-card-info">
+                <span className="crew-name">{m.name}</span>
+                {m.basedAt && <span className="crew-detail">{m.basedAt}</span>}
+                <span className="crew-badge crew-badge-linked">Linked member</span>
+              </div>
+              <button className="btn-crew-remove" onClick={() => setLinkedGardiennes(prev => prev.filter(u => u !== uid))}>Remove</button>
+            </div>
+          ) : null
+        })}
+
+        {manualGardiennes.map((g, i) => (
+          <div key={g.id || i} className="crew-card">
+            <div className="crew-card-info">
+              <span className="crew-name">{g.name}</span>
+              {g.location && <span className="crew-detail">{g.location}</span>}
+              <span className="crew-badge">Manual entry</span>
+            </div>
+            <button className="btn-crew-remove" onClick={() => setManualGardiennes(prev => prev.filter((_, idx) => idx !== i))}>Remove</button>
+          </div>
+        ))}
+
+        {linkedGardiennes.length === 0 && manualGardiennes.length === 0 && !addingGardienne && (
+          <p className="crew-empty">No gardienne linked.</p>
+        )}
+
+        {addingGardienne === 'linked' && (
+          <div className="crew-add-form">
+            <select value={newGardienneUid} onChange={e => setNewGardienneUid(e.target.value)} autoFocus>
+              <option value="">Select a member...</option>
+              {availableGardiennes.map(m => (
+                <option key={m.uid} value={m.uid}>{m.name}{m.basedAt ? ' — ' + m.basedAt : ''}</option>
+              ))}
+            </select>
+            <button className="btn-crew-confirm" onClick={addLinkedGardienne} disabled={!newGardienneUid}>Add</button>
+            <button className="btn-crew-cancel" onClick={() => { setAddingGardienne(null); setNewGardienneUid('') }}>Cancel</button>
+          </div>
+        )}
+
+        {addingGardienne === 'manual' && (
+          <div className="crew-manual-form">
+            <div className="form-grid">
+              <label className="field"><span>Full Name</span><input value={newGardienneManual.name} onChange={e => setNewGardienneManual(p => ({...p, name: e.target.value}))} autoFocus /></label>
+              <label className="field"><span>Based at</span><input value={newGardienneManual.location} onChange={e => setNewGardienneManual(p => ({...p, location: e.target.value}))} /></label>
+              <label className="field"><span>Email</span><input type="email" value={newGardienneManual.email} onChange={e => setNewGardienneManual(p => ({...p, email: e.target.value}))} /></label>
+              <label className="field"><span>Phone</span><input type="tel" value={newGardienneManual.phone} onChange={e => setNewGardienneManual(p => ({...p, phone: e.target.value}))} /></label>
+              <label className="field"><span>WhatsApp</span><input type="tel" value={newGardienneManual.whatsapp} onChange={e => setNewGardienneManual(p => ({...p, whatsapp: e.target.value}))} /></label>
+              <label className="field"><span>Languages</span><input value={newGardienneManual.languages} onChange={e => setNewGardienneManual(p => ({...p, languages: e.target.value}))} /></label>
+            </div>
+            <div className="crew-form-actions">
+              <button className="btn-crew-confirm" onClick={addManualGardienne} disabled={!newGardienneManual.name.trim()}>Add Gardienne</button>
+              <button className="btn-crew-cancel" onClick={() => { setAddingGardienne(null); setNewGardienneManual(EMPTY_MANUAL) }}>Cancel</button>
+            </div>
           </div>
         )}
       </section>
