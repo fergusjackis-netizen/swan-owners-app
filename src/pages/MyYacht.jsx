@@ -156,6 +156,7 @@ export default function MyYacht() {
 
   if (!loaded) return <div className="loading-screen"><div className="spinner" /></div>
 
+  const [customModel, setCustomModel] = useState(false)
   const allModels = SWAN_MODELS.map(m => m.name)
 
   return (
@@ -203,10 +204,30 @@ export default function MyYacht() {
           <label className="field"><span>Boat Name</span>
             <input value={form.name} onChange={e => update('name', e.target.value)} placeholder="e.g. Tiger" /></label>
           <label className="field"><span>Model</span>
-            <select value={form.model} onChange={e => update('model', e.target.value)}>
-              <option value="">Select model</option>
-              {allModels.map(m => <option key={m} value={m}>{m}</option>)}
-            </select></label>
+            {!customModel ? (
+              <select value={form.model} onChange={e => {
+                if (e.target.value === '__custom__') {
+                  setCustomModel(true)
+                  update('model', '')
+                } else {
+                  update('model', e.target.value)
+                }
+              }}>
+                <option value="">Select model</option>
+                {allModels.map(m => <option key={m} value={m}>{m}</option>)}
+                <option value="__custom__">My model is not listed...</option>
+              </select>
+            ) : (
+              <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <input value={form.model} onChange={e => update('model', e.target.value)}
+                  placeholder="e.g. Swan 48 Mk2" style={{ flex: 1 }} />
+                <button type="button" onClick={() => setCustomModel(false)}
+                  style={{ background: 'transparent', border: '1px solid #1e3a5f', color: '#6b8cae', padding: '0 0.75rem', cursor: 'pointer', fontFamily: 'inherit', fontSize: '0.78rem', whiteSpace: 'nowrap' }}>
+                  Use list
+                </button>
+              </div>
+            )}
+          </label>
           <label className="field"><span>Hull Number</span>
             <input value={form.hullNumber} onChange={e => update('hullNumber', e.target.value)} placeholder="e.g. 48-042" /></label>
           <label className="field"><span>Year Built</span>
