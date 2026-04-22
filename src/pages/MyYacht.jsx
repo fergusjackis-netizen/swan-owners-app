@@ -4,6 +4,7 @@ import { saveYacht, getYacht } from '../services/firestore'
 import { YACHT_STATUS } from '../data/swanModels'
 import PhotoUpload from '../components/PhotoUpload'
 import VesselDocuments from '../components/VesselDocuments'
+import BulkDocumentUpload from '../components/BulkDocumentUpload'
 import './MyYacht.css'
 
 const APPROACHABILITY = [
@@ -465,6 +466,9 @@ export default function MyYacht() {
         <h2>Vessel Documents</h2>
         <p className="section-hint">PDF manuals, drawings and certificates. Private to your linked crew. Used by the Ask Claude feature to give vessel-specific advice.</p>
         <VesselDocuments yachtId={user?.uid} canUpload={true} />
+        <div style={{marginTop:'1.5rem', paddingTop:'1.5rem', borderTop:'1px solid #1e2d4a'}}>
+          <BulkDocumentUpload yachtId={user?.uid} onComplete={() => window.location.reload()} />
+        </div>
       </section>
 
       <section className="yacht-section">
