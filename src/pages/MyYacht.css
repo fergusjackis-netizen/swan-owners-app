@@ -299,3 +299,46 @@
   gap: 0.5rem;
   margin-top: 0.75rem;
 }
+
+/* ── MAINTENANCE LOG HOLDING ─────────────────────── */
+.log-holding {
+  border: 1px dashed #1e2d4a;
+  background: #0a0f1e;
+}
+
+.log-holding-inner {
+  padding: 0.5rem 0;
+}
+
+.log-holding-lock {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.log-holding-soon {
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #c9a84c;
+  border: 1px solid #c9a84c44;
+  padding: 0.2rem 0.6rem;
+}
+
+.log-holding-text {
+  font-size: 0.88rem;
+  color: #6b8cae;
+  line-height: 1.7;
+  margin-bottom: 0.75rem;
+  font-style: italic;
+}
+
+.log-holding-restricted {
+  color: #4a6a8a;
+  font-size: 0.78rem;
+  margin-bottom: 0;
+  border-top: 1px solid #1e2d4a;
+  padding-top: 0.75rem;
+  margin-top: 0.25rem;
+}
