@@ -16,6 +16,7 @@ import Map from './pages/Map'
 import Contacts from './pages/Contacts'
 import Messages from './pages/Messages'
 import Admin from './pages/Admin'
+import MaintenanceLogs from './pages/MaintenanceLogs'
 import Models from './pages/Models'
 
 // Route guard — must be logged in

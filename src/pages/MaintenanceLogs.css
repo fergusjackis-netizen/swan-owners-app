@@ -1,0 +1,184 @@
+
+.maintlogs-page {
+  padding: 1.5rem 1rem 4rem;
+  max-width: 600px;
+  margin: 0 auto;
+  font-family: Georgia, serif;
+  color: #e8dcc8;
+}
+
+.maintlogs-header {
+  margin-bottom: 1.75rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #1e2d4a;
+}
+
+.maintlogs-header h1 {
+  font-size: 1.5rem;
+  color: #c9a84c;
+  margin: 0 0 0.25rem;
+}
+
+.maintlogs-subtitle {
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #6b8cae;
+  margin: 0;
+}
+
+.maintlogs-empty {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: #6b8cae;
+  font-size: 0.9rem;
+  line-height: 1.7;
+}
+
+.maintlogs-fleet {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.maintlogs-card {
+  width: 100%;
+  background: #0d1526;
+  border: 1px solid #1e2d4a;
+  padding: 1rem 1.1rem;
+  cursor: pointer;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  transition: border-color 0.15s;
+  font-family: Georgia, serif;
+}
+
+.maintlogs-card:hover {
+  border-color: #c9a84c44;
+}
+
+.maintlogs-card-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.maintlogs-boat-name {
+  font-size: 1rem;
+  color: #e8dcc8;
+}
+
+.maintlogs-model {
+  font-size: 0.78rem;
+  color: #6b8cae;
+}
+
+.maintlogs-card-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.2rem;
+}
+
+.maintlogs-role {
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #4caf78;
+  border: 1px solid #4caf78;
+  padding: 0.1rem 0.35rem;
+}
+
+.maintlogs-flag {
+  font-size: 0.75rem;
+  color: #6b8cae;
+}
+
+.maintlogs-marina {
+  font-size: 0.72rem;
+  color: #6b8cae;
+  font-style: italic;
+}
+
+.maintlogs-arrow {
+  color: #c9a84c;
+  font-size: 1.4rem;
+  line-height: 1;
+}
+
+.maintlogs-back {
+  background: none;
+  border: none;
+  color: #6b8cae;
+  font-family: Georgia, serif;
+  font-size: 0.85rem;
+  cursor: pointer;
+  padding: 0;
+  margin-bottom: 1.25rem;
+  display: block;
+}
+
+.maintlogs-back:hover { color: #c9a84c; }
+
+.maintlogs-detail-header {
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #1e2d4a;
+}
+
+.maintlogs-detail-header h2 {
+  font-size: 1.3rem;
+  color: #c9a84c;
+  margin: 0 0 0.2rem;
+}
+
+.maintlogs-detail-model {
+  font-size: 0.8rem;
+  color: #6b8cae;
+  letter-spacing: 0.05em;
+}
+
+/* Reuse holding styles from MyYacht */
+.log-holding {
+  border: 1px dashed #1e2d4a;
+  background: #0a0f1e;
+  padding: 1.25rem;
+}
+
+.log-holding-inner { padding: 0.5rem 0; }
+
+.log-holding-lock {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.log-holding-soon {
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #c9a84c;
+  border: 1px solid #c9a84c44;
+  padding: 0.2rem 0.6rem;
+}
+
+.log-holding-text {
+  font-size: 0.88rem;
+  color: #6b8cae;
+  line-height: 1.7;
+  margin-bottom: 0.75rem;
+  font-style: italic;
+}
+
+.log-holding-restricted {
+  color: #4a6a8a;
+  font-size: 0.78rem;
+  margin-bottom: 0;
+  border-top: 1px solid #1e2d4a;
+  padding-top: 0.75rem;
+  margin-top: 0.25rem;
+}

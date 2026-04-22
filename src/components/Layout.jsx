@@ -21,6 +21,7 @@ export default function Layout() {
 
   const secondaryNav = user ? [
     { path: '/contacts', label: 'Contacts' },
+    { path: '/maintenance-logs', label: 'Maintenance Logs' },
     { path: '/my-yacht', label: 'My Yacht' },
     ...(isAdmin ? [{ path: '/admin', label: 'Admin Panel' }] : []),
   ] : []
