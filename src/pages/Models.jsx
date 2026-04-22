@@ -321,7 +321,6 @@ export default function Models() {
 
             {(modelData.rigging || []).length > 0 && (
               <div className="model-section">
-                <h2>Rigging Data</h2>
                 {modelData.rigging.map(table => (
                   <div key={table.id} className="rigging-section">
                     <div className="rigging-section-header">
