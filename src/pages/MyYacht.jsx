@@ -481,23 +481,6 @@ export default function MyYacht() {
         </div>
       </section>
 
-
-      <section className="yacht-section log-holding">
-        <h2>Maintenance &amp; Crew Log</h2>
-        <div className="log-holding-inner">
-          <div className="log-holding-lock">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#c9a84c" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-              <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-            </svg>
-            <span className="log-holding-soon">Coming soon</span>
-          </div>
-          <p className="log-holding-text">A private workspace for your yacht's crew team — owner, skippers and gardiennes together.</p>
-          <p className="log-holding-text">Log ongoing issues, track repairs and share updates across your team. Run through routine checks — engine, rigging, safety equipment, bilges — and sign them off watch by watch.</p>
-          <p className="log-holding-text">Issues logged here are automatically shared anonymously to the community Issues &amp; Fixes board, attributed only to your Swan model. If yours is the only vessel of that model registered, the issue will be held privately until a second vessel of the same model joins the community.</p>
-          <p className="log-holding-text log-holding-restricted">Access is restricted to your linked crew only.</p>
-        </div>
-      </section>
       <div className="save-footer">
         <button className="btn-save" onClick={handleSave} disabled={saving}>
           {saving ? 'Saving...' : saved ? 'Saved!' : 'Save Changes'}
