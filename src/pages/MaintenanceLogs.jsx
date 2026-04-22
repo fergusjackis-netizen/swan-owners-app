@@ -719,7 +719,7 @@ export default function MaintenanceLogs() {
         'Keep responses focused and mobile-friendly.',
       ].filter(Boolean).join(' ')
 
-      const response = await fetch('/api/claude', {
+      const response = await fetch('/api/ask', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
