@@ -2,9 +2,10 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '../hooks/useAuth'
 import {
   getCrewIssues, postCrewIssue, resolveAndPublishIssue,
-  getChecklistTemplate, saveChecklistTemplate, saveCompletedChecklist
+  getChecklistTemplate, saveChecklistTemplate, saveCompletedChecklist, getVesselDocuments
 } from '../services/firestore'
 import './MaintenanceLogs.css'
+import VesselDocuments from '../components/VesselDocuments'
 
 const SYSTEMS = ["Deck & Rig","Engine","Bow Thruster","Generator","24v Electrical","240v Shore Power","Electronics","Safety","Below Decks","Domestic Systems","Air Conditioning","Heating","Water System","Calorifier","Washing Machine","Rig & Sails","Hull & Deck","Other"]
 const DEFAULT_WEEKLY = [
@@ -533,6 +534,12 @@ export default function MaintenanceLogs() {
   const [loggingIssue, setLoggingIssue] = useState(false)
   const [newItemText, setNewItemText] = useState('')
   const [newItemCategory, setNewItemCategory] = useState('Other')
+  const [vesselDocs, setVesselDocs] = useState([])
+  const [chatMessages, setChatMessages] = useState([])
+  const [chatInput, setChatInput] = useState('')
+  const [chatLoading, setChatLoading] = useState(false)
+  const [chatOpen, setChatOpen] = useState(false)
+  const [showDocs, setShowDocs] = useState(false)
 
   useEffect(() => { if (user?.uid) loadAssignedYachts() }, [user?.uid])
 
@@ -559,11 +566,13 @@ export default function MaintenanceLogs() {
     try {
       const { getDocs, collection } = await import('firebase/firestore')
       const { db } = await import('../firebase')
-      const [issueList, tmpl, yachtsSnap] = await Promise.all([
+      const [issueList, tmpl, yachtsSnap, docList] = await Promise.all([
         getCrewIssues(yacht.id),
         getChecklistTemplate(yacht.id),
-        getDocs(collection(db, 'yachts'))
+        getDocs(collection(db, 'yachts')),
+        getVesselDocuments(yacht.id)
       ])
+      setVesselDocs(docList)
       setIssues(issueList)
       setTemplate(tmpl || { weekly: DEFAULT_WEEKLY, monthly: DEFAULT_MONTHLY })
       setModelCount(yachtsSnap.docs.filter(d => d.data().model === yacht.model).length)
@@ -686,6 +695,52 @@ export default function MaintenanceLogs() {
     } catch(e) { alert('Error: ' + e.message) }
   }
 
+  async function sendChat() {
+    if (!chatInput.trim() || chatLoading) return
+    const userMsg = chatInput.trim()
+    setChatInput('')
+    setChatMessages(prev => [...prev, { role: 'user', content: userMsg }])
+    setChatLoading(true)
+    try {
+      const docSummary = vesselDocs.length > 0
+        ? 'The vessel has ' + vesselDocs.length + ' technical documents uploaded: ' +
+          vesselDocs.map(d => (d.displayName || d.filename) + ' (' + d.category + (d.manufacturer ? ', ' + d.manufacturer : '') + ')').join('; ') + '.'
+        : 'No technical documents have been uploaded for this vessel yet.'
+
+      const system = [
+        'You are an expert marine engineer and sailing advisor for the Swan Owners community.',
+        'You are helping the crew of ' + (selected?.name || 'a Swan yacht') + ', a ' + (selected?.model || 'Swan') + '.',
+        selected?.homeMarina?.name ? 'The yacht is based at ' + selected.homeMarina.name + (selected.homeMarina.country ? ', ' + selected.homeMarina.country : '') + '.' : '',
+        openIssues.length > 0
+          ? 'Current outstanding issues: ' + openIssues.map(i => i.title + ' (' + i.system + ')' + (i.description ? ': ' + i.description : '')).join('; ') + '.'
+          : 'No outstanding issues currently logged.',
+        docSummary,
+        'Give practical, specific, concise advice. Reference document names when relevant.',
+        'Keep responses focused and mobile-friendly.',
+      ].filter(Boolean).join(' ')
+
+      const response = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-20250514',
+          max_tokens: 1000,
+          system,
+          messages: [
+            ...chatMessages.map(m => ({ role: m.role, content: m.content })),
+            { role: 'user', content: userMsg }
+          ],
+        })
+      })
+      const data = await response.json()
+      const reply = data.content?.[0]?.text || 'Sorry, I could not get a response.'
+      setChatMessages(prev => [...prev, { role: 'assistant', content: reply }])
+    } catch(e) {
+      setChatMessages(prev => [...prev, { role: 'assistant', content: 'Something went wrong. Please try again.' }])
+    }
+    setChatLoading(false)
+  }
+
   if (loading) return <div className="loading-screen"><div className="spinner"/></div>
 
   // ── VESSEL LIST ─────────────────────────────────────────────────────────────
@@ -755,6 +810,59 @@ export default function MaintenanceLogs() {
         </button>
       </div>
       {issuesLoading && <p className="mlog-loading">Loading...</p>}
+
+      <div className="ask-claude-section">
+        <button className="ask-claude-toggle" onClick={() => setChatOpen(o => !o)}>
+          <span className="ask-claude-label">Ask Claude</span>
+          <span className="ask-claude-hint">{chatOpen ? 'Close' : 'Marine engineer & maintenance advice for your ' + (selected?.model || 'yacht')}</span>
+          <span className="ask-claude-chevron">{chatOpen ? '▲' : '▼'}</span>
+        </button>
+        {chatOpen && (
+          <div className="ask-claude-body">
+            {vesselDocs.length > 0 && (
+              <p className="ask-claude-context-note">{vesselDocs.length} vessel document{vesselDocs.length !== 1 ? 's' : ''} available as context</p>
+            )}
+            {chatMessages.length === 0 && (
+              <p className="ask-claude-empty">Ask anything about maintaining your {selected?.model} — troubleshooting, procedures, parts, checks. I know about your outstanding issues{vesselDocs.length > 0 ? ' and have access to your vessel documents' : ''}.</p>
+            )}
+            <div className="ask-claude-messages">
+              {chatMessages.map((msg, i) => (
+                <div key={i} className={'ask-claude-msg ask-claude-msg-' + msg.role}>
+                  <span className="ask-claude-msg-label">{msg.role === 'user' ? 'You' : 'Claude'}</span>
+                  <p className="ask-claude-msg-text">{msg.content}</p>
+                </div>
+              ))}
+              {chatLoading && (
+                <div className="ask-claude-msg ask-claude-msg-assistant">
+                  <span className="ask-claude-msg-label">Claude</span>
+                  <p className="ask-claude-msg-text ask-claude-thinking">Thinking...</p>
+                </div>
+              )}
+            </div>
+            <div className="ask-claude-input-row">
+              <input className="ask-claude-input" value={chatInput}
+                onChange={e => setChatInput(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && sendChat()}
+                placeholder={'Ask about your ' + (selected?.model || 'yacht') + '...'}
+                disabled={chatLoading} />
+              <button className="ask-claude-send" onClick={sendChat} disabled={chatLoading || !chatInput.trim()}>Send</button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div className="mlog-docs-section">
+        <button className="ask-claude-toggle" onClick={() => setShowDocs(o => !o)}>
+          <span className="ask-claude-label">Vessel Documents</span>
+          <span className="ask-claude-hint">{showDocs ? 'Close' : vesselDocs.length + ' document' + (vesselDocs.length !== 1 ? 's' : '') + ' — manuals & drawings'}</span>
+          <span className="ask-claude-chevron">{showDocs ? '▲' : '▼'}</span>
+        </button>
+        {showDocs && (
+          <div className="ask-claude-body">
+            <VesselDocuments yachtId={selected?.id} canUpload={false} compact={true} />
+          </div>
+        )}
+      </div>
       {openIssues.length > 0 && (
         <div className="mlog-section">
           <h2>Outstanding Issues <span className="mlog-count">{openIssues.length}</span></h2>

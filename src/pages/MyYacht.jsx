@@ -3,6 +3,7 @@ import { useAuth } from '../hooks/useAuth'
 import { saveYacht, getYacht } from '../services/firestore'
 import { YACHT_STATUS } from '../data/swanModels'
 import PhotoUpload from '../components/PhotoUpload'
+import VesselDocuments from '../components/VesselDocuments'
 import './MyYacht.css'
 
 const APPROACHABILITY = [
@@ -458,6 +459,12 @@ export default function MyYacht() {
             onUploaded={newPhotos => setPhotos(prev => [...prev, ...newPhotos])}
           />
         )}
+      </section>
+
+      <section className="yacht-section">
+        <h2>Vessel Documents</h2>
+        <p className="section-hint">PDF manuals, drawings and certificates. Private to your linked crew. Used by the Ask Claude feature to give vessel-specific advice.</p>
+        <VesselDocuments yachtId={user?.uid} canUpload={true} />
       </section>
 
       <section className="yacht-section">

@@ -348,3 +348,21 @@ export async function getCompletedChecklists(yachtId) {
   const snap = await getDocs(q)
   return snap.docs.map(d => ({ id: d.id, ...d.data() }))
 }
+
+// ── VESSEL DOCUMENTS ─────────────────────────────────────────────────────────
+
+export async function getVesselDocuments(yachtId) {
+  const snap = await getDocs(collection(db, 'yachts', yachtId, 'documents'))
+  return snap.docs.map(d => ({ id: d.id, ...d.data() }))
+}
+
+export async function saveVesselDocument(yachtId, data) {
+  return addDoc(collection(db, 'yachts', yachtId, 'documents'), {
+    ...data,
+    uploadedAt: serverTimestamp(),
+  })
+}
+
+export async function deleteVesselDocument(yachtId, docId) {
+  await deleteDoc(doc(db, 'yachts', yachtId, 'documents', docId))
+}
