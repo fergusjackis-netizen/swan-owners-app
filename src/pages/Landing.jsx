@@ -93,12 +93,7 @@ export default function Landing() {
             <p>Browse registered Swan yachts worldwide. Find boats by model, flag and location.</p>
             <Link to="/fleet" className="feature-link">Browse Fleet</Link>
           </div>
-          <div className="feature-card">
-            <h3>Issues and Fixes</h3>
-            <p>Share technical knowledge. Post problems, solutions and maintenance tips with the community.</p>
-            <Link to="/issues" className="feature-link">View Issues</Link>
-          </div>
-          <div className="feature-card feature-card-highlight">
+<div className="feature-card feature-card-highlight">
             <div className="feature-card-badge">NEW</div>
             <h3><em><strong>SMART</strong></em> Log</h3>
             <p>
