@@ -664,7 +664,7 @@ export default function MaintenanceLogs() {
           <div className="smart-log-info-col">
             <h4>To get the best results</h4>
             <ul>
-              <li>Upload as many technical documents as possible — electrical schematics, engine manuals and plumbing drawings all help Claude give precise answers</li>
+              <li>Upload as many technical documents as possible via <a href="/my-yacht" className="smart-log-link">My Yacht</a> — electrical schematics, engine manuals and plumbing drawings all help Claude give precise answers</li>
               <li>Use the camera button to send photos of what you are seeing — a photo is worth a thousand words</li>
               <li>Be specific about which cabin, which system, and what you have already tried</li>
               <li>When a fault is fixed, use Publish Fix to Community so other Swan owners benefit</li>

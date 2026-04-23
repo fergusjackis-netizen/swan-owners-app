@@ -345,3 +345,10 @@
   margin: 0;
 }
 .smart-log-info-col li { margin-bottom: 0.5rem; }
+
+.smart-log-link {
+  color: #c9a84c;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.smart-log-link:hover { color: #e8c96a; }
