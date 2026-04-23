@@ -1,517 +1,122 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useAuth } from '../hooks/useAuth'
 import {
   getCrewIssues, postCrewIssue, resolveAndPublishIssue,
   getChecklistTemplate, saveChecklistTemplate, saveCompletedChecklist, getVesselDocuments
 } from '../services/firestore'
 import './MaintenanceLogs.css'
-import VesselDocuments from '../components/VesselDocuments'
 
-const SYSTEMS = ["Deck & Rig","Engine","Bow Thruster","Generator","24v Electrical","240v Shore Power","Electronics","Safety","Below Decks","Domestic Systems","Air Conditioning","Heating","Water System","Calorifier","Washing Machine","Rig & Sails","Hull & Deck","Other"]
+const SYSTEMS = ['Deck & Rig','Engine','Bow Thruster','Generator','24v Electrical',
+  '240v Shore Power','Electronics','Safety','Below Decks','Domestic Systems',
+  'Air Conditioning','Heating','Water System','Calorifier','Washing Machine',
+  'Rig & Sails','Hull & Deck','Other']
+
 const DEFAULT_WEEKLY = [
-  {
-    "id": "w01",
-    "category": "Deck & Rig",
-    "item": "Inspect running rigging for chafe, wear and broken strands"
-  },
-  {
-    "id": "w02",
-    "category": "Deck & Rig",
-    "item": "Check standing rigging — shrouds, stays, turnbuckles, toggles"
-  },
-  {
-    "id": "w03",
-    "category": "Deck & Rig",
-    "item": "Inspect furling systems — jib and main — for smooth operation"
-  },
-  {
-    "id": "w04",
-    "category": "Deck & Rig",
-    "item": "Check all blocks, clutches and winches"
-  },
-  {
-    "id": "w05",
-    "category": "Deck & Rig",
-    "item": "Check electric winches — operation and deck connections"
-  },
-  {
-    "id": "w06",
-    "category": "Deck & Rig",
-    "item": "Inspect mast base, deck fittings and chainplates"
-  },
-  {
-    "id": "w07",
-    "category": "Deck & Rig",
-    "item": "Check anchor, chain and windlass operation"
-  },
-  {
-    "id": "w08",
-    "category": "Deck & Rig",
-    "item": "Inspect stanchions, lifelines and jackstays"
-  },
-  {
-    "id": "w09",
-    "category": "Engine",
-    "item": "Check engine oil level"
-  },
-  {
-    "id": "w10",
-    "category": "Engine",
-    "item": "Check coolant level"
-  },
-  {
-    "id": "w11",
-    "category": "Engine",
-    "item": "Check raw water strainer — clear if needed"
-  },
-  {
-    "id": "w12",
-    "category": "Engine",
-    "item": "Check bilges — note any unusual ingress"
-  },
-  {
-    "id": "w13",
-    "category": "Engine",
-    "item": "Test automatic bilge pumps — float switch operation"
-  },
-  {
-    "id": "w14",
-    "category": "Engine",
-    "item": "Run engine — check for noise, smoke or overheating"
-  },
-  {
-    "id": "w15",
-    "category": "Engine",
-    "item": "Check alternator charging voltage"
-  },
-  {
-    "id": "w16",
-    "category": "Bow Thruster",
-    "item": "Test operation — port and starboard"
-  },
-  {
-    "id": "w17",
-    "category": "Bow Thruster",
-    "item": "Check for unusual noise or reduced thrust"
-  },
-  {
-    "id": "w18",
-    "category": "Generator",
-    "item": "Run generator under load — check for smoke or overheating"
-  },
-  {
-    "id": "w19",
-    "category": "Generator",
-    "item": "Check generator oil level"
-  },
-  {
-    "id": "w20",
-    "category": "Generator",
-    "item": "Check generator raw water strainer"
-  },
-  {
-    "id": "w21",
-    "category": "Generator",
-    "item": "Check output voltage — should read 230-240v"
-  },
-  {
-    "id": "w22",
-    "category": "24v Electrical",
-    "item": "Check battery state of charge — all banks"
-  },
-  {
-    "id": "w23",
-    "category": "24v Electrical",
-    "item": "Check alternator and battery charger output"
-  },
-  {
-    "id": "w24",
-    "category": "24v Electrical",
-    "item": "Inspect battery terminals for corrosion"
-  },
-  {
-    "id": "w25",
-    "category": "24v Electrical",
-    "item": "Test navigation lights"
-  },
-  {
-    "id": "w26",
-    "category": "24v Electrical",
-    "item": "Check VHF operation"
-  },
-  {
-    "id": "w27",
-    "category": "240v Shore Power",
-    "item": "Check shore power connection — cable and plug condition"
-  },
-  {
-    "id": "w28",
-    "category": "240v Shore Power",
-    "item": "Check RCD/circuit breakers — all functioning"
-  },
-  {
-    "id": "w29",
-    "category": "240v Shore Power",
-    "item": "Check shore power indicator light"
-  },
-  {
-    "id": "w30",
-    "category": "Electronics",
-    "item": "Check chartplotter operation and GPS fix"
-  },
-  {
-    "id": "w31",
-    "category": "Electronics",
-    "item": "Check AIS — transmitting and receiving"
-  },
-  {
-    "id": "w32",
-    "category": "Electronics",
-    "item": "Check depth sounder, wind instruments, autopilot"
-  },
-  {
-    "id": "w33",
-    "category": "Safety",
-    "item": "Inspect flares — in date and accessible"
-  },
-  {
-    "id": "w34",
-    "category": "Safety",
-    "item": "Check fire extinguishers — in date and accessible"
-  },
-  {
-    "id": "w35",
-    "category": "Safety",
-    "item": "Test manual bilge pump"
-  },
-  {
-    "id": "w36",
-    "category": "Below Decks",
-    "item": "Check all seacocks — operate and grease if stiff"
-  },
-  {
-    "id": "w37",
-    "category": "Below Decks",
-    "item": "Check stern gland — adjust drip rate if needed"
-  },
-  {
-    "id": "w38",
-    "category": "Below Decks",
-    "item": "Inspect hoses and clips for chafe or weeping"
-  },
-  {
-    "id": "w39",
-    "category": "Below Decks",
-    "item": "Check heads operation and holding tank level"
-  },
-  {
-    "id": "w40",
-    "category": "Domestic Systems",
-    "item": "Check pressurised water system — pressure, any air in lines"
-  },
-  {
-    "id": "w41",
-    "category": "Domestic Systems",
-    "item": "Check hot water calorifier — temperature and pressure relief valve"
-  },
-  {
-    "id": "w42",
-    "category": "Domestic Systems",
-    "item": "Check washing machine — hose connections and drain"
-  },
-  {
-    "id": "w43",
-    "category": "Domestic Systems",
-    "item": "Run air conditioning — check cooling and drainage"
-  },
-  {
-    "id": "w44",
-    "category": "Domestic Systems",
-    "item": "Check heating system — operation and fuel level"
-  }
+  { id: 'w01', category: 'Deck & Rig', item: 'Inspect running rigging for chafe, wear and broken strands' },
+  { id: 'w02', category: 'Deck & Rig', item: 'Check standing rigging — shrouds, stays, turnbuckles, toggles' },
+  { id: 'w03', category: 'Deck & Rig', item: 'Inspect furling systems — jib and main — for smooth operation' },
+  { id: 'w04', category: 'Deck & Rig', item: 'Check all blocks, clutches and winches' },
+  { id: 'w05', category: 'Deck & Rig', item: 'Check electric winches — operation and deck connections' },
+  { id: 'w06', category: 'Deck & Rig', item: 'Inspect mast base, deck fittings and chainplates' },
+  { id: 'w07', category: 'Deck & Rig', item: 'Check anchor, chain and windlass operation' },
+  { id: 'w08', category: 'Deck & Rig', item: 'Inspect stanchions, lifelines and jackstays' },
+  { id: 'w09', category: 'Engine', item: 'Check engine oil level' },
+  { id: 'w10', category: 'Engine', item: 'Check coolant level' },
+  { id: 'w11', category: 'Engine', item: 'Check raw water strainer — clear if needed' },
+  { id: 'w12', category: 'Engine', item: 'Check bilges — note any unusual ingress' },
+  { id: 'w13', category: 'Engine', item: 'Test automatic bilge pumps — float switch operation' },
+  { id: 'w14', category: 'Engine', item: 'Run engine — check for noise, smoke or overheating' },
+  { id: 'w15', category: 'Engine', item: 'Check alternator charging voltage' },
+  { id: 'w16', category: 'Bow Thruster', item: 'Test operation — port and starboard' },
+  { id: 'w17', category: 'Bow Thruster', item: 'Check for unusual noise or reduced thrust' },
+  { id: 'w18', category: 'Generator', item: 'Run generator under load — check for smoke or overheating' },
+  { id: 'w19', category: 'Generator', item: 'Check generator oil level' },
+  { id: 'w20', category: 'Generator', item: 'Check generator raw water strainer' },
+  { id: 'w21', category: 'Generator', item: 'Check output voltage — should read 230-240v' },
+  { id: 'w22', category: '24v Electrical', item: 'Check battery state of charge — all banks' },
+  { id: 'w23', category: '24v Electrical', item: 'Check alternator and battery charger output' },
+  { id: 'w24', category: '24v Electrical', item: 'Inspect battery terminals for corrosion' },
+  { id: 'w25', category: '24v Electrical', item: 'Test navigation lights' },
+  { id: 'w26', category: '24v Electrical', item: 'Check VHF operation' },
+  { id: 'w27', category: '240v Shore Power', item: 'Check shore power connection — cable and plug condition' },
+  { id: 'w28', category: '240v Shore Power', item: 'Check RCD/circuit breakers — all functioning' },
+  { id: 'w29', category: '240v Shore Power', item: 'Check shore power indicator light' },
+  { id: 'w30', category: 'Electronics', item: 'Check chartplotter operation and GPS fix' },
+  { id: 'w31', category: 'Electronics', item: 'Check AIS — transmitting and receiving' },
+  { id: 'w32', category: 'Electronics', item: 'Check depth sounder, wind instruments, autopilot' },
+  { id: 'w33', category: 'Safety', item: 'Inspect flares — in date and accessible' },
+  { id: 'w34', category: 'Safety', item: 'Check fire extinguishers — in date and accessible' },
+  { id: 'w35', category: 'Safety', item: 'Test manual bilge pump' },
+  { id: 'w36', category: 'Below Decks', item: 'Check all seacocks — operate and grease if stiff' },
+  { id: 'w37', category: 'Below Decks', item: 'Check stern gland — adjust drip rate if needed' },
+  { id: 'w38', category: 'Below Decks', item: 'Inspect hoses and clips for chafe or weeping' },
+  { id: 'w39', category: 'Below Decks', item: 'Check heads operation and holding tank level' },
+  { id: 'w40', category: 'Domestic Systems', item: 'Check pressurised water system — pressure, any air in lines' },
+  { id: 'w41', category: 'Domestic Systems', item: 'Check hot water calorifier — temperature and pressure relief valve' },
+  { id: 'w42', category: 'Domestic Systems', item: 'Check washing machine — hose connections and drain' },
+  { id: 'w43', category: 'Domestic Systems', item: 'Run air conditioning — check cooling and drainage' },
+  { id: 'w44', category: 'Domestic Systems', item: 'Check heating system — operation and fuel level' },
 ]
+
 const DEFAULT_MONTHLY = [
-  {
-    "id": "m01",
-    "category": "Rig & Sails",
-    "item": "Full rig inspection aloft — masthead, spreaders, sheaves"
-  },
-  {
-    "id": "m02",
-    "category": "Rig & Sails",
-    "item": "Inspect sails for UV damage, seam separation, batten pockets"
-  },
-  {
-    "id": "m03",
-    "category": "Rig & Sails",
-    "item": "Lubricate all blocks, furlers and tracks"
-  },
-  {
-    "id": "m04",
-    "category": "Rig & Sails",
-    "item": "Check boom vang, kicker and reefing lines end to end"
-  },
-  {
-    "id": "m05",
-    "category": "Rig & Sails",
-    "item": "Inspect electric winch motors, wiring and deck glands"
-  },
-  {
-    "id": "m06",
-    "category": "Engine",
-    "item": "Check and top up gearbox oil"
-  },
-  {
-    "id": "m07",
-    "category": "Engine",
-    "item": "Inspect raw water impeller — replace every 200 hours"
-  },
-  {
-    "id": "m08",
-    "category": "Engine",
-    "item": "Check belts — alternator, AC compressor"
-  },
-  {
-    "id": "m09",
-    "category": "Engine",
-    "item": "Check propeller shaft — play, alignment, anode condition"
-  },
-  {
-    "id": "m10",
-    "category": "Engine",
-    "item": "Inspect cutlass bearing"
-  },
-  {
-    "id": "m11",
-    "category": "Engine",
-    "item": "Check fuel filters — primary and secondary"
-  },
-  {
-    "id": "m12",
-    "category": "Bow Thruster",
-    "item": "Inspect thruster tunnel anode"
-  },
-  {
-    "id": "m13",
-    "category": "Bow Thruster",
-    "item": "Check thruster shaft seal for weeping"
-  },
-  {
-    "id": "m14",
-    "category": "Bow Thruster",
-    "item": "Inspect motor mounting bolts"
-  },
-  {
-    "id": "m15",
-    "category": "Generator",
-    "item": "Check and top up generator oil"
-  },
-  {
-    "id": "m16",
-    "category": "Generator",
-    "item": "Inspect generator raw water impeller"
-  },
-  {
-    "id": "m17",
-    "category": "Generator",
-    "item": "Check generator fuel filter"
-  },
-  {
-    "id": "m18",
-    "category": "Generator",
-    "item": "Check exhaust system — water flow and hose condition"
-  },
-  {
-    "id": "m19",
-    "category": "Generator",
-    "item": "Log generator hours run"
-  },
-  {
-    "id": "m20",
-    "category": "24v Electrical",
-    "item": "Full battery capacity test"
-  },
-  {
-    "id": "m21",
-    "category": "24v Electrical",
-    "item": "Clean and tighten all battery terminals"
-  },
-  {
-    "id": "m22",
-    "category": "24v Electrical",
-    "item": "Test all automatic bilge pumps under load"
-  },
-  {
-    "id": "m23",
-    "category": "24v Electrical",
-    "item": "Check inverter operation"
-  },
-  {
-    "id": "m24",
-    "category": "240v Shore Power",
-    "item": "Inspect all 240v connections — galley, heads, AC, charger"
-  },
-  {
-    "id": "m25",
-    "category": "240v Shore Power",
-    "item": "Test all RCDs"
-  },
-  {
-    "id": "m26",
-    "category": "240v Shore Power",
-    "item": "Check shore power cable for wear"
-  },
-  {
-    "id": "m27",
-    "category": "240v Shore Power",
-    "item": "Check battery charger — output current"
-  },
-  {
-    "id": "m28",
-    "category": "Air Conditioning",
-    "item": "Clean sea water strainer"
-  },
-  {
-    "id": "m29",
-    "category": "Air Conditioning",
-    "item": "Clean or replace air filters"
-  },
-  {
-    "id": "m30",
-    "category": "Air Conditioning",
-    "item": "Inspect condensate drain — clear if blocked"
-  },
-  {
-    "id": "m31",
-    "category": "Air Conditioning",
-    "item": "Inspect seacock and raw water hose"
-  },
-  {
-    "id": "m32",
-    "category": "Heating",
-    "item": "Check diesel fuel supply and filter"
-  },
-  {
-    "id": "m33",
-    "category": "Heating",
-    "item": "Inspect exhaust outlet — clear, no carbon build-up"
-  },
-  {
-    "id": "m34",
-    "category": "Heating",
-    "item": "Check thermostat operation"
-  },
-  {
-    "id": "m35",
-    "category": "Water System",
-    "item": "Check accumulator tank pressure — typically 1.5-2 bar"
-  },
-  {
-    "id": "m36",
-    "category": "Water System",
-    "item": "Inspect all hose connections for weeping"
-  },
-  {
-    "id": "m37",
-    "category": "Water System",
-    "item": "Clean strainer on pump inlet"
-  },
-  {
-    "id": "m38",
-    "category": "Water System",
-    "item": "Sanitise water tank if not done in past 3 months"
-  },
-  {
-    "id": "m39",
-    "category": "Calorifier",
-    "item": "Check anode — replace if more than 50% depleted"
-  },
-  {
-    "id": "m40",
-    "category": "Calorifier",
-    "item": "Inspect pressure relief valve — operate briefly"
-  },
-  {
-    "id": "m41",
-    "category": "Calorifier",
-    "item": "Check immersion heater element"
-  },
-  {
-    "id": "m42",
-    "category": "Washing Machine",
-    "item": "Clean filter"
-  },
-  {
-    "id": "m43",
-    "category": "Washing Machine",
-    "item": "Check hose connections — inlet and drain"
-  },
-  {
-    "id": "m44",
-    "category": "Washing Machine",
-    "item": "Inspect door seal"
-  },
-  {
-    "id": "m45",
-    "category": "Electronics",
-    "item": "Update chartplotter charts if subscription current"
-  },
-  {
-    "id": "m46",
-    "category": "Electronics",
-    "item": "Test EPIRB — registered and in date"
-  },
-  {
-    "id": "m47",
-    "category": "Electronics",
-    "item": "Check liferaft service date"
-  },
-  {
-    "id": "m48",
-    "category": "Electronics",
-    "item": "Verify AIS MMSI and vessel data correct"
-  },
-  {
-    "id": "m49",
-    "category": "Electronics",
-    "item": "Test autopilot drive unit — rams, cables, feedback unit"
-  },
-  {
-    "id": "m50",
-    "category": "Hull & Deck",
-    "item": "Inspect hull below waterline — weed, osmosis, anodes"
-  },
-  {
-    "id": "m51",
-    "category": "Hull & Deck",
-    "item": "Check keel bolts — any weeping or rust staining"
-  },
-  {
-    "id": "m52",
-    "category": "Hull & Deck",
-    "item": "Inspect rudder bearings for play"
-  },
-  {
-    "id": "m53",
-    "category": "Hull & Deck",
-    "item": "Check all deck fittings — stanchion bases, cleats, winch bases"
-  },
-  {
-    "id": "m54",
-    "category": "Hull & Deck",
-    "item": "Lubricate all hatches and ports"
-  },
-  {
-    "id": "m55",
-    "category": "Safety",
-    "item": "Check first aid kit — stock and expiry dates"
-  },
-  {
-    "id": "m56",
-    "category": "Safety",
-    "item": "Confirm insurance, registration and safety certificate in date"
-  }
+  { id: 'm01', category: 'Rig & Sails', item: 'Full rig inspection aloft — masthead, spreaders, sheaves' },
+  { id: 'm02', category: 'Rig & Sails', item: 'Inspect sails for UV damage, seam separation, batten pockets' },
+  { id: 'm03', category: 'Rig & Sails', item: 'Lubricate all blocks, furlers and tracks' },
+  { id: 'm04', category: 'Rig & Sails', item: 'Check boom vang, kicker and reefing lines end to end' },
+  { id: 'm05', category: 'Rig & Sails', item: 'Inspect electric winch motors, wiring and deck glands' },
+  { id: 'm06', category: 'Engine', item: 'Check and top up gearbox oil' },
+  { id: 'm07', category: 'Engine', item: 'Inspect raw water impeller — replace every 200 hours' },
+  { id: 'm08', category: 'Engine', item: 'Check belts — alternator, AC compressor' },
+  { id: 'm09', category: 'Engine', item: 'Check propeller shaft — play, alignment, anode condition' },
+  { id: 'm10', category: 'Engine', item: 'Inspect cutlass bearing' },
+  { id: 'm11', category: 'Engine', item: 'Check fuel filters — primary and secondary' },
+  { id: 'm12', category: 'Bow Thruster', item: 'Inspect thruster tunnel anode' },
+  { id: 'm13', category: 'Bow Thruster', item: 'Check thruster shaft seal for weeping' },
+  { id: 'm14', category: 'Bow Thruster', item: 'Inspect motor mounting bolts' },
+  { id: 'm15', category: 'Generator', item: 'Check and top up generator oil' },
+  { id: 'm16', category: 'Generator', item: 'Inspect generator raw water impeller' },
+  { id: 'm17', category: 'Generator', item: 'Check generator fuel filter' },
+  { id: 'm18', category: 'Generator', item: 'Check exhaust system — water flow and hose condition' },
+  { id: 'm19', category: 'Generator', item: 'Log generator hours run' },
+  { id: 'm20', category: '24v Electrical', item: 'Full battery capacity test' },
+  { id: 'm21', category: '24v Electrical', item: 'Clean and tighten all battery terminals' },
+  { id: 'm22', category: '24v Electrical', item: 'Test all automatic bilge pumps under load' },
+  { id: 'm23', category: '24v Electrical', item: 'Check inverter operation' },
+  { id: 'm24', category: '240v Shore Power', item: 'Inspect all 240v connections — galley, heads, AC, charger' },
+  { id: 'm25', category: '240v Shore Power', item: 'Test all RCDs' },
+  { id: 'm26', category: '240v Shore Power', item: 'Check shore power cable for wear' },
+  { id: 'm27', category: '240v Shore Power', item: 'Check battery charger — output current' },
+  { id: 'm28', category: 'Air Conditioning', item: 'Clean sea water strainer' },
+  { id: 'm29', category: 'Air Conditioning', item: 'Clean or replace air filters' },
+  { id: 'm30', category: 'Air Conditioning', item: 'Inspect condensate drain — clear if blocked' },
+  { id: 'm31', category: 'Air Conditioning', item: 'Inspect seacock and raw water hose' },
+  { id: 'm32', category: 'Heating', item: 'Check diesel fuel supply and filter' },
+  { id: 'm33', category: 'Heating', item: 'Inspect exhaust outlet — clear, no carbon build-up' },
+  { id: 'm34', category: 'Heating', item: 'Check thermostat operation' },
+  { id: 'm35', category: 'Water System', item: 'Check accumulator tank pressure — typically 1.5-2 bar' },
+  { id: 'm36', category: 'Water System', item: 'Inspect all hose connections for weeping' },
+  { id: 'm37', category: 'Water System', item: 'Clean strainer on pump inlet' },
+  { id: 'm38', category: 'Water System', item: 'Sanitise water tank if not done in past 3 months' },
+  { id: 'm39', category: 'Calorifier', item: 'Check anode — replace if more than 50% depleted' },
+  { id: 'm40', category: 'Calorifier', item: 'Inspect pressure relief valve — operate briefly' },
+  { id: 'm41', category: 'Calorifier', item: 'Check immersion heater element' },
+  { id: 'm42', category: 'Washing Machine', item: 'Clean filter' },
+  { id: 'm43', category: 'Washing Machine', item: 'Check hose connections — inlet and drain' },
+  { id: 'm44', category: 'Washing Machine', item: 'Inspect door seal' },
+  { id: 'm45', category: 'Electronics', item: 'Update chartplotter charts if subscription current' },
+  { id: 'm46', category: 'Electronics', item: 'Test EPIRB — registered and in date' },
+  { id: 'm47', category: 'Electronics', item: 'Check liferaft service date' },
+  { id: 'm48', category: 'Electronics', item: 'Verify AIS MMSI and vessel data correct' },
+  { id: 'm49', category: 'Electronics', item: 'Test autopilot drive unit — rams, cables, feedback unit' },
+  { id: 'm50', category: 'Hull & Deck', item: 'Inspect hull below waterline — weed, osmosis, anodes' },
+  { id: 'm51', category: 'Hull & Deck', item: 'Check keel bolts — any weeping or rust staining' },
+  { id: 'm52', category: 'Hull & Deck', item: 'Inspect rudder bearings for play' },
+  { id: 'm53', category: 'Hull & Deck', item: 'Check all deck fittings — stanchion bases, cleats, winch bases' },
+  { id: 'm54', category: 'Hull & Deck', item: 'Lubricate all hatches and ports' },
+  { id: 'm55', category: 'Safety', item: 'Check first aid kit — stock and expiry dates' },
+  { id: 'm56', category: 'Safety', item: 'Confirm insurance, registration and safety certificate in date' },
 ]
+
 const newId = () => Math.random().toString(36).slice(2,10)
 
 export default function MaintenanceLogs() {
@@ -541,7 +146,8 @@ export default function MaintenanceLogs() {
   const [chatStatus, setChatStatus] = useState('')
   const [chatOpen, setChatOpen] = useState(false)
   const [showDocs, setShowDocs] = useState(false)
-  const [chatImage, setChatImage] = useState(null) // {base64, mediaType, preview}
+  const [chatImage, setChatImage] = useState(null)
+  const fileInputRef = useRef(null)
 
   useEffect(() => { if (user?.uid) loadAssignedYachts() }, [user?.uid])
 
@@ -568,15 +174,15 @@ export default function MaintenanceLogs() {
     try {
       const { getDocs, collection } = await import('firebase/firestore')
       const { db } = await import('../firebase')
-      const [issueList, tmpl, yachtsSnap, docList] = await Promise.all([
+      const [issueList, tmpl, docList, yachtsSnap] = await Promise.all([
         getCrewIssues(yacht.id),
         getChecklistTemplate(yacht.id),
-        getDocs(collection(db, 'yachts')),
-        getVesselDocuments(yacht.id)
+        getVesselDocuments(yacht.id),
+        getDocs(collection(db, 'yachts'))
       ])
-      setVesselDocs(docList)
       setIssues(issueList)
       setTemplate(tmpl || { weekly: DEFAULT_WEEKLY, monthly: DEFAULT_MONTHLY })
+      setVesselDocs(docList)
       setModelCount(yachtsSnap.docs.filter(d => d.data().model === yacht.model).length)
     } catch(e) { console.error(e) }
     setIssuesLoading(false)
@@ -619,8 +225,7 @@ export default function MaintenanceLogs() {
           await postCrewIssue(selected.id, user.uid, {
             title: item.item,
             description: run.comment || 'Flagged during ' + checklistType + ' inspection',
-            system: item.category,
-            fromChecklist: true,
+            system: item.category, fromChecklist: true,
           })
         }
       }
@@ -628,8 +233,7 @@ export default function MaintenanceLogs() {
         type: checklistType,
         completedBy: user.uid,
         completedByName: userProfile?.name || user.email,
-        items: checklistRun,
-        emailSent: emailOnSubmit,
+        items: checklistRun, emailSent: emailOnSubmit,
       })
       if (emailOnSubmit && selected.ownerEmail) {
         const itemList = items.map(item => {
@@ -693,101 +297,8 @@ export default function MaintenanceLogs() {
       setView('overview')
       alert(modelCount >= 2
         ? 'Issue resolved and posted to Issues & Fixes, attributed to ' + selected.model + '.'
-        : 'Issue resolved and posted to Issues & Fixes without model attribution — yours is the only ' + selected.model + ' registered.')
+        : 'Issue resolved and posted to Issues & Fixes without model attribution.')
     } catch(e) { alert('Error: ' + e.message) }
-  }
-
-  function getRelevantDocs(query, docs) {
-    const q = query.toLowerCase()
-    const keywords = {
-      'engine': ['engine', 'motor', 'yanmar', 'diesel', 'fuel', 'cooling', 'oil', 'impeller', 'raw water', 'exhaust', 'gearbox'],
-      'electrical': ['electrical', 'electric', 'battery', 'charge', 'shore power', 'generator', 'inverter', 'fuse', 'circuit', 'wiring', '24v', '240v', 'volt'],
-      'plumbing': ['water', 'pump', 'plumb', 'pipe', 'hose', 'seacock', 'bilge', 'tank', 'fresh water', 'grey water', 'black water', 'heads', 'toilet'],
-      'ac': ['ac', 'air con', 'cooling', 'dometic', 'refriger', 'temperature', 'aircon', 'air-con'],
-      'heating': ['heating', 'heat', 'webasto', 'warm', 'temperature'],
-      'rig': ['rig', 'sail', 'mast', 'boom', 'shroud', 'stay', 'halyard', 'sheet', 'winch', 'furler', 'jib', 'main'],
-      'navigation': ['nav', 'gps', 'chart', 'plotter', 'ais', 'vhf', 'radio', 'nmea', 'autopilot', 'pilot', 'compass'],
-      'hull': ['hull', 'keel', 'rudder', 'steering', 'helm', 'through-hull', 'seacock'],
-      'deck': ['deck', 'anchor', 'windlass', 'winch', 'stanchion', 'lifeline'],
-      'thruster': ['thruster', 'bow thruster', 'lateral', 'quick'],
-      'generator': ['generator', 'genset', 'gen set', 'shore power'],
-    }
-    
-    // Find matching categories
-    const matchingCats = new Set()
-    for (const [cat, words] of Object.entries(keywords)) {
-      if (words.some(w => q.includes(w))) matchingCats.add(cat)
-    }
-    
-    // Score each document
-    const scored = docs.map(doc => {
-      const name = (doc.displayName || doc.filename || '').toLowerCase()
-      const cat = (doc.category || '').toLowerCase()
-      let score = 0
-      
-      // Direct query word match in filename
-      const queryWords = q.split(' ').filter(w => w.length > 3)
-      queryWords.forEach(w => { if (name.includes(w)) score += 3 })
-      
-      // Category match
-      for (const [catKey, words] of Object.entries(keywords)) {
-        if (matchingCats.has(catKey)) {
-          if (words.some(w => name.includes(w) || cat.includes(w))) score += 2
-        }
-      }
-      
-      return { ...doc, score }
-    })
-    
-    // Return top 4 most relevant docs with score > 0
-    return scored
-      .filter(d => d.score > 0)
-      .sort((a, b) => b.score - a.score)
-      .slice(0, 4)
-  }
-
-  async function fetchPdfAsBase64(url) {
-    try {
-      const response = await fetch(url)
-      const blob = await response.blob()
-      return new Promise((resolve, reject) => {
-        const reader = new FileReader()
-        reader.onload = () => resolve(reader.result.split(',')[1])
-        reader.onerror = reject
-        reader.readAsDataURL(blob)
-      })
-    } catch(e) {
-      console.error('Failed to fetch PDF:', e)
-      return null
-    }
-  }
-
-  async function getKnowledgeBase(yachtId, query) {
-    try {
-      const { getDocs, collection } = await import('firebase/firestore')
-      const { db } = await import('../firebase')
-      const snap = await getDocs(collection(db, 'yachts', yachtId, 'knowledge'))
-      const docs = snap.docs.map(d => d.data())
-      if (docs.length === 0) return ''
-      const q = query.toLowerCase()
-      const keywords = q.split(' ').filter(w => w.length > 3)
-      const scored = docs.map(d => {
-        const content = (d.content || '').toLowerCase()
-        const score = keywords.filter(k => content.includes(k)).length
-        return { ...d, score }
-      }).filter(d => d.score > 0).sort((a,b) => b.score - a.score).slice(0, 2)
-      if (scored.length === 0) {
-        const byDoc = {}
-        docs.forEach(d => { if (!byDoc[d.docId]) byDoc[d.docId] = d })
-        return Object.values(byDoc).slice(0,2).map(d =>
-          '### ' + d.filename + '\n' + (d.content||'').slice(0,3000)
-        ).join('\n\n')
-      }
-      return scored.map(d => '### ' + d.filename + '\n' + (d.content||'')).join('\n\n')
-    } catch(e) {
-      console.error('Knowledge base error:', e)
-      return ''
-    }
   }
 
   async function sendChat() {
@@ -797,7 +308,6 @@ export default function MaintenanceLogs() {
     setChatInput('')
     setChatImage(null)
 
-    // Build user message content
     const userContent = imgToSend
       ? [
           ...(userMsg ? [{ type: 'text', text: userMsg }] : [{ type: 'text', text: 'What do you see in this image?' }]),
@@ -806,56 +316,34 @@ export default function MaintenanceLogs() {
       : userMsg
 
     setChatMessages(prev => [...prev, {
-      role: 'user',
-      content: userContent,
-      preview: imgToSend?.preview,
-      text: userMsg || 'Photo sent'
+      role: 'user', content: userContent,
+      preview: imgToSend?.preview, text: userMsg || 'Photo sent'
     }])
     setChatLoading(true)
+    setChatStatus('Thinking...')
+
     try {
       const docSummary = vesselDocs.length > 0
-        ? 'The vessel has ' + vesselDocs.length + ' technical documents uploaded: ' +
-          vesselDocs.map(d => (d.displayName || d.filename) + ' (' + d.category + (d.manufacturer ? ', ' + d.manufacturer : '') + ')').join('; ') + '.'
-        : 'No technical documents have been uploaded for this vessel yet.'
+        ? 'The vessel has ' + vesselDocs.length + ' technical documents: ' +
+          vesselDocs.map(d => (d.displayName||d.filename) + ' (' + d.category + ')').join('; ') + '.'
+        : 'No technical documents uploaded yet.'
 
       const system = [
-        'You are the onboard engineer for ' + (selected?.name || 'a Swan yacht') + ', a ' + (selected?.model || 'Swan') + ' based at ' + (selected?.homeMarina?.name ? selected.homeMarina.name + (selected.homeMarina.country ? ', ' + selected.homeMarina.country : '') : 'unknown marina') + '.',
-        'You have studied the complete technical document library for this vessel including: ' + (vesselDocs.length > 0 ? vesselDocs.map(d => d.displayName || d.filename).join(', ') : 'no documents uploaded yet') + '.',
-        'Use these documents to guide crew to exact component locations — never assume they know where something is. Always tell them exactly where to go: which locker, which side, which level.',
-        openIssues.length > 0
-          ? 'Current outstanding issues on this vessel: ' + openIssues.map(i => i.title + ' (' + i.system + ')' + (i.description ? ': ' + i.description : '')).join('; ') + '.'
-          : 'No outstanding issues currently logged.',
-        'DIAGNOSTIC APPROACH: Never guess. Ask one question at a time. Always direct crew to the exact location of the component first, then ask for a photo of it. When you receive a photo, describe in one sentence exactly what you see, then either diagnose or ask for the next photo.',
-        'SEARCH FOR HELP: When directing crew to a component or explaining a repair, use web search to find a relevant YouTube video or image showing exactly what they should see or do. Share the link in your response.',
-        'FORMAT: Use short sentences. Number repair steps. Flag safety issues immediately with SAFETY:. Reference document names when relevant.',
-        'Keep asking for more information and photos until you are fully confident in your diagnosis. Never stop at one question if more information would help.',
-      ].filter(Boolean).join(' ')
+        'You are the onboard engineer for ' + (selected?.name||'a Swan yacht') + ', a ' + (selected?.model||'Swan') + ' based at ' + (selected?.homeMarina?.name ? selected.homeMarina.name : 'unknown marina') + '.',
+        'You have studied the complete technical document library for this vessel including: ' + (vesselDocs.length > 0 ? vesselDocs.map(d => d.displayName||d.filename).join(', ') : 'no documents uploaded yet') + '.',
+        'Use these documents to guide crew to exact component locations.',
+        issues.filter(i=>i.status==='open').length > 0
+          ? 'Outstanding issues: ' + issues.filter(i=>i.status==='open').map(i => i.title + ' (' + i.system + ')').join('; ') + '.'
+          : 'No outstanding issues.',
+        'Never guess. Ask questions and request photos until confident. Always tell crew exactly where to go. When you receive a photo describe what you see then diagnose. Use short numbered steps for fixes. Flag safety issues immediately.',
+      ].join(' ')
 
-      // Fetch relevant PDFs (skip if knowledge base has content)
-      let documents = []
-      if (vesselDocs.length > 0 && !imgToSend && !knowledgeContext) {
-        const relevantDocs = getRelevantDocs(userMsg, vesselDocs)
-        if (relevantDocs.length > 0) {
-          const fetched = await Promise.all(
-            relevantDocs.map(async doc => {
-              const base64 = await fetchPdfAsBase64(doc.url)
-              return base64 ? { name: doc.displayName || doc.filename, category: doc.category, base64 } : null
-            })
-          )
-          documents = fetched.filter(Boolean)
-        }
-      }
-
-      const finalSystem = system
-
-      setChatStatus('Thinking...')
       const response = await fetch('/api/ask', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          system: finalSystem,
-          max_tokens: 2048,
-          documents,
+          system,
+          max_tokens: 1024,
           messages: [
             ...chatMessages.map(m => ({ role: m.role, content: m.content })),
             { role: 'user', content: userContent }
@@ -863,21 +351,19 @@ export default function MaintenanceLogs() {
         })
       })
       const data = await response.json()
-      // Extract text from all text blocks (handles tool_use responses)
       const reply = data.content
-        ? data.content.filter(b => b.type === 'text').map(b => b.text).join('\n') || 'Sorry, I could not get a response.'
-        : 'Sorry, I could not get a response.'
+        ? data.content.filter(b => b.type === 'text').map(b => b.text).join('\n')
+        : 'Sorry, try again.'
       setChatMessages(prev => [...prev, { role: 'assistant', content: reply, text: reply }])
-      setChatStatus('')
     } catch(e) {
-      setChatMessages(prev => [...prev, { role: 'assistant', content: 'Something went wrong. Please try again.' }])
+      setChatMessages(prev => [...prev, { role: 'assistant', content: 'Something went wrong: ' + e.message, text: 'Something went wrong: ' + e.message }])
     }
     setChatLoading(false)
+    setChatStatus('')
   }
 
   if (loading) return <div className="loading-screen"><div className="spinner"/></div>
 
-  // ── VESSEL LIST ─────────────────────────────────────────────────────────────
   if (!selected) return (
     <div className="maintlogs-page">
       <div className="maintlogs-header">
@@ -917,7 +403,6 @@ export default function MaintenanceLogs() {
   const resolvedIssues = issues.filter(i => i.status === 'resolved')
   const currentItems = template ? (checklistType === 'weekly' ? template.weekly : template.monthly) : []
 
-  // ── OVERVIEW ────────────────────────────────────────────────────────────────
   if (view === 'overview') return (
     <div className="maintlogs-page">
       <div className="maintlogs-header">
@@ -943,27 +428,64 @@ export default function MaintenanceLogs() {
           <span className="mlog-action-desc">Customise inspection items</span>
         </button>
       </div>
+
       {issuesLoading && <p className="mlog-loading">Loading...</p>}
+
+      {openIssues.length > 0 && (
+        <div className="mlog-section">
+          <h2>Outstanding Issues <span className="mlog-count">{openIssues.length}</span></h2>
+          {openIssues.map(issue => (
+            <div key={issue.id} className="mlog-issue-card mlog-issue-open">
+              <div className="mlog-issue-info">
+                <span className="mlog-issue-title">{issue.title}</span>
+                <span className="mlog-issue-system">{issue.system}</span>
+                {issue.description && <span className="mlog-issue-desc">{issue.description}</span>}
+              </div>
+              <button className="btn-resolve" onClick={() => { setResolvingIssue(issue); setView('resolve') }}>Mark resolved</button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {resolvedIssues.length > 0 && (
+        <div className="mlog-section">
+          <h2>Resolved <span className="mlog-count">{resolvedIssues.length}</span></h2>
+          {resolvedIssues.map(issue => (
+            <div key={issue.id} className="mlog-issue-card mlog-issue-resolved">
+              <div className="mlog-issue-info">
+                <span className="mlog-issue-title">{issue.title}</span>
+                <span className="mlog-issue-system">{issue.system}</span>
+                {issue.fix && <span className="mlog-issue-fix">Fix: {issue.fix}</span>}
+              </div>
+              {issue.publishedToBoard && <span className="mlog-issue-shared">Shared</span>}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {issues.length === 0 && !issuesLoading && (
+        <p className="mlog-no-issues">No issues logged yet.</p>
+      )}
 
       <div className="ask-claude-section">
         <button className="ask-claude-toggle" onClick={() => setChatOpen(o => !o)}>
           <span className="ask-claude-label">Ask Claude</span>
-          <span className="ask-claude-hint">{chatOpen ? 'Close' : 'Marine engineer & maintenance advice for your ' + (selected?.model || 'yacht')}</span>
+          <span className="ask-claude-hint">{chatOpen ? 'Close' : 'Marine engineer advice for your ' + (selected?.model||'yacht')}</span>
           <span className="ask-claude-chevron">{chatOpen ? '▲' : '▼'}</span>
         </button>
         {chatOpen && (
           <div className="ask-claude-body">
             {vesselDocs.length > 0 && (
-              <p className="ask-claude-context-note">{vesselDocs.length} vessel documents available — relevant PDFs are read automatically per question</p>
+              <p className="ask-claude-context-note">{vesselDocs.length} vessel documents available as context</p>
             )}
             {chatMessages.length === 0 && (
-              <p className="ask-claude-empty">Ask anything about maintaining your {selected?.model} — troubleshooting, procedures, parts, checks. I know about your outstanding issues{vesselDocs.length > 0 ? ' and have access to your vessel documents' : ''}.</p>
+              <p className="ask-claude-empty">Ask anything about maintaining your {selected?.model}. Use the camera button to send photos.</p>
             )}
             <div className="ask-claude-messages">
               {chatMessages.map((msg, i) => (
                 <div key={i} className={'ask-claude-msg ask-claude-msg-' + msg.role}>
                   <span className="ask-claude-msg-label">{msg.role === 'user' ? 'You' : 'Claude'}</span>
-                  {msg.preview && <img src={msg.preview} alt="Sent photo" className="ask-claude-sent-img" />}
+                  {msg.preview && <img src={msg.preview} alt="Sent" className="ask-claude-sent-img" />}
                   <p className="ask-claude-msg-text">{msg.text || (typeof msg.content === 'string' ? msg.content : '')}</p>
                 </div>
               ))}
@@ -983,15 +505,14 @@ export default function MaintenanceLogs() {
             <div className="ask-claude-input-row">
               <label className="ask-claude-camera-btn" title="Attach photo">
                 <input type="file" accept="image/*" capture="environment" style={{display:'none'}}
+                  ref={fileInputRef}
                   onChange={e => {
                     const file = e.target.files[0]
                     if (!file) return
                     const reader = new FileReader()
                     reader.onload = ev => {
                       const dataUrl = ev.target.result
-                      const base64 = dataUrl.split(',')[1]
-                      const mediaType = file.type || 'image/jpeg'
-                      setChatImage({ base64, mediaType, preview: dataUrl })
+                      setChatImage({ base64: dataUrl.split(',')[1], mediaType: file.type||'image/jpeg', preview: dataUrl })
                     }
                     reader.readAsDataURL(file)
                     e.target.value = ''
@@ -1005,7 +526,7 @@ export default function MaintenanceLogs() {
               <input className="ask-claude-input" value={chatInput}
                 onChange={e => setChatInput(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && sendChat()}
-                placeholder={chatImage ? 'Add a message or just send the photo...' : 'Ask about your ' + (selected?.model || 'yacht') + '...'}
+                placeholder={'Ask about your ' + (selected?.model||'yacht') + '...'}
                 disabled={chatLoading} />
               <button className="ask-claude-send" onClick={sendChat} disabled={chatLoading || (!chatInput.trim() && !chatImage)}>Send</button>
             </div>
@@ -1016,52 +537,23 @@ export default function MaintenanceLogs() {
       <div className="mlog-docs-section">
         <button className="ask-claude-toggle" onClick={() => setShowDocs(o => !o)}>
           <span className="ask-claude-label">Vessel Documents</span>
-          <span className="ask-claude-hint">{showDocs ? 'Close' : vesselDocs.length + ' document' + (vesselDocs.length !== 1 ? 's' : '') + ' — manuals & drawings'}</span>
+          <span className="ask-claude-hint">{showDocs ? 'Close' : vesselDocs.length + ' documents'}</span>
           <span className="ask-claude-chevron">{showDocs ? '▲' : '▼'}</span>
         </button>
         {showDocs && (
           <div className="ask-claude-body">
-            <VesselDocuments yachtId={selected?.id} canUpload={false} compact={true} />
+            {vesselDocs.map(doc => (
+              <div key={doc.id} className="vdoc-item">
+                <a href={doc.url} target="_blank" rel="noopener noreferrer">{doc.displayName||doc.filename}</a>
+                <span className="vdoc-cat">{doc.category}</span>
+              </div>
+            ))}
           </div>
         )}
       </div>
-      {openIssues.length > 0 && (
-        <div className="mlog-section">
-          <h2>Outstanding Issues <span className="mlog-count">{openIssues.length}</span></h2>
-          {openIssues.map(issue => (
-            <div key={issue.id} className="mlog-issue-card mlog-issue-open">
-              <div className="mlog-issue-info">
-                <span className="mlog-issue-title">{issue.title}</span>
-                <span className="mlog-issue-system">{issue.system}</span>
-                {issue.description && <span className="mlog-issue-desc">{issue.description}</span>}
-              </div>
-              <button className="btn-resolve" onClick={() => { setResolvingIssue(issue); setView('resolve') }}>Mark resolved</button>
-            </div>
-          ))}
-        </div>
-      )}
-      {resolvedIssues.length > 0 && (
-        <div className="mlog-section">
-          <h2>Resolved <span className="mlog-count">{resolvedIssues.length}</span></h2>
-          {resolvedIssues.map(issue => (
-            <div key={issue.id} className="mlog-issue-card mlog-issue-resolved">
-              <div className="mlog-issue-info">
-                <span className="mlog-issue-title">{issue.title}</span>
-                <span className="mlog-issue-system">{issue.system}</span>
-                {issue.fix && <span className="mlog-issue-fix">Fix: {issue.fix}</span>}
-              </div>
-              {issue.publishedToBoard && <span className="mlog-issue-shared">Shared with community</span>}
-            </div>
-          ))}
-        </div>
-      )}
-      {issues.length === 0 && !issuesLoading && (
-        <p className="mlog-no-issues">No issues logged. Use the checklist or log an issue above.</p>
-      )}
     </div>
   )
 
-  // ── LOG ISSUE ───────────────────────────────────────────────────────────────
   if (view === 'log-issue') return (
     <div className="maintlogs-page">
       <div className="maintlogs-header">
@@ -1070,22 +562,15 @@ export default function MaintenanceLogs() {
         <p className="maintlogs-subtitle">{selected.name}</p>
       </div>
       <div className="mlog-form">
-        <div className="mlog-field">
-          <label>Title</label>
-          <input value={issueForm.title} onChange={e => setIssueForm(p=>({...p,title:e.target.value}))} placeholder="Brief description of the issue" autoFocus />
-        </div>
-        <div className="mlog-field">
-          <label>System</label>
+        <div className="mlog-field"><label>Title</label>
+          <input value={issueForm.title} onChange={e => setIssueForm(p=>({...p,title:e.target.value}))} placeholder="Brief description" autoFocus /></div>
+        <div className="mlog-field"><label>System</label>
           <select value={issueForm.system} onChange={e => setIssueForm(p=>({...p,system:e.target.value}))}>
             {SYSTEMS.map(s => <option key={s} value={s}>{s}</option>)}
-          </select>
-        </div>
-        <div className="mlog-field">
-          <label>Details</label>
-          <textarea value={issueForm.description} onChange={e => setIssueForm(p=>({...p,description:e.target.value}))}
-            placeholder="Describe the issue in detail — when first noticed, any relevant symptoms..." rows={4} />
-        </div>
-        <p className="mlog-privacy-note">This issue is private to your crew until marked as resolved, at which point it will be shared anonymously with the community{modelCount < 2 ? ' without model attribution — yours is the only ' + selected.model + ' registered' : ', attributed to ' + selected.model}.</p>
+          </select></div>
+        <div className="mlog-field"><label>Details</label>
+          <textarea value={issueForm.description} onChange={e => setIssueForm(p=>({...p,description:e.target.value}))} rows={4} placeholder="Describe the issue..." /></div>
+        <p className="mlog-privacy-note">Private to your crew until resolved, then shared anonymously{modelCount < 2 ? ' without model attribution' : ' attributed to ' + selected.model}.</p>
         <div className="mlog-form-actions">
           <button onClick={() => setView('overview')}>Cancel</button>
           <button className="btn-primary-mlog" onClick={submitIssue} disabled={loggingIssue || !issueForm.title.trim()}>
@@ -1096,7 +581,6 @@ export default function MaintenanceLogs() {
     </div>
   )
 
-  // ── RESOLVE ─────────────────────────────────────────────────────────────────
   if (view === 'resolve' && resolvingIssue) return (
     <div className="maintlogs-page">
       <div className="maintlogs-header">
@@ -1112,21 +596,17 @@ export default function MaintenanceLogs() {
             {resolvingIssue.description && <span className="mlog-issue-desc">{resolvingIssue.description}</span>}
           </div>
         </div>
-        <div className="mlog-field">
-          <label>How was it fixed?</label>
-          <textarea value={fixText} onChange={e => setFixText(e.target.value)}
-            placeholder="Describe the fix in detail — parts used, procedure, any notes for future reference..." rows={5} autoFocus />
-        </div>
-        <p className="mlog-privacy-note">On submission this will be posted to the community Issues &amp; Fixes board{modelCount >= 2 ? ', attributed to ' + selected.model + '.' : ' without model attribution — yours is the only ' + selected.model + ' registered.'}</p>
+        <div className="mlog-field"><label>How was it fixed?</label>
+          <textarea value={fixText} onChange={e => setFixText(e.target.value)} rows={5} placeholder="Describe the fix in detail..." autoFocus /></div>
+        <p className="mlog-privacy-note">Will be posted to the community Issues & Fixes board{modelCount >= 2 ? ', attributed to ' + selected.model : ' without model attribution'}.</p>
         <div className="mlog-form-actions">
           <button onClick={() => { setView('overview'); setResolvingIssue(null) }}>Cancel</button>
-          <button className="btn-primary-mlog" onClick={submitResolve} disabled={!fixText.trim()}>Resolve &amp; Share with Community</button>
+          <button className="btn-primary-mlog" onClick={submitResolve} disabled={!fixText.trim()}>Resolve & Share</button>
         </div>
       </div>
     </div>
   )
 
-  // ── CHECKLIST RUN ───────────────────────────────────────────────────────────
   if (view === 'checklist') return (
     <div className="maintlogs-page">
       <div className="maintlogs-header">
@@ -1137,14 +617,14 @@ export default function MaintenanceLogs() {
       {openIssues.length > 0 && (
         <div className="mlog-section">
           <h2>Outstanding Issues</h2>
-          <p className="mlog-section-hint">Tap "Mark resolved" to enter fix details and share with community.</p>
+          <p className="mlog-section-hint">Tap "Mark resolved" to enter fix details.</p>
           {openIssues.map(issue => (
             <div key={issue.id} className="mlog-check-item mlog-check-issue">
               <div className="mlog-check-left">
                 <button className="mlog-status-btn" onClick={() => { setResolvingIssue(issue); setView('resolve') }}>Mark resolved</button>
                 <div>
                   <span className="mlog-check-text">{issue.title}</span>
-                  <span className="mlog-check-category" style={{display:'block'}}>{issue.system} — outstanding issue</span>
+                  <span className="mlog-check-category" style={{display:'block'}}>{issue.system} — outstanding</span>
                 </div>
               </div>
             </div>
@@ -1192,7 +672,6 @@ export default function MaintenanceLogs() {
     </div>
   )
 
-  // ── EDIT TEMPLATE ───────────────────────────────────────────────────────────
   if (view === 'template') return (
     <div className="maintlogs-page">
       <div className="maintlogs-header">
