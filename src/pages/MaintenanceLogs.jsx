@@ -149,7 +149,6 @@ export default function MaintenanceLogs() {
   const [showDocs, setShowDocs] = useState(false)
   const [chatImage, setChatImage] = useState(null)
   const [fleetContext, setFleetContext] = useState('')
-  const [fleetContext, setFleetContext] = useState('')
   const fileInputRef = useRef(null)
 
   useEffect(() => { if (user?.uid) loadAssignedYachts() }, [user?.uid])
