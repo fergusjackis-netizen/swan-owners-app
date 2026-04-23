@@ -831,9 +831,9 @@ export default function MaintenanceLogs() {
         'Keep asking for more information and photos until you are fully confident in your diagnosis. Never stop at one question if more information would help.',
       ].filter(Boolean).join(' ')
 
-      // Fetch relevant PDFs
+      // Fetch relevant PDFs (skip if knowledge base has content)
       let documents = []
-      if (vesselDocs.length > 0 && !imgToSend) {
+      if (vesselDocs.length > 0 && !imgToSend && !knowledgeContext) {
         const relevantDocs = getRelevantDocs(userMsg, vesselDocs)
         if (relevantDocs.length > 0) {
           const fetched = await Promise.all(
@@ -851,7 +851,7 @@ export default function MaintenanceLogs() {
         knowledgeContext = await getKnowledgeBase(selected.id, userMsg)
       }
       const finalSystem = knowledgeContext
-        ? system + '\n\nPRE-EXTRACTED DOCUMENT KNOWLEDGE BASE (use this to answer accurately):\n' + knowledgeContext.slice(0, 50000)
+        ? system + '\n\nPRE-EXTRACTED DOCUMENT KNOWLEDGE BASE (use this to answer accurately):\n' + knowledgeContext.slice(0, 15000)
         : system
 
       setChatStatus('Thinking...')
