@@ -62,3 +62,26 @@
 .btn-reject-sm { background: transparent; border: 1px solid #ef4444; color: #ef4444; padding: 0.3rem 0.6rem; font-size: 0.72rem; cursor: pointer; font-family: inherit; }
 .btn-clear { background: transparent; border: 1px solid #6b8cae; color: #6b8cae; padding: 0.5rem 1.25rem; font-size: 0.78rem; letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer; font-family: inherit; transition: all 0.2s; }
 .btn-clear:hover { border-color: #e8e4d8; color: #e8e4d8; }
+
+.conv-insights { margin-bottom: 2rem; }
+.conv-insights h2 { color: #c9a84c; font-size: 0.8rem; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 1rem; }
+.conv-model-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 0.75rem; }
+.conv-model-card { border: 1px solid #1e2d4a; padding: 0.75rem; display: flex; flex-direction: column; gap: 0.25rem; }
+.conv-model-name { color: #c9a84c; font-size: 0.8rem; }
+.conv-model-count { color: #6b8cae; font-size: 0.75rem; }
+.conv-list-section { }
+.conv-filter-row { margin-bottom: 1rem; }
+.conv-filter { width: 100%; background: #0d1526; border: 1px solid #1e2d4a; color: #e8edf5; padding: 0.5rem 0.75rem; font-size: 0.85rem; }
+.conv-list { display: flex; flex-direction: column; gap: 0.5rem; }
+.conv-item { border: 1px solid #1e2d4a; padding: 0.75rem 1rem; cursor: pointer; transition: border-color 0.15s; }
+.conv-item:hover, .conv-item.active { border-color: #c9a84c44; }
+.conv-item-header { display: flex; justify-content: space-between; margin-bottom: 0.25rem; }
+.conv-model-tag { color: #c9a84c; font-size: 0.75rem; letter-spacing: 0.05em; }
+.conv-date { color: #6b8cae; font-size: 0.75rem; }
+.conv-summary { color: #8ba5c0; font-size: 0.82rem; line-height: 1.5; }
+.conv-messages { margin-top: 1rem; border-top: 1px solid #1e2d4a; padding-top: 1rem; display: flex; flex-direction: column; gap: 0.5rem; }
+.conv-msg { padding: 0.5rem 0.75rem; }
+.conv-msg-user { background: rgba(201,168,76,0.05); border-left: 2px solid #c9a84c44; }
+.conv-msg-assistant { background: rgba(107,140,174,0.05); border-left: 2px solid #1e2d4a; }
+.conv-msg-role { font-size: 0.7rem; color: #6b8cae; letter-spacing: 0.08em; text-transform: uppercase; display: block; margin-bottom: 0.25rem; }
+.conv-msg-text { color: #8ba5c0; font-size: 0.82rem; line-height: 1.5; white-space: pre-wrap; }

@@ -3,7 +3,7 @@ import { useAuth } from '../hooks/useAuth'
 import {
   getCrewIssues, postCrewIssue, resolveAndPublishIssue,
   getChecklistTemplate, saveChecklistTemplate, saveCompletedChecklist, getVesselDocuments,
-  saveConversation, getFleetConversations
+  saveConversation, getFleetConversations, saveDiagnosticPhoto
 } from '../services/firestore'
 import './MaintenanceLogs.css'
 
@@ -465,6 +465,15 @@ export default function MaintenanceLogs() {
         : 'Sorry, try again.'
       setChatMessages(prev => [...prev, { role: 'assistant', content: reply, text: reply }])
 
+      // Save diagnostic photo if one was sent
+      if (imgToSend && selected?.id) {
+        // Store the image as a data URL reference - tag with system from conversation
+        const systemGuess = ['Engine','Electrical','Plumbing','AC','Heating','Rig','Navigation','Safety'].find(s => 
+          (userMsg + reply).toLowerCase().includes(s.toLowerCase())
+        ) || 'Other'
+        saveDiagnosticPhoto(selected.id, imgToSend.preview, systemGuess, userMsg || 'Photo diagnostic', null).catch(() => {})
+      }
+
       // Save conversation to Firestore (non-blocking)
       const updatedMessages = [...chatMessages, { role: 'user', content: userContent }, { role: 'assistant', content: reply }]
       if (updatedMessages.length >= 2 && selected?.id) {
@@ -640,7 +649,7 @@ export default function MaintenanceLogs() {
               </div>
             )}
             <div className="ask-claude-input-row">
-              <label className="ask-claude-camera-btn" title="Attach photo">
+              <label className="ask-claude-camera-btn" title="Photos are stored anonymously and may be shared with the Swan community to help solve similar problems">
                 <input type="file" accept="image/*" capture="environment" style={{display:'none'}}
                   ref={fileInputRef}
                   onChange={e => {

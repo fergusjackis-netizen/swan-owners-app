@@ -386,3 +386,46 @@ export async function getFleetConversations(system, limit = 50) {
   const snap = await getDocs(q)
   return snap.docs.map(d => ({ id: d.id, ...d.data() }))
 }
+
+export async function getFleetInsights(model, system) {
+  const { getDocs, collection, query, where, orderBy, limit } = await import('firebase/firestore')
+  const { db } = await import('../firebase')
+  // Get conversations matching this model/system
+  const snap = await getDocs(collection(db, 'conversations'))
+  const all = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+  const relevant = all.filter(c => {
+    const matchModel = !model || c.yachtModel === model
+    const matchSummary = !system || (c.summary || '').toLowerCase().includes(system.toLowerCase())
+    return matchModel && matchSummary && c.summary
+  })
+  return relevant.slice(0, 10)
+}
+
+export async function saveDiagnosticPhoto(yachtId, url, system, description, conversationId) {
+  const { addDoc, collection, serverTimestamp } = await import('firebase/firestore')
+  const { db } = await import('../firebase')
+  return addDoc(collection(db, 'diagnosticPhotos'), {
+    yachtId,
+    url,
+    system,
+    description,
+    conversationId: conversationId || null,
+    createdAt: serverTimestamp(),
+  })
+}
+
+export async function getDiagnosticPhotos(system) {
+  const { getDocs, collection, query, where, orderBy, limit } = await import('firebase/firestore')
+  const { db } = await import('../firebase')
+  const snap = await getDocs(collection(db, 'diagnosticPhotos'))
+  const all = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+  if (system) return all.filter(p => p.system === system).slice(0, 20)
+  return all.slice(0, 20)
+}
+
+export async function getAllConversations(limitNum) {
+  const { getDocs, collection, query, orderBy, limit } = await import('firebase/firestore')
+  const { db } = await import('../firebase')
+  const snap = await getDocs(collection(db, 'conversations'))
+  return snap.docs.map(d => ({ id: d.id, ...d.data() })).slice(0, limitNum || 100)
+}
