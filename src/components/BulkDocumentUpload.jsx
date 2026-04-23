@@ -103,6 +103,19 @@ export default function BulkDocumentUpload({ yachtId, onComplete }) {
         console.log('SKIP duplicate: ' + f.filename)
         doneList.push(f.id)
         setDone([...doneList])
+        
+        // Trigger extraction in background
+        fetch('/api/extract-pdf', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            yachtId,
+            docId: f.filename.replace(/[^a-zA-Z0-9]/g, '_').slice(0, 40),
+            url,
+            filename: f.filename,
+            category: f.category,
+          })
+        }).catch(() => {}) // silent fail
         continue
       }
       try {
