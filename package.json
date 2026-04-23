@@ -12,6 +12,7 @@
   "dependencies": {
     "firebase": "^12.12.0",
     "mapbox-gl": "^3.22.0",
+    "pdf-parse": "^2.4.5",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
     "react-router-dom": "^7.14.1"
@@ -28,5 +29,5 @@
     "globals": "^17.4.0",
     "vite": "^8.0.4"
   },
-  "_deployed": "2026-04-23T12:50:54.211Z"
+  "_deployed": "2026-04-23T15:19:20.880Z"
 }

@@ -1,3 +1,7 @@
+import { SignJWT, importPKCS8 } from 'jose'
+
+export const config = { maxDuration: 60 }
+
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*')
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
@@ -11,51 +15,47 @@ export default async function handler(req, res) {
 
     // Fetch the PDF
     const pdfResponse = await fetch(url)
-    if (!pdfResponse.ok) return res.status(400).json({ error: 'Could not fetch PDF' })
+    if (!pdfResponse.ok) return res.status(400).json({ error: 'Could not fetch PDF: ' + pdfResponse.status })
     const buffer = await pdfResponse.arrayBuffer()
-    const bytes = new Uint8Array(buffer)
-    const raw = new TextDecoder('latin1').decode(bytes)
 
-    // Extract text from PDF string objects
-    const texts = new Set()
-    const matches = raw.match(/\(([^\)\\]{2,200})\)/g) || []
-    matches.forEach(m => {
-      const t = m.slice(1,-1).trim()
-      if (t.length > 3 && /[a-zA-Z]{2,}/.test(t)) texts.add(t)
-    })
-    const ascii = raw.match(/[\x20-\x7E]{8,}/g) || []
-    ascii.forEach(t => { if (/[a-zA-Z]{4,}/.test(t)) texts.add(t.trim()) })
-
-    const extracted = [...texts].filter(t => t.length > 4).join(' ')
-
-    if (extracted.length < 200) {
-      return res.status(200).json({ success: true, extracted: false, reason: 'Image-based PDF', chars: extracted.length })
+    // Use pdf-parse for proper text extraction
+    const pdfParse = (await import('pdf-parse/lib/pdf-parse.js')).default
+    let extracted = ''
+    try {
+      const data = await pdfParse(Buffer.from(buffer))
+      extracted = data.text || ''
+    } catch(parseErr) {
+      console.log('pdf-parse failed:', parseErr.message)
+      return res.status(200).json({ success: true, extracted: false, reason: 'Parse error: ' + parseErr.message })
     }
 
-    // Store in Firestore using REST API with service account
+    // Clean the text
+    extracted = extracted
+      .replace(/\x00/g, ' ')
+      .replace(/[^\x20-\x7E\n\r\t]/g, ' ')
+      .replace(/\s{3,}/g, '  ')
+      .trim()
+
+    if (extracted.length < 200) {
+      return res.status(200).json({ 
+        success: true, extracted: false, 
+        reason: 'Image-based PDF or insufficient text',
+        chars: extracted.length
+      })
+    }
+
+    // Store in Firestore via REST API
     const serviceAccountStr = process.env.FIREBASE_SERVICE_ACCOUNT
     if (!serviceAccountStr) {
-      return res.status(200).json({ success: true, extracted: true, chars: extracted.length, warning: 'No service account configured' })
+      return res.status(200).json({ success: true, extracted: true, chars: extracted.length, warning: 'No service account' })
     }
 
     const serviceAccount = JSON.parse(serviceAccountStr)
     const projectId = serviceAccount.project_id
 
-    // Get access token using service account JWT
-    const now = Math.floor(Date.now() / 1000)
-    const header = btoa(JSON.stringify({ alg: 'RS256', typ: 'JWT' }))
-    const payload = btoa(JSON.stringify({
-      iss: serviceAccount.client_email,
-      scope: 'https://www.googleapis.com/auth/datastore',
-      aud: 'https://oauth2.googleapis.com/token',
-      exp: now + 3600,
-      iat: now
-    }))
-
-    // Use Firebase REST API to store - import jose for JWT signing
-    const { SignJWT, importPKCS8 } = await import('jose')
+    // Get access token
     const privateKey = await importPKCS8(serviceAccount.private_key, 'RS256')
-    const jwt = await new SignJWT({ 
+    const jwt = await new SignJWT({
       iss: serviceAccount.client_email,
       scope: 'https://www.googleapis.com/auth/datastore',
       aud: 'https://oauth2.googleapis.com/token'
@@ -70,8 +70,9 @@ export default async function handler(req, res) {
       body: `grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer&assertion=${jwt}`
     })
     const { access_token } = await tokenRes.json()
+    if (!access_token) return res.status(500).json({ error: 'Could not get access token' })
 
-    // Chunk and store in Firestore
+    // Chunk and store
     const chunkSize = 800000
     const chunks = []
     for (let i = 0; i < extracted.length; i += chunkSize) chunks.push(extracted.slice(i, i + chunkSize))
@@ -80,13 +81,13 @@ export default async function handler(req, res) {
 
     for (let i = 0; i < chunks.length; i++) {
       const path = `projects/${projectId}/databases/(default)/documents/yachts/${yachtId}/knowledge/${safeDocId}_${i}`
-      await fetch(`https://firestore.googleapis.com/v1/${path}`, {
+      const storeRes = await fetch(`https://firestore.googleapis.com/v1/${path}`, {
         method: 'PATCH',
         headers: { 'Authorization': `Bearer ${access_token}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({
           fields: {
             docId: { stringValue: safeDocId },
-            filename: { stringValue: filename || docId },
+            filename: { stringValue: filename || docId || 'unknown' },
             category: { stringValue: category || 'General' },
             chunk: { integerValue: i },
             totalChunks: { integerValue: chunks.length },
@@ -95,10 +96,19 @@ export default async function handler(req, res) {
           }
         })
       })
+      if (!storeRes.ok) {
+        const err = await storeRes.text()
+        console.error('Firestore error:', err)
+      }
     }
 
-    return res.status(200).json({ success: true, extracted: true, chars: extracted.length, chunks: chunks.length })
+    return res.status(200).json({ 
+      success: true, extracted: true,
+      chars: extracted.length, chunks: chunks.length,
+      filename
+    })
   } catch(e) {
+    console.error('Extract error:', e)
     return res.status(500).json({ error: e.message })
   }
 }
