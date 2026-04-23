@@ -148,6 +148,8 @@ export default function MaintenanceLogs() {
   const [chatOpen, setChatOpen] = useState(false)
   const [showDocs, setShowDocs] = useState(false)
   const [chatImage, setChatImage] = useState(null)
+  const [chatResolved, setChatResolved] = useState(false)
+  const [publishingFix, setPublishingFix] = useState(false)
   const [fleetContext, setFleetContext] = useState('')
   const fileInputRef = useRef(null)
 
@@ -342,6 +344,61 @@ export default function MaintenanceLogs() {
     } catch(e) {
       return ''
     }
+  }
+
+  async function publishChatFix() {
+    if (!chatMessages.length || !selected?.id) return
+    setPublishingFix(true)
+    try {
+      // Ask Claude to summarise the conversation into a fix
+      const summaryPrompt = 'Based on our conversation, write a brief Issue & Fix summary in this exact format:\nISSUE: (one sentence describing the problem)\nSYSTEM: (one of: Engine, Electrical, Plumbing, AC, Heating, Rig, Navigation, Safety, Domestic, Other)\nFIX: (2-3 sentences describing the solution)\nDo not include any other text.'
+      
+      const response = await fetch('/api/ask', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          system: 'You summarise marine maintenance conversations into structured Issue & Fix entries. Be concise and precise.',
+          max_tokens: 300,
+          messages: [
+            ...chatMessages.map(m => ({ role: m.role, content: m.content })),
+            { role: 'user', content: summaryPrompt }
+          ]
+        })
+      })
+      const data = await response.json()
+      const summary = data.content?.filter(b => b.type === 'text').map(b => b.text).join('') || ''
+      
+      // Parse the summary
+      const issueMatch = summary.match(/ISSUE:\s*(.+)/i)
+      const systemMatch = summary.match(/SYSTEM:\s*(.+)/i)
+      const fixMatch = summary.match(/FIX:\s*([\s\S]+)/i)
+      
+      const title = issueMatch ? issueMatch[1].trim() : 'Issue from SMART Log'
+      const system = systemMatch ? systemMatch[1].trim() : 'Other'
+      const fix = fixMatch ? fixMatch[1].trim() : summary
+
+      // Post as crew issue then resolve and publish
+      const issueId = await postCrewIssue(selected.id, user.uid, {
+        title,
+        system,
+        description: 'Diagnosed via SMART Log',
+        fromSmartLog: true,
+      })
+      
+      if (issueId) {
+        await resolveAndPublishIssue(selected.id, issueId, fix, user.uid, selected.model, modelCount)
+      }
+      
+      setChatResolved(true)
+      setChatMessages(prev => [...prev, {
+        role: 'assistant',
+        content: 'Fix published to Issues & Fixes: "' + title + '". The community can now benefit from this solution.',
+        text: 'Fix published to Issues & Fixes: "' + title + '". The community can now benefit from this solution.'
+      }])
+    } catch(e) {
+      alert('Could not publish fix: ' + e.message)
+    }
+    setPublishingFix(false)
   }
 
   async function sendChat() {
@@ -563,6 +620,17 @@ export default function MaintenanceLogs() {
                   <span className="ask-claude-msg-label">Claude</span>
                   <p className="ask-claude-msg-text ask-claude-thinking">{chatStatus || 'Thinking...'}</p>
                 </div>
+              )}
+              {chatMessages.length >= 4 && !chatResolved && (
+                <div className="ask-claude-resolve-bar">
+                  <p className="ask-claude-resolve-hint">Issue diagnosed? Publish this fix to help the community.</p>
+                  <button className="ask-claude-resolve-btn" onClick={publishChatFix} disabled={publishingFix}>
+                    {publishingFix ? 'Publishing...' : 'Publish Fix to Community'}
+                  </button>
+                </div>
+              )}
+              {chatResolved && (
+                <div className="ask-claude-resolved-bar">Fix published to Issues & Fixes</div>
               )}
             </div>
             {chatImage && (

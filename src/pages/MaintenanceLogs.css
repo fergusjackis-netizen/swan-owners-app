@@ -171,3 +171,38 @@
   display: block;
   margin-bottom: 0.4rem;
 }
+
+.ask-claude-resolve-bar {
+  border-top: 1px solid #1e2d4a;
+  padding: 0.75rem 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+.ask-claude-resolve-hint {
+  font-size: 0.8rem;
+  color: #6b8cae;
+  margin: 0;
+}
+.ask-claude-resolve-btn {
+  background: transparent;
+  border: 1px solid #c9a84c;
+  color: #c9a84c;
+  padding: 0.4rem 0.9rem;
+  font-size: 0.8rem;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.ask-claude-resolve-btn:hover { background: rgba(201,168,76,0.1); }
+.ask-claude-resolve-btn:disabled { opacity: 0.5; cursor: default; }
+.ask-claude-resolved-bar {
+  text-align: center;
+  padding: 0.5rem;
+  font-size: 0.8rem;
+  color: #c9a84c;
+  border-top: 1px solid #1e2d4a;
+  letter-spacing: 0.05em;
+}
