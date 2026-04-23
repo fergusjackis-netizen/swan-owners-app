@@ -555,47 +555,9 @@ export default function MaintenanceLogs() {
         </button>
       </div>
 
-      {issuesLoading && <p className="mlog-loading">Loading...</p>}
-
-      {openIssues.length > 0 && (
-        <div className="mlog-section">
-          <h2>Outstanding Issues <span className="mlog-count">{openIssues.length}</span></h2>
-          {openIssues.map(issue => (
-            <div key={issue.id} className="mlog-issue-card mlog-issue-open">
-              <div className="mlog-issue-info">
-                <span className="mlog-issue-title">{issue.title}</span>
-                <span className="mlog-issue-system">{issue.system}</span>
-                {issue.description && <span className="mlog-issue-desc">{issue.description}</span>}
-              </div>
-              <button className="btn-resolve" onClick={() => { setResolvingIssue(issue); setView('resolve') }}>Mark resolved</button>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {resolvedIssues.length > 0 && (
-        <div className="mlog-section">
-          <h2>Resolved <span className="mlog-count">{resolvedIssues.length}</span></h2>
-          {resolvedIssues.map(issue => (
-            <div key={issue.id} className="mlog-issue-card mlog-issue-resolved">
-              <div className="mlog-issue-info">
-                <span className="mlog-issue-title">{issue.title}</span>
-                <span className="mlog-issue-system">{issue.system}</span>
-                {issue.fix && <span className="mlog-issue-fix">Fix: {issue.fix}</span>}
-              </div>
-              {issue.publishedToBoard && <span className="mlog-issue-shared">Shared</span>}
-            </div>
-          ))}
-        </div>
-      )}
-
-      {issues.length === 0 && !issuesLoading && (
-        <p className="mlog-no-issues">No issues logged yet.</p>
-      )}
-
       <div className="ask-claude-section">
         <button className="ask-claude-toggle" onClick={() => setChatOpen(o => !o)}>
-          <span className="ask-claude-label">Ask Claude</span>
+          <span className="ask-claude-label"><em><strong>SMART</strong></em> Log — Ask Claude</span>
           <span className="ask-claude-hint">{chatOpen ? 'Close' : 'Marine engineer advice for your ' + (selected?.model||'yacht')}</span>
           <span className="ask-claude-chevron">{chatOpen ? '▲' : '▼'}</span>
         </button>
@@ -669,6 +631,71 @@ export default function MaintenanceLogs() {
             </div>
           </div>
         )}
+      <
+
+      {issuesLoading && <p className="mlog-loading">Loading...</p>}
+
+      {openIssues.length > 0 && (
+        <div className="mlog-section">
+          <h2>Outstanding Issues <span className="mlog-count">{openIssues.length}</span></h2>
+          {openIssues.map(issue => (
+            <div key={issue.id} className="mlog-issue-card mlog-issue-open">
+              <div className="mlog-issue-info">
+                <span className="mlog-issue-title">{issue.title}</span>
+                <span className="mlog-issue-system">{issue.system}</span>
+                {issue.description && <span className="mlog-issue-desc">{issue.description}</span>}
+              </div>
+              <button className="btn-resolve" onClick={() => { setResolvingIssue(issue); setView('resolve') }}>Mark resolved</button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {resolvedIssues.length > 0 && (
+        <div className="mlog-section">
+          <h2>Resolved <span className="mlog-count">{resolvedIssues.length}</span></h2>
+          {resolvedIssues.map(issue => (
+            <div key={issue.id} className="mlog-issue-card mlog-issue-resolved">
+              <div className="mlog-issue-info">
+                <span className="mlog-issue-title">{issue.title}</span>
+                <span className="mlog-issue-system">{issue.system}</span>
+                {issue.fix && <span className="mlog-issue-fix">Fix: {issue.fix}</span>}
+              </div>
+              {issue.publishedToBoard && <span className="mlog-issue-shared">Shared</span>}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {issues.length === 0 && !issuesLoading && (
+        <p className="mlog-no-issues">No issues logged yet.</p>
+      )}
+
+/div>
+
+      <div className="smart-log-info">
+        <h3 className="smart-log-info-title">How your <em><strong>SMART</strong></em> Log works</h3>
+        <p className="smart-log-info-text">
+          Your <em><strong>SMART</strong></em> Log combines your vessel's own technical documents with AI-powered
+          engineering knowledge to give you advice specific to your Swan. Upload your manuals, drawings
+          and service records and Claude — your AI engineer — will read them and use them to answer
+          your questions accurately.
+        </p>
+        <div className="smart-log-info-cols">
+          <div className="smart-log-info-col">
+            <h4>To get the best results</h4>
+            <ul>
+              <li>Upload as many technical documents as possible — electrical schematics, engine manuals, plumbing drawings and equipment datasheets all help Claude give more precise answers</li>
+              <li>Use the camera button to send photos of what you're seeing — a photo of an error code, a leaking fitting or a component is worth a thousand words</li>
+              <li>Be specific — tell Claude which cabin, which system, and what you've already tried</li>
+              <li>When a fault is diagnosed and fixed, use "Publish Fix to Community" so other Swan owners benefit</li>
+            </ul>
+          </div>
+          <div className="smart-log-info-col">
+            <h4>What Claude does with your conversations</h4>
+            <p>Questions and fixes are stored anonymously and shared across the Swan owners community. Over time, the <em><strong>SMART</strong></em> Log builds collective knowledge about common faults and proven fixes — so every owner benefits from the experience of the whole fleet. Your vessel's technical documents remain private and are never shared.</p>
+          </div>
+        </div>
       </div>
 
       <div className="mlog-docs-section">

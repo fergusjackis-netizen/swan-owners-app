@@ -206,3 +206,51 @@
   border-top: 1px solid #1e2d4a;
   letter-spacing: 0.05em;
 }
+
+.smart-log-info {
+  margin: 2rem 0;
+  padding: 1.5rem;
+  border: 1px solid #1e2d4a;
+  background: rgba(13,21,38,0.6);
+}
+.smart-log-info-title {
+  color: #c9a84c;
+  font-size: 0.9rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 0.75rem;
+}
+.smart-log-info-text {
+  color: #8ba5c0;
+  font-size: 0.85rem;
+  line-height: 1.7;
+  margin-bottom: 1.25rem;
+}
+.smart-log-info-cols {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+}
+@media (max-width: 600px) {
+  .smart-log-info-cols { grid-template-columns: 1fr; }
+}
+.smart-log-info-col h4 {
+  color: #c9a84c;
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 0.5rem;
+}
+.smart-log-info-col p,
+.smart-log-info-col li {
+  color: #6b8cae;
+  font-size: 0.82rem;
+  line-height: 1.7;
+}
+.smart-log-info-col ul {
+  padding-left: 1.1rem;
+  margin: 0;
+}
+.smart-log-info-col li {
+  margin-bottom: 0.5rem;
+}
