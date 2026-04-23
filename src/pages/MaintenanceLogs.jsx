@@ -301,6 +301,33 @@ export default function MaintenanceLogs() {
     } catch(e) { alert('Error: ' + e.message) }
   }
 
+  async function getKnowledgeBase(yachtId, query) {
+    try {
+      const { getDocs, collection } = await import('firebase/firestore')
+      const { db } = await import('../firebase')
+      const snap = await getDocs(collection(db, 'yachts', yachtId, 'knowledge'))
+      const docs = snap.docs.map(d => d.data())
+      if (docs.length === 0) return ''
+      const q = query.toLowerCase()
+      const keywords = q.split(' ').filter(w => w.length > 3)
+      const scored = docs.map(d => {
+        const text = (d.content || '').toLowerCase()
+        const score = keywords.filter(k => text.includes(k)).length
+        return { ...d, score }
+      }).filter(d => d.score > 0).sort((a,b) => b.score - a.score).slice(0,2)
+      if (scored.length === 0) {
+        const byDoc = {}
+        docs.forEach(d => { if (!byDoc[d.docId]) byDoc[d.docId] = d })
+        return Object.values(byDoc).slice(0,2)
+          .map(d => '### ' + d.filename + '\n' + (d.content||'').slice(0,2000))
+          .join('\n\n')
+      }
+      return scored.map(d => '### ' + d.filename + '\n' + (d.content||'').slice(0,6000)).join('\n\n')
+    } catch(e) {
+      return ''
+    }
+  }
+
   async function sendChat() {
     if ((!chatInput.trim() && !chatImage) || chatLoading) return
     const userMsg = chatInput.trim()
@@ -328,6 +355,14 @@ export default function MaintenanceLogs() {
           vesselDocs.map(d => (d.displayName||d.filename) + ' (' + d.category + ')').join('; ') + '.'
         : 'No technical documents uploaded yet.'
 
+      let knowledgeContext = ''
+      try {
+        if (selected?.id && userMsg) {
+          knowledgeContext = await getKnowledgeBase(selected.id, userMsg)
+          if (knowledgeContext) setChatStatus('Found relevant documents...')
+        }
+      } catch(e) { /* non-fatal */ }
+
       const system = [
         'You are the onboard engineer for ' + (selected?.name||'a Swan yacht') + ', a ' + (selected?.model||'Swan') + ' based at ' + (selected?.homeMarina?.name ? selected.homeMarina.name : 'unknown marina') + '.',
         'You have studied the complete technical document library for this vessel including: ' + (vesselDocs.length > 0 ? vesselDocs.map(d => d.displayName||d.filename).join(', ') : 'no documents uploaded yet') + '.',
@@ -336,7 +371,8 @@ export default function MaintenanceLogs() {
           ? 'Outstanding issues: ' + issues.filter(i=>i.status==='open').map(i => i.title + ' (' + i.system + ')').join('; ') + '.'
           : 'No outstanding issues.',
         'Never guess. Ask questions and request photos until confident. Always tell crew exactly where to go. When you receive a photo describe what you see then diagnose. Use short numbered steps for fixes. Flag safety issues immediately.',
-      ].join(' ')
+        knowledgeContext ? 'EXTRACTED DOCUMENT CONTENT FOR THIS QUERY:\n' + knowledgeContext : '',
+      ].filter(Boolean).join(' ')
 
       const response = await fetch('/api/ask', {
         method: 'POST',
