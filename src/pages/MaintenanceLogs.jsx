@@ -149,6 +149,7 @@ export default function MaintenanceLogs() {
   const [showDocs, setShowDocs] = useState(false)
   const [chatImage, setChatImage] = useState(null)
   const [fleetContext, setFleetContext] = useState('')
+  const [fleetContext, setFleetContext] = useState('')
   const fileInputRef = useRef(null)
 
   useEffect(() => { if (user?.uid) loadAssignedYachts() }, [user?.uid])
@@ -407,6 +408,15 @@ export default function MaintenanceLogs() {
         ? data.content.filter(b => b.type === 'text').map(b => b.text).join('\n')
         : 'Sorry, try again.'
       setChatMessages(prev => [...prev, { role: 'assistant', content: reply, text: reply }])
+
+      // Save conversation to Firestore (non-blocking)
+      const updatedMessages = [...chatMessages, { role: 'user', content: userContent }, { role: 'assistant', content: reply }]
+      if (updatedMessages.length >= 2 && selected?.id) {
+        // Generate a brief summary from the last exchange
+        const lastQ = typeof userContent === 'string' ? userContent : (userMsg || 'Photo sent')
+        const summary = lastQ.slice(0, 100) + (reply ? ' → ' + reply.slice(0, 150) : '')
+        saveConversation(selected.id, selected.model, updatedMessages, summary).catch(() => {})
+      }
 
       // Save conversation to Firestore (non-blocking)
       const updatedMessages = [...chatMessages, { role: 'user', content: userContent }, { role: 'assistant', content: reply }]
