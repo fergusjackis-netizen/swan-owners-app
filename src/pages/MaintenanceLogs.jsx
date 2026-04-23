@@ -2,7 +2,8 @@ import { useState, useEffect, useRef } from 'react'
 import { useAuth } from '../hooks/useAuth'
 import {
   getCrewIssues, postCrewIssue, resolveAndPublishIssue,
-  getChecklistTemplate, saveChecklistTemplate, saveCompletedChecklist, getVesselDocuments
+  getChecklistTemplate, saveChecklistTemplate, saveCompletedChecklist, getVesselDocuments,
+  saveConversation, getFleetConversations
 } from '../services/firestore'
 import './MaintenanceLogs.css'
 
@@ -147,6 +148,7 @@ export default function MaintenanceLogs() {
   const [chatOpen, setChatOpen] = useState(false)
   const [showDocs, setShowDocs] = useState(false)
   const [chatImage, setChatImage] = useState(null)
+  const [fleetContext, setFleetContext] = useState('')
   const fileInputRef = useRef(null)
 
   useEffect(() => { if (user?.uid) loadAssignedYachts() }, [user?.uid])
@@ -185,6 +187,20 @@ export default function MaintenanceLogs() {
       setVesselDocs(docList)
       setModelCount(yachtsSnap.docs.filter(d => d.data().model === yacht.model).length)
     } catch(e) { console.error(e) }
+
+    // Load fleet conversation context
+    try {
+      const fleetConvos = await getFleetConversations()
+      if (fleetConvos.length > 0) {
+        const summaries = fleetConvos
+          .filter(c => c.summary)
+          .slice(0, 20)
+          .map(c => `[${c.yachtModel || 'Swan'}] ${c.summary}`)
+          .join('\n')
+        if (summaries) setFleetContext(summaries)
+      }
+    } catch(e) { /* non-fatal */ }
+
     setIssuesLoading(false)
   }
 
@@ -391,6 +407,15 @@ export default function MaintenanceLogs() {
         ? data.content.filter(b => b.type === 'text').map(b => b.text).join('\n')
         : 'Sorry, try again.'
       setChatMessages(prev => [...prev, { role: 'assistant', content: reply, text: reply }])
+
+      // Save conversation to Firestore (non-blocking)
+      const updatedMessages = [...chatMessages, { role: 'user', content: userContent }, { role: 'assistant', content: reply }]
+      if (updatedMessages.length >= 2 && selected?.id) {
+        // Generate a brief summary from the last exchange
+        const lastQ = typeof userContent === 'string' ? userContent : (userMsg || 'Photo sent')
+        const summary = lastQ.slice(0, 100) + (reply ? ' → ' + reply.slice(0, 150) : '')
+        saveConversation(selected.id, selected.model, updatedMessages, summary).catch(() => {})
+      }
     } catch(e) {
       setChatMessages(prev => [...prev, { role: 'assistant', content: 'Something went wrong: ' + e.message, text: 'Something went wrong: ' + e.message }])
     }

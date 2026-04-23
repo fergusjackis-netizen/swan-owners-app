@@ -366,3 +366,23 @@ export async function saveVesselDocument(yachtId, data) {
 export async function deleteVesselDocument(yachtId, docId) {
   await deleteDoc(doc(db, 'yachts', yachtId, 'documents', docId))
 }
+
+export async function saveConversation(yachtId, yachtModel, messages, summary) {
+  const { addDoc, collection, serverTimestamp } = await import('firebase/firestore')
+  const { db } = await import('../firebase')
+  return addDoc(collection(db, 'conversations'), {
+    yachtId,
+    yachtModel,
+    messages: messages.slice(-20), // keep last 20 messages
+    summary: summary || '',
+    createdAt: serverTimestamp(),
+  })
+}
+
+export async function getFleetConversations(system, limit = 50) {
+  const { getDocs, collection, query, where, orderBy, limit: fsLimit } = await import('firebase/firestore')
+  const { db } = await import('../firebase')
+  const q = query(collection(db, 'conversations'), fsLimit(limit))
+  const snap = await getDocs(q)
+  return snap.docs.map(d => ({ id: d.id, ...d.data() }))
+}
