@@ -5,48 +5,25 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end()
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
   try {
-    const { messages, system, max_tokens, documents } = req.body
-
-    // Build messages with PDF documents injected into first user message
-    let apiMessages = [...messages]
-    if (documents && documents.length > 0) {
-      // Add documents to the first user message as document content blocks
-      const lastUserIdx = apiMessages.map(m => m.role).lastIndexOf('user')
-      if (lastUserIdx >= 0) {
-        const userMsg = apiMessages[lastUserIdx]
-        const docBlocks = documents.map(doc => ({
-          type: 'document',
-          source: {
-            type: 'base64',
-            media_type: 'application/pdf',
-            data: doc.base64,
-          },
-          title: doc.name,
-          context: doc.category,
-        }))
-        const textContent = typeof userMsg.content === 'string'
-          ? [{ type: 'text', text: userMsg.content }]
-          : userMsg.content
-        apiMessages[lastUserIdx] = {
-          ...userMsg,
-          content: [...docBlocks, ...textContent]
-        }
-      }
-    }
-
+    const { messages, system, max_tokens } = req.body
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'x-api-key': process.env.ANTHROPIC_API_KEY,
         'anthropic-version': '2023-06-01',
-        'anthropic-beta': 'pdfs-2024-09-25',
       },
       body: JSON.stringify({
         model: 'claude-sonnet-4-5',
-        max_tokens: max_tokens || 2048,
+        max_tokens: max_tokens || 1024,
         system,
-        messages: apiMessages,
+        messages,
+        tools: [
+          {
+            type: 'web_search_20250305',
+            name: 'web_search',
+          }
+        ],
       })
     })
     const data = await response.json()
