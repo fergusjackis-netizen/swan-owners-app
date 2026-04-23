@@ -418,7 +418,6 @@ export default function MaintenanceLogs() {
       }
 
       // Save conversation to Firestore (non-blocking)
-      const updatedMessages = [...chatMessages, { role: 'user', content: userContent }, { role: 'assistant', content: reply }]
       if (updatedMessages.length >= 2 && selected?.id) {
         // Generate a brief summary from the last exchange
         const lastQ = typeof userContent === 'string' ? userContent : (userMsg || 'Photo sent')
