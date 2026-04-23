@@ -846,17 +846,7 @@ export default function MaintenanceLogs() {
         }
       }
 
-      let knowledgeContext = ''
-      try {
-        if (selected?.id && userMsg) {
-          knowledgeContext = await getKnowledgeBase(selected.id, userMsg)
-        }
-      } catch(e) {
-        console.log('Knowledge base unavailable, continuing without:', e.message)
-      }
-      const finalSystem = knowledgeContext
-        ? system + '\n\nPRE-EXTRACTED DOCUMENT KNOWLEDGE BASE (use this to answer accurately):\n' + knowledgeContext.slice(0, 15000)
-        : system
+      const finalSystem = system
 
       setChatStatus('Thinking...')
       const response = await fetch('/api/ask', {
