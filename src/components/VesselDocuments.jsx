@@ -70,6 +70,14 @@ export default function VesselDocuments({ yachtId, canUpload, compact }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ yachtId, docId: file.name.replace(/[^a-zA-Z0-9]/g,'_').slice(0,40), url, filename: file.name, category })
       }).then(r=>r.json()).then(d=>console.log('Extraction:',file.name,d.extracted?d.chars+' chars':'image-based')).catch(e=>console.log('Extraction failed:',e.message))
+            // Auto-extract text from PDF for knowledge base
+      if (file && url) {
+        fetch('/api/extract-pdf', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ yachtId, docId: file.name.replace(/[^a-zA-Z0-9]/g,'_').slice(0,40), url, filename: file.name, category })
+        }).then(r=>r.json()).then(d=>console.log('Extraction:',file.name,d.extracted?d.chars+' chars':'image-based')).catch(e=>console.log('Extraction failed:',e.message))
+      }
       await loadDocs()
       setShowUpload(false)
       setDisplayName('')
