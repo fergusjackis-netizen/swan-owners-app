@@ -541,6 +541,7 @@ export default function MaintenanceLogs() {
   const [chatStatus, setChatStatus] = useState('')
   const [chatOpen, setChatOpen] = useState(false)
   const [showDocs, setShowDocs] = useState(false)
+  const [chatImage, setChatImage] = useState(null)
   const [chatImage, setChatImage] = useState(null) // {base64, mediaType, preview}
 
   useEffect(() => { if (user?.uid) loadAssignedYachts() }, [user?.uid])
