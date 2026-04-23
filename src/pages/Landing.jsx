@@ -102,14 +102,14 @@ export default function Landing() {
             <div className="feature-card-badge">NEW</div>
             <h3><em><strong>SMART</strong></em> Log</h3>
             <p>
-              Upload your vessel's technical documents and get AI-powered maintenance advice specific to your Swan.
-              Ask questions, send photos, and get expert guidance from an engineer who knows your boat.
+              AI-powered maintenance advice specific to your Swan. Ask questions, send photos of faults,
+              and get expert engineering guidance — backed by knowledge built from the entire Swan owner community.
             </p>
             <p className="feature-card-note">
-              Questions and fixes are anonymously shared across the fleet — helping every Swan owner benefit
-              from collective knowledge.
+              Members only. Questions and fixes are shared anonymously across the fleet so every owner
+              benefits from collective experience.
             </p>
-            <Link to="/maintenance-logs" className="feature-link">Open <em><strong>SMART</strong></em> Log</Link>
+            <Link to="/register" className="feature-link">Join to access <em><strong>SMART</strong></em> Log</Link>
           </div>
           <div className="feature-card">
             <h3>Live Map</h3>
@@ -128,9 +128,8 @@ export default function Landing() {
         <div className="data-notice">
           <h4>About your data on <em><strong>SMART</strong></em> Log</h4>
           <p>
-            When you use the <em><strong>SMART</strong></em> Log, your questions and Claude's answers are stored anonymously
-            to build collective knowledge for the Swan community. No personal information is attached.
-            Technical documents you upload are stored privately and only used to answer your vessel's questions.
+            When you use the <em><strong>SMART</strong></em> Log, your questions and Claude's answers are stored
+            anonymously to build collective knowledge for the Swan community. No personal information is attached.
             The <em><strong>SMART</strong></em> Log is for marine and vessel-related questions only.
           </p>
         </div>
