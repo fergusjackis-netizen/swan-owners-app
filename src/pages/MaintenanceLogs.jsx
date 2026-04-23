@@ -762,6 +762,34 @@ export default function MaintenanceLogs() {
     }
   }
 
+  async function getKnowledgeBase(yachtId, query) {
+    try {
+      const { getDocs, collection } = await import('firebase/firestore')
+      const { db } = await import('../firebase')
+      const snap = await getDocs(collection(db, 'yachts', yachtId, 'knowledge'))
+      const docs = snap.docs.map(d => d.data())
+      if (docs.length === 0) return ''
+      const q = query.toLowerCase()
+      const keywords = q.split(' ').filter(w => w.length > 3)
+      const scored = docs.map(d => {
+        const content = (d.content || '').toLowerCase()
+        const score = keywords.filter(k => content.includes(k)).length
+        return { ...d, score }
+      }).filter(d => d.score > 0).sort((a,b) => b.score - a.score).slice(0, 2)
+      if (scored.length === 0) {
+        const byDoc = {}
+        docs.forEach(d => { if (!byDoc[d.docId]) byDoc[d.docId] = d })
+        return Object.values(byDoc).slice(0,2).map(d =>
+          '### ' + d.filename + '\n' + (d.content||'').slice(0,3000)
+        ).join('\n\n')
+      }
+      return scored.map(d => '### ' + d.filename + '\n' + (d.content||'')).join('\n\n')
+    } catch(e) {
+      console.error('Knowledge base error:', e)
+      return ''
+    }
+  }
+
   async function sendChat() {
     if ((!chatInput.trim() && !chatImage) || chatLoading) return
     const userMsg = chatInput.trim()
@@ -818,12 +846,20 @@ export default function MaintenanceLogs() {
         }
       }
 
+      let knowledgeContext = ''
+      if (selected?.id && userMsg) {
+        knowledgeContext = await getKnowledgeBase(selected.id, userMsg)
+      }
+      const finalSystem = knowledgeContext
+        ? system + '\n\nPRE-EXTRACTED DOCUMENT KNOWLEDGE BASE (use this to answer accurately):\n' + knowledgeContext.slice(0, 50000)
+        : system
+
       setChatStatus('Thinking...')
       const response = await fetch('/api/ask', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          system,
+          system: finalSystem,
           max_tokens: 2048,
           documents,
           messages: [
