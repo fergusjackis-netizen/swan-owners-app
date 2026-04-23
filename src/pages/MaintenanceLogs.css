@@ -254,3 +254,13 @@
 .smart-log-info-col li {
   margin-bottom: 0.5rem;
 }
+
+.ask-claude-photo-notice {
+  font-size: 0.72rem;
+  color: #4a6a8a;
+  text-align: center;
+  padding: 0.3rem 1rem;
+  border-top: 1px solid #1e2d4a;
+  margin: 0;
+  font-style: italic;
+}

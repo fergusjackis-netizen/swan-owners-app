@@ -648,6 +648,7 @@ export default function MaintenanceLogs() {
                 <button className="ask-claude-image-remove" onClick={() => setChatImage(null)}>x</button>
               </div>
             )}
+            <p className="ask-claude-photo-notice">Photos sent here are stored anonymously and may be shared with the Swan community to help solve similar problems.</p>
             <div className="ask-claude-input-row">
               <label className="ask-claude-camera-btn" title="Photos are stored anonymously and may be shared with the Swan community to help solve similar problems">
                 <input type="file" accept="image/*" capture="environment" style={{display:'none'}}
