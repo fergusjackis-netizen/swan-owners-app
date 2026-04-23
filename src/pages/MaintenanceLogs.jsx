@@ -145,7 +145,7 @@ export default function MaintenanceLogs() {
   const [chatInput, setChatInput] = useState('')
   const [chatLoading, setChatLoading] = useState(false)
   const [chatStatus, setChatStatus] = useState('')
-  const [chatOpen, setChatOpen] = useState(false)
+  const [chatOpen, setChatOpen] = useState(true)
   const [showDocs, setShowDocs] = useState(false)
   const [chatImage, setChatImage] = useState(null)
   const [chatResolved, setChatResolved] = useState(false)
@@ -174,6 +174,8 @@ export default function MaintenanceLogs() {
   async function selectYacht(yacht) {
     setSelected(yacht)
     setView('overview')
+    setChatMessages([])
+    setChatResolved(false)
     setIssuesLoading(true)
     try {
       const { getDocs, collection } = await import('firebase/firestore')
@@ -190,14 +192,13 @@ export default function MaintenanceLogs() {
       setModelCount(yachtsSnap.docs.filter(d => d.data().model === yacht.model).length)
     } catch(e) { console.error(e) }
 
-    // Load fleet conversation context
     try {
       const fleetConvos = await getFleetConversations()
       if (fleetConvos.length > 0) {
         const summaries = fleetConvos
           .filter(c => c.summary)
           .slice(0, 20)
-          .map(c => `[${c.yachtModel || 'Swan'}] ${c.summary}`)
+          .map(c => '[' + (c.yachtModel || 'Swan') + '] ' + c.summary)
           .join('\n')
         if (summaries) setFleetContext(summaries)
       }
@@ -341,18 +342,14 @@ export default function MaintenanceLogs() {
           .join('\n\n')
       }
       return scored.map(d => '### ' + d.filename + '\n' + (d.content||'').slice(0,6000)).join('\n\n')
-    } catch(e) {
-      return ''
-    }
+    } catch(e) { return '' }
   }
 
   async function publishChatFix() {
     if (!chatMessages.length || !selected?.id) return
     setPublishingFix(true)
     try {
-      // Ask Claude to summarise the conversation into a fix
       const summaryPrompt = 'Based on our conversation, write a brief Issue & Fix summary in this exact format:\nISSUE: (one sentence describing the problem)\nSYSTEM: (one of: Engine, Electrical, Plumbing, AC, Heating, Rig, Navigation, Safety, Domestic, Other)\nFIX: (2-3 sentences describing the solution)\nDo not include any other text.'
-      
       const response = await fetch('/api/ask', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -367,37 +364,25 @@ export default function MaintenanceLogs() {
       })
       const data = await response.json()
       const summary = data.content?.filter(b => b.type === 'text').map(b => b.text).join('') || ''
-      
-      // Parse the summary
       const issueMatch = summary.match(/ISSUE:\s*(.+)/i)
       const systemMatch = summary.match(/SYSTEM:\s*(.+)/i)
       const fixMatch = summary.match(/FIX:\s*([\s\S]+)/i)
-      
       const title = issueMatch ? issueMatch[1].trim() : 'Issue from SMART Log'
       const system = systemMatch ? systemMatch[1].trim() : 'Other'
       const fix = fixMatch ? fixMatch[1].trim() : summary
-
-      // Post as crew issue then resolve and publish
       const issueId = await postCrewIssue(selected.id, user.uid, {
-        title,
-        system,
-        description: 'Diagnosed via SMART Log',
-        fromSmartLog: true,
+        title, system, description: 'Diagnosed via SMART Log', fromSmartLog: true,
       })
-      
       if (issueId) {
         await resolveAndPublishIssue(selected.id, issueId, fix, user.uid, selected.model, modelCount)
       }
-      
       setChatResolved(true)
       setChatMessages(prev => [...prev, {
         role: 'assistant',
         content: 'Fix published to Issues & Fixes: "' + title + '". The community can now benefit from this solution.',
         text: 'Fix published to Issues & Fixes: "' + title + '". The community can now benefit from this solution.'
       }])
-    } catch(e) {
-      alert('Could not publish fix: ' + e.message)
-    }
+    } catch(e) { alert('Could not publish fix: ' + e.message) }
     setPublishingFix(false)
   }
 
@@ -423,11 +408,6 @@ export default function MaintenanceLogs() {
     setChatStatus('Thinking...')
 
     try {
-      const docSummary = vesselDocs.length > 0
-        ? 'The vessel has ' + vesselDocs.length + ' technical documents: ' +
-          vesselDocs.map(d => (d.displayName||d.filename) + ' (' + d.category + ')').join('; ') + '.'
-        : 'No technical documents uploaded yet.'
-
       let knowledgeContext = ''
       try {
         if (selected?.id && userMsg) {
@@ -444,6 +424,9 @@ export default function MaintenanceLogs() {
           ? 'Outstanding issues: ' + issues.filter(i=>i.status==='open').map(i => i.title + ' (' + i.system + ')').join('; ') + '.'
           : 'No outstanding issues.',
         'Never guess. Ask questions and request photos until confident. Always tell crew exactly where to go. When you receive a photo describe what you see then diagnose. Use short numbered steps for fixes. Flag safety issues immediately.',
+        'IMPORTANT: You are ONLY a marine engineer assistant. If asked anything unrelated to boats, sailing, marine systems, seamanship or yacht maintenance, politely decline.',
+        'SEARCH ORDER: First use this vessel documents, then look for patterns from other ' + (selected?.model||'Swan') + ' yachts, then the wider Swan fleet. Many components are identical across Swan models.',
+        fleetContext ? 'FLEET KNOWLEDGE from other Swan owners: ' + fleetContext : '',
         knowledgeContext ? 'EXTRACTED DOCUMENT CONTENT FOR THIS QUERY:\n' + knowledgeContext : '',
       ].filter(Boolean).join(' ')
 
@@ -465,30 +448,20 @@ export default function MaintenanceLogs() {
         : 'Sorry, try again.'
       setChatMessages(prev => [...prev, { role: 'assistant', content: reply, text: reply }])
 
-      // Save diagnostic photo if one was sent
+      // Save diagnostic photo
       if (imgToSend && selected?.id) {
-        // Store the image as a data URL reference - tag with system from conversation
-        const systemGuess = ['Engine','Electrical','Plumbing','AC','Heating','Rig','Navigation','Safety'].find(s => 
+        const systemGuess = ['Engine','Electrical','Plumbing','AC','Heating','Rig','Navigation','Safety'].find(s =>
           (userMsg + reply).toLowerCase().includes(s.toLowerCase())
         ) || 'Other'
         saveDiagnosticPhoto(selected.id, imgToSend.preview, systemGuess, userMsg || 'Photo diagnostic', null).catch(() => {})
       }
 
-      // Save conversation to Firestore (non-blocking)
+      // Save conversation
       const updatedMessages = [...chatMessages, { role: 'user', content: userContent }, { role: 'assistant', content: reply }]
       if (updatedMessages.length >= 2 && selected?.id) {
-        // Generate a brief summary from the last exchange
         const lastQ = typeof userContent === 'string' ? userContent : (userMsg || 'Photo sent')
-        const summary = lastQ.slice(0, 100) + (reply ? ' → ' + reply.slice(0, 150) : '')
-        saveConversation(selected.id, selected.model, updatedMessages, summary).catch(() => {})
-      }
-
-      // Save conversation to Firestore (non-blocking)
-      if (updatedMessages.length >= 2 && selected?.id) {
-        // Generate a brief summary from the last exchange
-        const lastQ = typeof userContent === 'string' ? userContent : (userMsg || 'Photo sent')
-        const summary = lastQ.slice(0, 100) + (reply ? ' → ' + reply.slice(0, 150) : '')
-        saveConversation(selected.id, selected.model, updatedMessages, summary).catch(() => {})
+        const convSummary = lastQ.slice(0, 100) + (reply ? ' -> ' + reply.slice(0, 150) : '')
+        saveConversation(selected.id, selected.model, updatedMessages, convSummary).catch(() => {})
       }
     } catch(e) {
       setChatMessages(prev => [...prev, { role: 'assistant', content: 'Something went wrong: ' + e.message, text: 'Something went wrong: ' + e.message }])
@@ -502,7 +475,7 @@ export default function MaintenanceLogs() {
   if (!selected) return (
     <div className="maintlogs-page">
       <div className="maintlogs-header">
-        <h1>Maintenance Log{assignedYachts.length !== 1 ? 's' : ''}</h1>
+        <h1>SMART Log{assignedYachts.length !== 1 ? 's' : ''}</h1>
         <p className="maintlogs-subtitle">
           {assignedYachts.length === 0 ? 'No vessels assigned'
             : assignedYachts.length === 1 ? '1 vessel assigned'
@@ -545,6 +518,7 @@ export default function MaintenanceLogs() {
         <h1>{selected.name}</h1>
         <p className="maintlogs-subtitle">{selected.model}{selected.flag ? ' — ' + selected.flag : ''}</p>
       </div>
+
       <div className="mlog-action-grid">
         <button className="mlog-action-btn" onClick={() => startChecklist('weekly')}>
           <span className="mlog-action-title">Weekly Check</span>
@@ -562,6 +536,87 @@ export default function MaintenanceLogs() {
           <span className="mlog-action-title">Edit Checklist</span>
           <span className="mlog-action-desc">Customise inspection items</span>
         </button>
+      </div>
+
+      <div className="ask-claude-section ask-claude-section-prominent">
+        <button className="ask-claude-toggle ask-claude-toggle-bold" onClick={() => setChatOpen(o => !o)}>
+          <div className="ask-claude-toggle-left">
+            <span className="ask-claude-label-bold">SMART Log — Ask Claude</span>
+            <span className="ask-claude-sublabel">AI-powered marine engineer for {selected?.name}</span>
+          </div>
+          <div className="ask-claude-toggle-right">
+            {vesselDocs.length > 0 && <span className="ask-claude-doc-count">{vesselDocs.length} docs</span>}
+            <span className="ask-claude-chevron">{chatOpen ? '▲' : '▼'}</span>
+          </div>
+        </button>
+        {chatOpen && (
+          <div className="ask-claude-body">
+            {chatMessages.length === 0 && (
+              <p className="ask-claude-empty">Ask anything about {selected?.name}. Use the camera to send photos of faults for instant diagnosis.</p>
+            )}
+            <div className="ask-claude-messages">
+              {chatMessages.map((msg, i) => (
+                <div key={i} className={'ask-claude-msg ask-claude-msg-' + msg.role}>
+                  <span className="ask-claude-msg-label">{msg.role === 'user' ? 'You' : 'Claude'}</span>
+                  {msg.preview && <img src={msg.preview} alt="Sent" className="ask-claude-sent-img" />}
+                  <p className="ask-claude-msg-text">{msg.text || (typeof msg.content === 'string' ? msg.content : '')}</p>
+                </div>
+              ))}
+              {chatLoading && (
+                <div className="ask-claude-msg ask-claude-msg-assistant">
+                  <span className="ask-claude-msg-label">Claude</span>
+                  <p className="ask-claude-msg-text ask-claude-thinking">{chatStatus || 'Thinking...'}</p>
+                </div>
+              )}
+              {chatMessages.length >= 4 && !chatResolved && (
+                <div className="ask-claude-resolve-bar">
+                  <p className="ask-claude-resolve-hint">Issue diagnosed? Publish this fix to help the community.</p>
+                  <button className="ask-claude-resolve-btn" onClick={publishChatFix} disabled={publishingFix}>
+                    {publishingFix ? 'Publishing...' : 'Publish Fix to Community'}
+                  </button>
+                </div>
+              )}
+              {chatResolved && (
+                <div className="ask-claude-resolved-bar">Fix published to Issues & Fixes</div>
+              )}
+            </div>
+            {chatImage && (
+              <div className="ask-claude-image-preview">
+                <img src={chatImage.preview} alt="Preview" />
+                <button className="ask-claude-image-remove" onClick={() => setChatImage(null)}>x</button>
+              </div>
+            )}
+            <p className="ask-claude-photo-notice">Photos sent here are stored anonymously and may be shared with the Swan community to help solve similar problems.</p>
+            <div className="ask-claude-input-row">
+              <label className="ask-claude-camera-btn" title="Attach photo">
+                <input type="file" accept="image/*" capture="environment" style={{display:'none'}}
+                  ref={fileInputRef}
+                  onChange={e => {
+                    const file = e.target.files[0]
+                    if (!file) return
+                    const reader = new FileReader()
+                    reader.onload = ev => {
+                      const dataUrl = ev.target.result
+                      setChatImage({ base64: dataUrl.split(',')[1], mediaType: file.type||'image/jpeg', preview: dataUrl })
+                    }
+                    reader.readAsDataURL(file)
+                    e.target.value = ''
+                  }}
+                />
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                  <circle cx="12" cy="13" r="4"/>
+                </svg>
+              </label>
+              <input className="ask-claude-input" value={chatInput}
+                onChange={e => setChatInput(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && sendChat()}
+                placeholder={chatImage ? 'Add a message or just send the photo...' : 'Ask about ' + (selected?.name||'your yacht') + '...'}
+                disabled={chatLoading} />
+              <button className="ask-claude-send" onClick={sendChat} disabled={chatLoading || (!chatInput.trim() && !chatImage)}>Send</button>
+            </div>
+          </div>
+        )}
       </div>
 
       {issuesLoading && <p className="mlog-loading">Loading...</p>}
@@ -598,87 +653,28 @@ export default function MaintenanceLogs() {
         </div>
       )}
 
-      {issues.length === 0 && !issuesLoading && (
-        <p className="mlog-no-issues">No issues logged yet.</p>
-      )}
-
-      <div className="ask-claude-section">
-        <button className="ask-claude-toggle" onClick={() => setChatOpen(o => !o)}>
-          <span className="ask-claude-label">Ask Claude</span>
-          <span className="ask-claude-hint">{chatOpen ? 'Close' : 'Marine engineer advice for your ' + (selected?.model||'yacht')}</span>
-          <span className="ask-claude-chevron">{chatOpen ? '▲' : '▼'}</span>
-        </button>
-        {chatOpen && (
-          <div className="ask-claude-body">
-            {vesselDocs.length > 0 && (
-              <p className="ask-claude-context-note">{vesselDocs.length} vessel documents available as context</p>
-            )}
-            {chatMessages.length === 0 && (
-              <p className="ask-claude-empty">Ask anything about maintaining your {selected?.model}. Use the camera button to send photos.</p>
-            )}
-            <div className="ask-claude-messages">
-              {chatMessages.map((msg, i) => (
-                <div key={i} className={'ask-claude-msg ask-claude-msg-' + msg.role}>
-                  <span className="ask-claude-msg-label">{msg.role === 'user' ? 'You' : 'Claude'}</span>
-                  {msg.preview && <img src={msg.preview} alt="Sent" className="ask-claude-sent-img" />}
-                  <p className="ask-claude-msg-text">{msg.text || (typeof msg.content === 'string' ? msg.content : '')}</p>
-                </div>
-              ))}
-              {chatLoading && (
-                <div className="ask-claude-msg ask-claude-msg-assistant">
-                  <span className="ask-claude-msg-label">Claude</span>
-                  <p className="ask-claude-msg-text ask-claude-thinking">{chatStatus || 'Thinking...'}</p>
-                </div>
-              )}
-              {chatMessages.length >= 4 && !chatResolved && (
-                <div className="ask-claude-resolve-bar">
-                  <p className="ask-claude-resolve-hint">Issue diagnosed? Publish this fix to help the community.</p>
-                  <button className="ask-claude-resolve-btn" onClick={publishChatFix} disabled={publishingFix}>
-                    {publishingFix ? 'Publishing...' : 'Publish Fix to Community'}
-                  </button>
-                </div>
-              )}
-              {chatResolved && (
-                <div className="ask-claude-resolved-bar">Fix published to Issues & Fixes</div>
-              )}
-            </div>
-            {chatImage && (
-              <div className="ask-claude-image-preview">
-                <img src={chatImage.preview} alt="Preview" />
-                <button className="ask-claude-image-remove" onClick={() => setChatImage(null)}>x</button>
-              </div>
-            )}
-            <p className="ask-claude-photo-notice">Photos sent here are stored anonymously and may be shared with the Swan community to help solve similar problems.</p>
-            <div className="ask-claude-input-row">
-              <label className="ask-claude-camera-btn" title="Photos are stored anonymously and may be shared with the Swan community to help solve similar problems">
-                <input type="file" accept="image/*" capture="environment" style={{display:'none'}}
-                  ref={fileInputRef}
-                  onChange={e => {
-                    const file = e.target.files[0]
-                    if (!file) return
-                    const reader = new FileReader()
-                    reader.onload = ev => {
-                      const dataUrl = ev.target.result
-                      setChatImage({ base64: dataUrl.split(',')[1], mediaType: file.type||'image/jpeg', preview: dataUrl })
-                    }
-                    reader.readAsDataURL(file)
-                    e.target.value = ''
-                  }}
-                />
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
-                  <circle cx="12" cy="13" r="4"/>
-                </svg>
-              </label>
-              <input className="ask-claude-input" value={chatInput}
-                onChange={e => setChatInput(e.target.value)}
-                onKeyDown={e => e.key === 'Enter' && sendChat()}
-                placeholder={'Ask about your ' + (selected?.model||'yacht') + '...'}
-                disabled={chatLoading} />
-              <button className="ask-claude-send" onClick={sendChat} disabled={chatLoading || (!chatInput.trim() && !chatImage)}>Send</button>
-            </div>
+      <div className="smart-log-info">
+        <h3 className="smart-log-info-title">How your SMART Log works</h3>
+        <p className="smart-log-info-text">
+          Your SMART Log combines your vessel technical documents with AI-powered engineering knowledge
+          to give you advice specific to your Swan. Upload your manuals, drawings and service records
+          and Claude will read them and use them to answer your questions accurately.
+        </p>
+        <div className="smart-log-info-cols">
+          <div className="smart-log-info-col">
+            <h4>To get the best results</h4>
+            <ul>
+              <li>Upload as many technical documents as possible — electrical schematics, engine manuals and plumbing drawings all help Claude give precise answers</li>
+              <li>Use the camera button to send photos of what you are seeing — a photo is worth a thousand words</li>
+              <li>Be specific about which cabin, which system, and what you have already tried</li>
+              <li>When a fault is fixed, use Publish Fix to Community so other Swan owners benefit</li>
+            </ul>
           </div>
-        )}
+          <div className="smart-log-info-col">
+            <h4>What Claude does with your conversations</h4>
+            <p>Questions and fixes are stored anonymously and shared across the Swan owners community. Over time the SMART Log builds collective knowledge about common faults and proven fixes so every owner benefits from the experience of the whole fleet. Your vessel documents remain private and are never shared.</p>
+          </div>
+        </div>
       </div>
 
       <div className="mlog-docs-section">
