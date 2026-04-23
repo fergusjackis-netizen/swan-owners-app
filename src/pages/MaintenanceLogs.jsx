@@ -847,8 +847,12 @@ export default function MaintenanceLogs() {
       }
 
       let knowledgeContext = ''
-      if (selected?.id && userMsg) {
-        knowledgeContext = await getKnowledgeBase(selected.id, userMsg)
+      try {
+        if (selected?.id && userMsg) {
+          knowledgeContext = await getKnowledgeBase(selected.id, userMsg)
+        }
+      } catch(e) {
+        console.log('Knowledge base unavailable, continuing without:', e.message)
       }
       const finalSystem = knowledgeContext
         ? system + '\n\nPRE-EXTRACTED DOCUMENT KNOWLEDGE BASE (use this to answer accurately):\n' + knowledgeContext.slice(0, 15000)
