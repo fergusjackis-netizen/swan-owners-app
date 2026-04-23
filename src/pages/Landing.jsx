@@ -98,6 +98,19 @@ export default function Landing() {
             <p>Share technical knowledge. Post problems, solutions and maintenance tips with the community.</p>
             <Link to="/issues" className="feature-link">View Issues</Link>
           </div>
+          <div className="feature-card feature-card-highlight">
+            <div className="feature-card-badge">NEW</div>
+            <h3><em><strong>SMART</strong></em> Log</h3>
+            <p>
+              Upload your vessel's technical documents and get AI-powered maintenance advice specific to your Swan.
+              Ask questions, send photos, and get expert guidance from an engineer who knows your boat.
+            </p>
+            <p className="feature-card-note">
+              Questions and fixes are anonymously shared across the fleet — helping every Swan owner benefit
+              from collective knowledge.
+            </p>
+            <Link to="/maintenance-logs" className="feature-link">Open <em><strong>SMART</strong></em> Log</Link>
+          </div>
           <div className="feature-card">
             <h3>Live Map</h3>
             <p>See where fellow Swan owners are sailing. Share your position and connect in port.</p>
@@ -108,6 +121,18 @@ export default function Landing() {
             <p>Find experienced Swan skippers and gardiennes. Connect with the people who know these boats.</p>
             <Link to="/contacts" className="feature-link">Find Professionals</Link>
           </div>
+        </div>
+      </section>
+
+      <section className="data-notice-section">
+        <div className="data-notice">
+          <h4>About your data on <em><strong>SMART</strong></em> Log</h4>
+          <p>
+            When you use the <em><strong>SMART</strong></em> Log, your questions and Claude's answers are stored anonymously
+            to build collective knowledge for the Swan community. No personal information is attached.
+            Technical documents you upload are stored privately and only used to answer your vessel's questions.
+            The <em><strong>SMART</strong></em> Log is for marine and vessel-related questions only.
+          </p>
         </div>
       </section>
     </div>

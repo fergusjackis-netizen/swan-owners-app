@@ -194,3 +194,48 @@
   .features-grid { grid-template-columns: repeat(4, 1fr); }
   .hero-section { min-height: 90vh; }
 }
+
+.feature-card-highlight {
+  border: 1px solid #c9a84c44;
+  background: linear-gradient(135deg, rgba(201,168,76,0.08) 0%, rgba(13,21,38,0.95) 100%);
+  position: relative;
+}
+.feature-card-badge {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: #c9a84c;
+  color: #0a0f1e;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  padding: 0.2rem 0.5rem;
+}
+.feature-card-note {
+  font-size: 0.8rem;
+  color: #6b8cae;
+  margin-top: 0.5rem;
+  font-style: italic;
+}
+.data-notice-section {
+  padding: 2rem 1.5rem 3rem;
+  max-width: 800px;
+  margin: 0 auto;
+}
+.data-notice {
+  border: 1px solid #1e2d4a;
+  padding: 1.5rem;
+  background: rgba(13,21,38,0.6);
+}
+.data-notice h4 {
+  color: #c9a84c;
+  font-size: 0.85rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  margin-bottom: 0.75rem;
+}
+.data-notice p {
+  color: #6b8cae;
+  font-size: 0.85rem;
+  line-height: 1.7;
+}
