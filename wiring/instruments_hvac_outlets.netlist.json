@@ -1,0 +1,1694 @@
+{
+  "_meta": {
+    "subsystem": "instruments_hvac_outlets",
+    "source": "sheets 450 (24V outlets) + =07 700/710/720/730/740/750 (instruments) + =08 810/850/880/881 (ventilation & diesel air heaters) + =05 590/591 (monitoring/metering)",
+    "voltage": 24,
+    "note": "Combined batch. (1) 24V OUTLETS sheet 450 (PDF p53): one 15A fuse -F07 feeds three outlets (engine panel, nav station/coaming, USB at nav area shared with fridge sheet 570). (2) INSTRUMENTS =07 (PDF p88-93): two 25A feeds off MSB - -F16 ELECTRONICS via 24/24V 20A converter -U70, and -F15 AUTOPILOT direct - both onto the MSB_INSTR distribution bus; sub-fuses feed sailing instruments (B&G H5000/NMEA2000 via 24/12V conv -U720), navigation systems (B&G HALO24 radar, Zeus MFD x3, NEP2, forward-looking sonar FLS), communications (VHF/AIS via 24/12V conv -U740) and entertainment (Fusion via 24/12V conv -U750, plus instrument-light relay -K70). Foghorn (sheet 710) is on a separate FX04 feed. (3) VENTILATION/HEATERS =08: galley fan -MGF (via relay -K80, fuse -FX11), engine-room vent fans -M_ER1/-M_ER2 (-FX12), turbo fans -MT01..-MT05 (sheet 850, option 6080002), and TWO Webasto diesel air heaters - Air Top EVO 40 PORT (-HEATER_PT, fuse -FX06 15A + fuel pump -MFP_PT/-FX07 ctrl) and Air Top 2000 STC STBD (-HEATER_SB, fuse -FX08 15A + fuel pump -MFP_SB/-FX09 ctrl), both option 5080064, fed from the F90_POS direct bus. (4) MONITORING =05 (sheets 590/591, PDF p80-81): Blue Sea VSM 422 vessel system monitor + battery-volt check switch -S07, water/fuel metering fuse -FX02 5A and tank-monitor 24/12V converter -U1; tank-level senders themselves (fuel/water/blackwater Wema) belong to the tanks subsystem and are only referenced here. NOTE: sheets 860-865 'AIR CONDITION UNIT WEBASTO' are 230V AC (relays UC230V, L/N/PE) - they are NOT part of this 24V subsystem and were intentionally excluded (belong to AC 230V batch)."
+  },
+  "components": [
+    {
+      "id": "OUT24_F07",
+      "type": "fuse",
+      "name": "24V outlets fuse (-F07 15A, sheet 450)",
+      "location": "+MSB",
+      "rating_A": 15,
+      "keywords": [
+        "24v",
+        "outlet",
+        "socket",
+        "fuse",
+        "f07"
+      ]
+    },
+    {
+      "id": "OUT24_JB",
+      "type": "junction_box",
+      "name": "24V outlets junction box (+JB450)",
+      "location": "+JB450",
+      "keywords": [
+        "24v",
+        "outlet",
+        "junction"
+      ]
+    },
+    {
+      "id": "OUT24_PENG",
+      "type": "outlet",
+      "name": "24V outlet at engine panel (-X450, OUTLET)",
+      "location": "+PENG",
+      "keywords": [
+        "24v",
+        "outlet",
+        "socket",
+        "cigarette",
+        "engine",
+        "panel"
+      ]
+    },
+    {
+      "id": "OUT24_NAVST",
+      "type": "outlet",
+      "name": "24V outlet nav station / on coaming (-X451)",
+      "location": "+NAV_ST",
+      "keywords": [
+        "24v",
+        "outlet",
+        "socket",
+        "cigarette",
+        "nav",
+        "station",
+        "coaming"
+      ]
+    },
+    {
+      "id": "OUT24_USB",
+      "type": "outlet",
+      "name": "USB outlet (-X01, option 2100141/6010401, shared feed w/ fridge sheet 570)",
+      "location": "+NAV_ST",
+      "keywords": [
+        "24v",
+        "usb",
+        "outlet",
+        "socket",
+        "charger"
+      ]
+    },
+    {
+      "id": "NAV_F16",
+      "type": "fuse",
+      "name": "Instruments electronics feed fuse (-F16 25A, ELECTRONICS)",
+      "location": "+MSB",
+      "rating_A": 25,
+      "keywords": [
+        "instrument",
+        "electronics",
+        "fuse",
+        "f16",
+        "navigation"
+      ]
+    },
+    {
+      "id": "NAV_F15",
+      "type": "fuse",
+      "name": "Autopilot feed fuse (-F15 25A, AUTOPILOT)",
+      "location": "+MSB",
+      "rating_A": 25,
+      "keywords": [
+        "autopilot",
+        "fuse",
+        "f15"
+      ]
+    },
+    {
+      "id": "NAV_U70",
+      "type": "charger",
+      "name": "Electronics DC/DC converter (-U70 24/24V 20A, ELECTRONICS)",
+      "location": "+LAZARETTE",
+      "rating_A": 20,
+      "part": "7060456",
+      "keywords": [
+        "instrument",
+        "electronics",
+        "converter",
+        "dcdc",
+        "u70",
+        "power",
+        "supply"
+      ]
+    },
+    {
+      "id": "NAV_INSTR_BUS",
+      "type": "busbar",
+      "name": "Instrument supply distribution bus (MSB_INSTR+, sheets 700-750)",
+      "location": "+MSB",
+      "polarity": "+",
+      "keywords": [
+        "instrument",
+        "bus",
+        "supply",
+        "power",
+        "distribution"
+      ]
+    },
+    {
+      "id": "NAV_AUTOPILOT",
+      "type": "consumer",
+      "name": "Autopilot (fed from -F15, terminals -X7N, +LAZARETTE)",
+      "location": "+LAZARETTE",
+      "keywords": [
+        "autopilot",
+        "pilot",
+        "steering"
+      ]
+    },
+    {
+      "id": "NAV_F72",
+      "type": "fuse",
+      "name": "Sailing-instrument feed fuse (-F72, NAV INST, sheet 720)",
+      "location": "+MSB",
+      "keywords": [
+        "instrument",
+        "sailing",
+        "fuse",
+        "f72",
+        "nav"
+      ]
+    },
+    {
+      "id": "NAV_FX70",
+      "type": "fuse",
+      "name": "B&G NMEA2000 fuse (-FX70 3A)",
+      "location": "+MSB",
+      "rating_A": 3,
+      "keywords": [
+        "nmea2000",
+        "nmea",
+        "instrument",
+        "fuse",
+        "fx70",
+        "b&g"
+      ]
+    },
+    {
+      "id": "NAV_FX71",
+      "type": "fuse",
+      "name": "B&G H5000 fuse (-FX71 1A)",
+      "location": "+MSB",
+      "rating_A": 1,
+      "keywords": [
+        "h5000",
+        "instrument",
+        "wind",
+        "depth",
+        "speed",
+        "fuse",
+        "fx71",
+        "b&g"
+      ]
+    },
+    {
+      "id": "NAV_U720",
+      "type": "charger",
+      "name": "Nav instrument DC/DC converter (-U720 24/12V 6A, NAV INST NMEA2000/H5000)",
+      "location": "+INSTR_LOCKER",
+      "rating_A": 6,
+      "keywords": [
+        "instrument",
+        "converter",
+        "dcdc",
+        "u720",
+        "nmea2000",
+        "h5000",
+        "12v"
+      ]
+    },
+    {
+      "id": "NAV_NMEA2000",
+      "type": "controller",
+      "name": "B&G NMEA2000 backbone (sheet 720)",
+      "location": "+INSTR_LOCKER",
+      "keywords": [
+        "nmea2000",
+        "nmea",
+        "can",
+        "instrument",
+        "bus",
+        "b&g"
+      ]
+    },
+    {
+      "id": "NAV_H5000",
+      "type": "controller",
+      "name": "B&G H5000 instrument processor (wind/depth/speed)",
+      "location": "+INSTR_LOCKER",
+      "keywords": [
+        "h5000",
+        "instrument",
+        "wind",
+        "depth",
+        "speed",
+        "processor",
+        "b&g"
+      ]
+    },
+    {
+      "id": "NAV_F29",
+      "type": "fuse",
+      "name": "Navigation-systems feed fuse (-F29 15A, NAV INST, sheet 730)",
+      "location": "+MSB",
+      "rating_A": 15,
+      "keywords": [
+        "navigation",
+        "instrument",
+        "fuse",
+        "f29"
+      ]
+    },
+    {
+      "id": "NAV_F30",
+      "type": "fuse",
+      "name": "Forward-looking sonar feed fuse (-F30 10A, NAV FLS)",
+      "location": "+MSB",
+      "rating_A": 10,
+      "keywords": [
+        "fls",
+        "sonar",
+        "forward",
+        "looking",
+        "fuse",
+        "f30"
+      ]
+    },
+    {
+      "id": "NAV_FX72",
+      "type": "fuse",
+      "name": "B&G NEP2 fuse (-FX72 1A)",
+      "location": "+MSB",
+      "rating_A": 1,
+      "keywords": [
+        "nep2",
+        "network",
+        "instrument",
+        "fuse",
+        "fx72",
+        "b&g"
+      ]
+    },
+    {
+      "id": "NAV_FX73",
+      "type": "fuse",
+      "name": "B&G HALO24 radar fuse (-FX73 5A)",
+      "location": "+MSB",
+      "rating_A": 5,
+      "keywords": [
+        "halo24",
+        "radar",
+        "fuse",
+        "fx73",
+        "b&g"
+      ]
+    },
+    {
+      "id": "NAV_FX74",
+      "type": "fuse",
+      "name": "B&G Zeus MFD (nav station) fuse (-FX74 2A)",
+      "location": "+MSB",
+      "rating_A": 2,
+      "keywords": [
+        "zeus",
+        "mfd",
+        "chartplotter",
+        "plotter",
+        "fuse",
+        "fx74",
+        "b&g"
+      ]
+    },
+    {
+      "id": "NAV_FX75",
+      "type": "fuse",
+      "name": "B&G Zeus MFD (cockpit/aft) fuse (-FX75 5A)",
+      "location": "+MSB",
+      "rating_A": 5,
+      "keywords": [
+        "zeus",
+        "mfd",
+        "chartplotter",
+        "plotter",
+        "fuse",
+        "fx75",
+        "b&g"
+      ]
+    },
+    {
+      "id": "NAV_FX76",
+      "type": "fuse",
+      "name": "B&G FLS forward-looking sonar fuse (-FX76 2A)",
+      "location": "+MSB",
+      "rating_A": 2,
+      "keywords": [
+        "fls",
+        "sonar",
+        "forward",
+        "looking",
+        "fuse",
+        "fx76",
+        "b&g"
+      ]
+    },
+    {
+      "id": "NAV_NEP2",
+      "type": "controller",
+      "name": "B&G NEP2 network expansion port (at mast)",
+      "location": "+MAST",
+      "keywords": [
+        "nep2",
+        "network",
+        "instrument",
+        "b&g"
+      ]
+    },
+    {
+      "id": "NAV_HALO24",
+      "type": "consumer",
+      "name": "B&G HALO24 radar (nav station)",
+      "location": "+NAV_ST",
+      "keywords": [
+        "halo24",
+        "radar",
+        "b&g"
+      ]
+    },
+    {
+      "id": "NAV_MFD",
+      "type": "consumer",
+      "name": "B&G Zeus chartplotter/MFD - nav station (ZEUS_NAV)",
+      "location": "+NAV_ST",
+      "keywords": [
+        "zeus",
+        "mfd",
+        "chartplotter",
+        "plotter",
+        "navigation",
+        "b&g"
+      ]
+    },
+    {
+      "id": "NAV_MFD_SB",
+      "type": "consumer",
+      "name": "B&G Zeus chartplotter/MFD - pedestal stbd (ZEUS_SB)",
+      "location": "+PED_SB",
+      "keywords": [
+        "zeus",
+        "mfd",
+        "chartplotter",
+        "plotter",
+        "cockpit",
+        "b&g"
+      ]
+    },
+    {
+      "id": "NAV_MFD_PT",
+      "type": "consumer",
+      "name": "B&G Zeus chartplotter/MFD - pedestal port (ZEUS_PT)",
+      "location": "+PED_PT",
+      "keywords": [
+        "zeus",
+        "mfd",
+        "chartplotter",
+        "plotter",
+        "cockpit",
+        "b&g"
+      ]
+    },
+    {
+      "id": "NAV_FLS",
+      "type": "consumer",
+      "name": "B&G forward-looking sonar (FLS, saloon)",
+      "location": "+SALOON",
+      "keywords": [
+        "fls",
+        "sonar",
+        "forward",
+        "looking",
+        "depth",
+        "b&g"
+      ]
+    },
+    {
+      "id": "NAV_F31",
+      "type": "fuse",
+      "name": "Communications feed fuse (-F31 10A, VHF/AIS, sheet 740)",
+      "location": "+MSB",
+      "rating_A": 10,
+      "keywords": [
+        "vhf",
+        "ais",
+        "radio",
+        "communication",
+        "fuse",
+        "f31"
+      ]
+    },
+    {
+      "id": "NAV_FX78",
+      "type": "fuse",
+      "name": "B&G AIS fuse (-FX78 5A)",
+      "location": "+MSB",
+      "rating_A": 5,
+      "keywords": [
+        "ais",
+        "fuse",
+        "fx78",
+        "b&g"
+      ]
+    },
+    {
+      "id": "NAV_FX710",
+      "type": "fuse",
+      "name": "B&G VHF fuse (-FX710 5A)",
+      "location": "+MSB",
+      "rating_A": 5,
+      "keywords": [
+        "vhf",
+        "radio",
+        "fuse",
+        "fx710",
+        "b&g"
+      ]
+    },
+    {
+      "id": "NAV_FX712",
+      "type": "fuse",
+      "name": "VHF antenna splitter (DELTA ANT) fuse (-FX712 2A)",
+      "location": "+MSB",
+      "rating_A": 2,
+      "keywords": [
+        "vhf",
+        "antenna",
+        "delta",
+        "splitter",
+        "fuse",
+        "fx712"
+      ]
+    },
+    {
+      "id": "NAV_FX711",
+      "type": "fuse",
+      "name": "VHF charger fuse (-FX711 1A, VHF CHG)",
+      "location": "+MSB",
+      "rating_A": 1,
+      "keywords": [
+        "vhf",
+        "charger",
+        "fuse",
+        "fx711"
+      ]
+    },
+    {
+      "id": "NAV_U740",
+      "type": "charger",
+      "name": "Communications DC/DC converter (-U740 24/12V 6A, VHF)",
+      "location": "+PED_SB",
+      "rating_A": 6,
+      "keywords": [
+        "vhf",
+        "converter",
+        "dcdc",
+        "u740",
+        "12v"
+      ]
+    },
+    {
+      "id": "NAV_AIS",
+      "type": "consumer",
+      "name": "B&G AIS transceiver",
+      "location": "+PED_SB",
+      "keywords": [
+        "ais",
+        "transceiver",
+        "b&g"
+      ]
+    },
+    {
+      "id": "NAV_VHF",
+      "type": "consumer",
+      "name": "B&G VHF radio",
+      "location": "+PED_SB",
+      "keywords": [
+        "vhf",
+        "radio",
+        "b&g"
+      ]
+    },
+    {
+      "id": "NAV_VHF_DELTA",
+      "type": "consumer",
+      "name": "VHF Delta antenna splitter",
+      "location": "+PED_SB",
+      "keywords": [
+        "vhf",
+        "antenna",
+        "delta",
+        "splitter"
+      ]
+    },
+    {
+      "id": "NAV_F32",
+      "type": "fuse",
+      "name": "Entertainment feed fuse (-F32 10A, ENTERTAINMENT, sheet 750)",
+      "location": "+MSB",
+      "rating_A": 10,
+      "keywords": [
+        "entertainment",
+        "fusion",
+        "stereo",
+        "fuse",
+        "f32"
+      ]
+    },
+    {
+      "id": "NAV_FX713",
+      "type": "fuse",
+      "name": "Instrument-light relay in-line fuse (-FX713 1A)",
+      "location": "+MSB",
+      "rating_A": 1,
+      "keywords": [
+        "instrument",
+        "light",
+        "relay",
+        "fuse",
+        "fx713"
+      ]
+    },
+    {
+      "id": "NAV_K70",
+      "type": "relay",
+      "name": "Instrument-light control relay (-K70 24V 20A)",
+      "location": "+MSB",
+      "rating_A": 20,
+      "keywords": [
+        "instrument",
+        "light",
+        "relay",
+        "k70",
+        "panel"
+      ]
+    },
+    {
+      "id": "NAV_U750",
+      "type": "charger",
+      "name": "Entertainment DC/DC converter (-U750 24/12V 12A, FUSION)",
+      "location": "+NAV_ST",
+      "rating_A": 12,
+      "keywords": [
+        "fusion",
+        "entertainment",
+        "converter",
+        "dcdc",
+        "u750",
+        "12v"
+      ]
+    },
+    {
+      "id": "NAV_FUSION",
+      "type": "consumer",
+      "name": "Fusion entertainment / stereo unit",
+      "location": "+NAV_ST",
+      "part": "7050805",
+      "keywords": [
+        "fusion",
+        "entertainment",
+        "stereo",
+        "audio",
+        "radio"
+      ]
+    },
+    {
+      "id": "FOG_FX04",
+      "type": "fuse",
+      "name": "Foghorn feed fuse (-FX04, sheet 710, option 7100029)",
+      "location": "+MSB",
+      "keywords": [
+        "foghorn",
+        "horn",
+        "safety",
+        "fuse",
+        "fx04"
+      ]
+    },
+    {
+      "id": "FOG_GEN",
+      "type": "consumer",
+      "name": "Marco foghorn generator (-G_FOG, EW2 24V, at mast)",
+      "location": "+MAST",
+      "keywords": [
+        "foghorn",
+        "horn",
+        "marco",
+        "safety",
+        "signal"
+      ]
+    },
+    {
+      "id": "FOG_S09",
+      "type": "switch",
+      "name": "Foghorn auto switch (-S09, engine panel)",
+      "location": "+PENG",
+      "keywords": [
+        "foghorn",
+        "horn",
+        "switch",
+        "auto",
+        "s09"
+      ]
+    },
+    {
+      "id": "FOG_S10",
+      "type": "switch",
+      "name": "Foghorn manual switch (-S10, engine panel)",
+      "location": "+PENG",
+      "keywords": [
+        "foghorn",
+        "horn",
+        "switch",
+        "manual",
+        "s10"
+      ]
+    },
+    {
+      "id": "VENT_FX11",
+      "type": "fuse",
+      "name": "Galley/bathroom vent fuse (-FX11 5A, sheet 810)",
+      "location": "+MSB",
+      "rating_A": 5,
+      "keywords": [
+        "fan",
+        "ventilation",
+        "galley",
+        "bathroom",
+        "fuse",
+        "fx11"
+      ]
+    },
+    {
+      "id": "VENT_K80",
+      "type": "relay",
+      "name": "Galley fan relay (-K80 C10-A10X24D)",
+      "location": "+MSB",
+      "part": "C10-A10X24D",
+      "keywords": [
+        "fan",
+        "ventilation",
+        "galley",
+        "relay",
+        "k80"
+      ]
+    },
+    {
+      "id": "VENT_SGF",
+      "type": "switch",
+      "name": "Galley fan thermostat (-SGF C10A2Y, set 35C, galley)",
+      "location": "+GALLEY",
+      "part": "C10A2Y",
+      "keywords": [
+        "fan",
+        "ventilation",
+        "galley",
+        "thermostat",
+        "switch",
+        "sgf"
+      ]
+    },
+    {
+      "id": "VENT_MGF",
+      "type": "motor",
+      "name": "Galley extractor fan (-MGF)",
+      "location": "+GALLEY",
+      "keywords": [
+        "fan",
+        "ventilation",
+        "galley",
+        "blower",
+        "extractor",
+        "mgf"
+      ]
+    },
+    {
+      "id": "VENT_FX12",
+      "type": "fuse",
+      "name": "Engine-room vent fuse (-FX12 5A, sheet 810)",
+      "location": "+MSB",
+      "rating_A": 5,
+      "keywords": [
+        "fan",
+        "ventilation",
+        "engine",
+        "room",
+        "fuse",
+        "fx12"
+      ]
+    },
+    {
+      "id": "VENT_MER1",
+      "type": "motor",
+      "name": "Engine room ventilation fan 1 (-M_ER1)",
+      "location": "+ENG_ROOM",
+      "keywords": [
+        "fan",
+        "ventilation",
+        "engine",
+        "room",
+        "blower",
+        "mer1"
+      ]
+    },
+    {
+      "id": "VENT_MER2",
+      "type": "motor",
+      "name": "Engine room ventilation fan 2 (-M_ER2)",
+      "location": "+ENG_ROOM",
+      "keywords": [
+        "fan",
+        "ventilation",
+        "engine",
+        "room",
+        "blower",
+        "mer2"
+      ]
+    },
+    {
+      "id": "VENT_MT01",
+      "type": "motor",
+      "name": "Turbo fan 1 (-MT01, sheet 850 option 6080002)",
+      "location": "+CABIN",
+      "keywords": [
+        "fan",
+        "ventilation",
+        "turbo",
+        "blower",
+        "mt01"
+      ]
+    },
+    {
+      "id": "VENT_MT02",
+      "type": "motor",
+      "name": "Turbo fan 2 (-MT02)",
+      "location": "+CABIN",
+      "keywords": [
+        "fan",
+        "ventilation",
+        "turbo",
+        "blower",
+        "mt02"
+      ]
+    },
+    {
+      "id": "VENT_MT03",
+      "type": "motor",
+      "name": "Turbo fan 3 (-MT03)",
+      "location": "+CABIN",
+      "keywords": [
+        "fan",
+        "ventilation",
+        "turbo",
+        "blower",
+        "mt03"
+      ]
+    },
+    {
+      "id": "VENT_MT04",
+      "type": "motor",
+      "name": "Turbo fan 4 (-MT04)",
+      "location": "+CABIN",
+      "keywords": [
+        "fan",
+        "ventilation",
+        "turbo",
+        "blower",
+        "mt04"
+      ]
+    },
+    {
+      "id": "VENT_MT05",
+      "type": "motor",
+      "name": "Turbo fan 5 (-MT05, added rev A)",
+      "location": "+CABIN",
+      "keywords": [
+        "fan",
+        "ventilation",
+        "turbo",
+        "blower",
+        "mt05"
+      ]
+    },
+    {
+      "id": "HEATER_PT_F",
+      "type": "fuse",
+      "name": "Diesel heater PORT main fuse (-FX06 15A, HEATER PORT, sheet 880)",
+      "location": "+MSB",
+      "rating_A": 15,
+      "keywords": [
+        "heater",
+        "heating",
+        "webasto",
+        "diesel",
+        "port",
+        "fuse",
+        "fx06"
+      ]
+    },
+    {
+      "id": "HEATER_PT_CTRL_F",
+      "type": "fuse",
+      "name": "Diesel heater PORT control fuse (-FX07 1A, HEATER PT CTRL)",
+      "location": "+MSB",
+      "rating_A": 1,
+      "keywords": [
+        "heater",
+        "heating",
+        "webasto",
+        "diesel",
+        "port",
+        "control",
+        "fuse",
+        "fx07"
+      ]
+    },
+    {
+      "id": "HEATER_PT",
+      "type": "appliance",
+      "name": "Webasto Air Top EVO 40 diesel air heater PORT (-HEATER_PT, opt 5080064)",
+      "location": "+LAZARETTE",
+      "part": "Webasto Air Top EVO 40 / 5080064",
+      "keywords": [
+        "heater",
+        "heating",
+        "webasto",
+        "diesel",
+        "air",
+        "port",
+        "evo40"
+      ]
+    },
+    {
+      "id": "HEATER_PT_PANEL",
+      "type": "controller",
+      "name": "Diesel heater PORT control panel + temp sensor (saloon)",
+      "location": "+SALOON",
+      "keywords": [
+        "heater",
+        "heating",
+        "webasto",
+        "control",
+        "panel",
+        "thermostat",
+        "port"
+      ]
+    },
+    {
+      "id": "HEATER_PT_FUELPUMP",
+      "type": "motor",
+      "name": "Diesel heater PORT fuel pump (-MFP_PT, engine room)",
+      "location": "+ENG_ROOM",
+      "keywords": [
+        "heater",
+        "heating",
+        "webasto",
+        "fuel",
+        "pump",
+        "port",
+        "mfp"
+      ]
+    },
+    {
+      "id": "HEATER_SB_F",
+      "type": "fuse",
+      "name": "Diesel heater STBD main fuse (-FX08 15A, HEATER STBD, sheet 881)",
+      "location": "+MSB",
+      "rating_A": 15,
+      "keywords": [
+        "heater",
+        "heating",
+        "webasto",
+        "diesel",
+        "starboard",
+        "stbd",
+        "fuse",
+        "fx08"
+      ]
+    },
+    {
+      "id": "HEATER_SB_CTRL_F",
+      "type": "fuse",
+      "name": "Diesel heater STBD control fuse (-FX09 1A, HEATER SB CTRL)",
+      "location": "+MSB",
+      "rating_A": 1,
+      "keywords": [
+        "heater",
+        "heating",
+        "webasto",
+        "diesel",
+        "starboard",
+        "stbd",
+        "control",
+        "fuse",
+        "fx09"
+      ]
+    },
+    {
+      "id": "HEATER_SB",
+      "type": "appliance",
+      "name": "Webasto Air Top 2000 STC diesel air heater STBD (-HEATER_SB, opt 5080064)",
+      "location": "+LAZARETTE",
+      "part": "Webasto Air Top 2000 STC / 5080064",
+      "keywords": [
+        "heater",
+        "heating",
+        "webasto",
+        "diesel",
+        "air",
+        "starboard",
+        "stbd",
+        "airtop2000"
+      ]
+    },
+    {
+      "id": "HEATER_SB_PANEL",
+      "type": "controller",
+      "name": "Diesel heater STBD control panel + temp sensor (saloon)",
+      "location": "+SALOON",
+      "keywords": [
+        "heater",
+        "heating",
+        "webasto",
+        "control",
+        "panel",
+        "thermostat",
+        "stbd"
+      ]
+    },
+    {
+      "id": "HEATER_SB_FUELPUMP",
+      "type": "motor",
+      "name": "Diesel heater STBD fuel pump (-MFP_SB, engine room)",
+      "location": "+ENG_ROOM",
+      "keywords": [
+        "heater",
+        "heating",
+        "webasto",
+        "fuel",
+        "pump",
+        "starboard",
+        "stbd",
+        "mfp"
+      ]
+    },
+    {
+      "id": "MON_FX02",
+      "type": "fuse",
+      "name": "Water/fuel metering & monitoring fuse (-FX02 5A, sheet 591)",
+      "location": "+MSB",
+      "rating_A": 5,
+      "keywords": [
+        "monitoring",
+        "metering",
+        "tank",
+        "fuse",
+        "fx02"
+      ]
+    },
+    {
+      "id": "MON_U1",
+      "type": "charger",
+      "name": "Tank monitor DC/DC converter (-U1 24/12V 6A, CONVERTER)",
+      "location": "+MSB",
+      "rating_A": 6,
+      "keywords": [
+        "monitoring",
+        "tank",
+        "converter",
+        "dcdc",
+        "u1",
+        "12v"
+      ]
+    },
+    {
+      "id": "MON_VSM",
+      "type": "controller",
+      "name": "Blue Sea VSM 422 vessel system monitor (AC/DC metering, tank/battery alarms)",
+      "location": "+MSB",
+      "part": "Blue Sea VSM 422",
+      "keywords": [
+        "monitoring",
+        "alarm",
+        "vsm",
+        "metering",
+        "tank",
+        "battery",
+        "vessel",
+        "system",
+        "bluesea"
+      ]
+    },
+    {
+      "id": "MON_S07",
+      "type": "switch",
+      "name": "Start-battery volt-check switch (-S07, BlueSea 7495)",
+      "location": "+MSB",
+      "part": "BlueSea 7495",
+      "keywords": [
+        "monitoring",
+        "switch",
+        "battery",
+        "voltage",
+        "check",
+        "s07"
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "from": "MSB",
+      "to": "OUT24_F07",
+      "verified": true,
+      "note": "MSB+ to -F07 15A, sheet 450"
+    },
+    {
+      "from": "OUT24_F07",
+      "to": "OUT24_JB",
+      "verified": true,
+      "note": "via -W450 to +JB450"
+    },
+    {
+      "from": "OUT24_JB",
+      "to": "OUT24_PENG",
+      "verified": true,
+      "note": "-X450 engine panel outlet"
+    },
+    {
+      "from": "OUT24_JB",
+      "to": "OUT24_NAVST",
+      "verified": true,
+      "note": "-X451 nav station / coaming outlet"
+    },
+    {
+      "from": "OUT24_JB",
+      "to": "OUT24_USB",
+      "verified": false,
+      "note": "USB outlet -X01; feed shared with fridge sheet 570 (/570.8D), exact tap point inferred"
+    },
+    {
+      "from": "OUT24_PENG",
+      "to": "XNEG",
+      "verified": true
+    },
+    {
+      "from": "OUT24_NAVST",
+      "to": "XNEG",
+      "verified": true
+    },
+    {
+      "from": "OUT24_USB",
+      "to": "XNEG",
+      "verified": false,
+      "note": "negative inferred"
+    },
+    {
+      "from": "MSB",
+      "to": "NAV_F16",
+      "verified": true,
+      "note": "MSB+ to -F16 25A ELECTRONICS, sheet 700"
+    },
+    {
+      "from": "MSB",
+      "to": "NAV_F15",
+      "verified": true,
+      "note": "MSB+ to -F15 25A AUTOPILOT, sheet 700"
+    },
+    {
+      "from": "NAV_F16",
+      "to": "NAV_U70",
+      "verified": true,
+      "note": "-W70 to -U70 IN+, ELECTRONICS DC/DC"
+    },
+    {
+      "from": "NAV_U70",
+      "to": "NAV_INSTR_BUS",
+      "verified": true,
+      "note": "-U70 OUT+ feeds MSB_INSTR+ bus"
+    },
+    {
+      "from": "NAV_U70",
+      "to": "XNEG",
+      "verified": true,
+      "note": "-U70 negatives to XNEG (isolated neg)"
+    },
+    {
+      "from": "NAV_F15",
+      "to": "NAV_AUTOPILOT",
+      "verified": true,
+      "note": "-F15 -> -X7N -> autopilot, +LAZARETTE"
+    },
+    {
+      "from": "NAV_AUTOPILOT",
+      "to": "XNEG",
+      "verified": true
+    },
+    {
+      "from": "NAV_INSTR_BUS",
+      "to": "NAV_F72",
+      "verified": true,
+      "note": "F72+ feed, sheet 720"
+    },
+    {
+      "from": "NAV_F72",
+      "to": "NAV_FX70",
+      "verified": true
+    },
+    {
+      "from": "NAV_F72",
+      "to": "NAV_FX71",
+      "verified": true
+    },
+    {
+      "from": "NAV_FX70",
+      "to": "NAV_NMEA2000",
+      "verified": true,
+      "note": "-W72.A to NMEA2000 via -U720",
+      "signal": true
+    },
+    {
+      "from": "NAV_FX71",
+      "to": "NAV_H5000",
+      "verified": true,
+      "note": "-W72.B to B&G H5000"
+    },
+    {
+      "from": "NAV_F72",
+      "to": "NAV_U720",
+      "verified": true,
+      "note": "-W720 to -U720 IN+, NAV INST converter"
+    },
+    {
+      "from": "NAV_U720",
+      "to": "NAV_NMEA2000",
+      "verified": true,
+      "note": "12V out feeds NMEA2000 / H5000 net",
+      "signal": true
+    },
+    {
+      "from": "NAV_U720",
+      "to": "XNEG",
+      "verified": true
+    },
+    {
+      "from": "NAV_NMEA2000",
+      "to": "XNEG",
+      "verified": true
+    },
+    {
+      "from": "NAV_H5000",
+      "to": "XNEG",
+      "verified": true
+    },
+    {
+      "from": "NAV_INSTR_BUS",
+      "to": "NAV_F29",
+      "verified": true,
+      "note": "sheet 730 NAV INST"
+    },
+    {
+      "from": "NAV_INSTR_BUS",
+      "to": "NAV_F30",
+      "verified": true,
+      "note": "sheet 730 NAV FLS"
+    },
+    {
+      "from": "NAV_F29",
+      "to": "NAV_FX72",
+      "verified": true
+    },
+    {
+      "from": "NAV_F29",
+      "to": "NAV_FX73",
+      "verified": true
+    },
+    {
+      "from": "NAV_F29",
+      "to": "NAV_FX74",
+      "verified": true
+    },
+    {
+      "from": "NAV_F29",
+      "to": "NAV_FX75",
+      "verified": false,
+      "note": "FX74-FX77 row on -X7N under F29/F30; grouping inferred from sheet 730 layout"
+    },
+    {
+      "from": "NAV_F30",
+      "to": "NAV_FX76",
+      "verified": false,
+      "note": "FLS branch under F30; inferred"
+    },
+    {
+      "from": "NAV_FX72",
+      "to": "NAV_NEP2",
+      "verified": true,
+      "note": "-W730.A to NEP2 at mast"
+    },
+    {
+      "from": "NAV_FX73",
+      "to": "NAV_HALO24",
+      "verified": true,
+      "note": "HALO24 radar"
+    },
+    {
+      "from": "NAV_FX74",
+      "to": "NAV_MFD",
+      "verified": true,
+      "note": "Zeus nav station"
+    },
+    {
+      "from": "NAV_FX75",
+      "to": "NAV_MFD_SB",
+      "verified": false,
+      "note": "Zeus SB pedestal; FX assignment inferred"
+    },
+    {
+      "from": "NAV_FX75",
+      "to": "NAV_MFD_PT",
+      "verified": false,
+      "note": "Zeus PT pedestal; shares 730 nav feed, fuse inferred"
+    },
+    {
+      "from": "NAV_FX76",
+      "to": "NAV_FLS",
+      "verified": true,
+      "note": "B&G FLS forward-looking sonar, saloon"
+    },
+    {
+      "from": "NAV_NEP2",
+      "to": "XNEG",
+      "verified": true
+    },
+    {
+      "from": "NAV_HALO24",
+      "to": "XNEG",
+      "verified": true
+    },
+    {
+      "from": "NAV_MFD",
+      "to": "XNEG",
+      "verified": true
+    },
+    {
+      "from": "NAV_MFD_SB",
+      "to": "XNEG",
+      "verified": true
+    },
+    {
+      "from": "NAV_MFD_PT",
+      "to": "XNEG",
+      "verified": true
+    },
+    {
+      "from": "NAV_FLS",
+      "to": "XNEG",
+      "verified": true
+    },
+    {
+      "from": "NAV_INSTR_BUS",
+      "to": "NAV_F31",
+      "verified": true,
+      "note": "sheet 740 VHF/AIS"
+    },
+    {
+      "from": "NAV_F31",
+      "to": "NAV_FX78",
+      "verified": true
+    },
+    {
+      "from": "NAV_F31",
+      "to": "NAV_FX710",
+      "verified": true
+    },
+    {
+      "from": "NAV_F31",
+      "to": "NAV_FX712",
+      "verified": true
+    },
+    {
+      "from": "NAV_F31",
+      "to": "NAV_FX711",
+      "verified": true
+    },
+    {
+      "from": "NAV_FX78",
+      "to": "NAV_AIS",
+      "verified": true,
+      "note": "-W735 to AIS"
+    },
+    {
+      "from": "NAV_FX710",
+      "to": "NAV_VHF",
+      "verified": true,
+      "note": "-W74.A to VHF"
+    },
+    {
+      "from": "NAV_FX712",
+      "to": "NAV_VHF_DELTA",
+      "verified": true,
+      "note": "-W74.B to VHF Delta antenna splitter"
+    },
+    {
+      "from": "NAV_F31",
+      "to": "NAV_U740",
+      "verified": true,
+      "note": "-W741 to -U740 IN+, VHF converter"
+    },
+    {
+      "from": "NAV_FX711",
+      "to": "NAV_U740",
+      "verified": false,
+      "note": "VHF CHG branch; -U740 12V supplies VHF charger, exact path inferred"
+    },
+    {
+      "from": "NAV_U740",
+      "to": "NAV_VHF",
+      "verified": false,
+      "note": "12V out to VHF, inferred"
+    },
+    {
+      "from": "NAV_U740",
+      "to": "XNEG",
+      "verified": true
+    },
+    {
+      "from": "NAV_AIS",
+      "to": "XNEG",
+      "verified": true
+    },
+    {
+      "from": "NAV_VHF",
+      "to": "XNEG",
+      "verified": true
+    },
+    {
+      "from": "NAV_VHF_DELTA",
+      "to": "XNEG",
+      "verified": true
+    },
+    {
+      "from": "NAV_INSTR_BUS",
+      "to": "NAV_F32",
+      "verified": true,
+      "note": "sheet 750 ENTERTAINMENT"
+    },
+    {
+      "from": "NAV_F32",
+      "to": "NAV_K70",
+      "verified": true,
+      "note": "via -X7N to -K70 relay (30/87)"
+    },
+    {
+      "from": "NAV_K70",
+      "to": "NAV_FX713",
+      "verified": false,
+      "note": "instrument-light in-line fuse FX713 on relay branch; order inferred"
+    },
+    {
+      "from": "NAV_F32",
+      "to": "NAV_U750",
+      "verified": true,
+      "note": "-W750 to -U750 IN+, FUSION converter"
+    },
+    {
+      "from": "NAV_U750",
+      "to": "NAV_FUSION",
+      "verified": true,
+      "note": "-W750.A 12V to Fusion"
+    },
+    {
+      "from": "NAV_U750",
+      "to": "XNEG",
+      "verified": true
+    },
+    {
+      "from": "NAV_FUSION",
+      "to": "XNEG",
+      "verified": true
+    },
+    {
+      "from": "MSB",
+      "to": "FOG_FX04",
+      "verified": true,
+      "note": "FX04 feed, sheet 710 (from /480.8E)"
+    },
+    {
+      "from": "FOG_FX04",
+      "to": "FOG_GEN",
+      "verified": true,
+      "note": "-W710 to Marco foghorn generator at mast"
+    },
+    {
+      "from": "FOG_S09",
+      "to": "FOG_GEN",
+      "verified": false,
+      "note": "S09 auto / S10 manual on engine panel control horn; switching path inferred"
+    },
+    {
+      "from": "FOG_S10",
+      "to": "FOG_GEN",
+      "verified": false,
+      "note": "manual switch control, inferred"
+    },
+    {
+      "from": "FOG_GEN",
+      "to": "XNEG",
+      "verified": false,
+      "note": "negative inferred"
+    },
+    {
+      "from": "MSB",
+      "to": "VENT_FX11",
+      "verified": true,
+      "note": "F56+ feed to -FX11 5A, sheet 810"
+    },
+    {
+      "from": "VENT_FX11",
+      "to": "VENT_K80",
+      "verified": true,
+      "note": "FX11 -> -K80 galley fan relay A1"
+    },
+    {
+      "from": "VENT_SGF",
+      "to": "VENT_K80",
+      "verified": true,
+      "note": "galley thermostat -SGF switches -K80 coil"
+    },
+    {
+      "from": "VENT_K80",
+      "to": "VENT_MGF",
+      "verified": true,
+      "note": "-K80 contacts -> -MGF galley fan"
+    },
+    {
+      "from": "VENT_MGF",
+      "to": "XNEG",
+      "verified": true
+    },
+    {
+      "from": "MSB",
+      "to": "VENT_FX12",
+      "verified": true,
+      "note": "F56+ feed to -FX12 5A, engine room vent, sheet 810"
+    },
+    {
+      "from": "VENT_FX12",
+      "to": "VENT_MER1",
+      "verified": true,
+      "note": "-W840/-W841 to engine room fan 1"
+    },
+    {
+      "from": "VENT_FX12",
+      "to": "VENT_MER2",
+      "verified": true,
+      "note": "-W841 to engine room fan 2"
+    },
+    {
+      "from": "VENT_MER1",
+      "to": "XNEG",
+      "verified": true
+    },
+    {
+      "from": "VENT_MER2",
+      "to": "XNEG",
+      "verified": true
+    },
+    {
+      "from": "MSB",
+      "to": "VENT_MT01",
+      "verified": false,
+      "note": "Turbo fans sheet 850: TURBO_FAN+ bus from MSB (;TURBO_FAN5+/465.3G), individual fuse not shown on this sheet"
+    },
+    {
+      "from": "MSB",
+      "to": "VENT_MT02",
+      "verified": false,
+      "note": "turbo fan feed from MSB bus, fuse off-sheet"
+    },
+    {
+      "from": "MSB",
+      "to": "VENT_MT03",
+      "verified": false,
+      "note": "turbo fan feed from MSB bus, fuse off-sheet"
+    },
+    {
+      "from": "MSB",
+      "to": "VENT_MT04",
+      "verified": false,
+      "note": "turbo fan feed from MSB bus, fuse off-sheet"
+    },
+    {
+      "from": "MSB",
+      "to": "VENT_MT05",
+      "verified": false,
+      "note": "turbo fan feed from MSB bus, fuse off-sheet"
+    },
+    {
+      "from": "VENT_MT01",
+      "to": "XNEG",
+      "verified": false,
+      "note": "TURBO_FAN- bus, inferred to XNEG"
+    },
+    {
+      "from": "VENT_MT02",
+      "to": "XNEG",
+      "verified": false
+    },
+    {
+      "from": "VENT_MT03",
+      "to": "XNEG",
+      "verified": false
+    },
+    {
+      "from": "VENT_MT04",
+      "to": "XNEG",
+      "verified": false
+    },
+    {
+      "from": "VENT_MT05",
+      "to": "XNEG",
+      "verified": false
+    },
+    {
+      "from": "POS_DIRECT",
+      "to": "HEATER_PT_F",
+      "verified": false,
+      "note": "F90_POS direct bus to -FX06 15A, sheet 880; F90_POS treated as POS_DIRECT"
+    },
+    {
+      "from": "POS_DIRECT",
+      "to": "HEATER_PT_CTRL_F",
+      "verified": false,
+      "note": "F90_POS to -FX07 1A control, sheet 880"
+    },
+    {
+      "from": "HEATER_PT_F",
+      "to": "HEATER_PT",
+      "verified": true,
+      "note": "-W880 7x2.5 harness to Webasto Air Top EVO 40 main unit in lazarette"
+    },
+    {
+      "from": "HEATER_PT_CTRL_F",
+      "to": "HEATER_PT_PANEL",
+      "verified": true,
+      "note": "-W882 to control panel + temp sensor in saloon"
+    },
+    {
+      "from": "HEATER_PT_PANEL",
+      "to": "HEATER_PT",
+      "verified": true,
+      "note": "control panel commands heater main unit"
+    },
+    {
+      "from": "HEATER_PT",
+      "to": "HEATER_PT_FUELPUMP",
+      "verified": true,
+      "note": "-W881 to -MFP_PT fuel pump in engine room"
+    },
+    {
+      "from": "HEATER_PT",
+      "to": "XNEG",
+      "verified": true
+    },
+    {
+      "from": "HEATER_PT_PANEL",
+      "to": "XNEG",
+      "verified": false,
+      "note": "negative inferred"
+    },
+    {
+      "from": "POS_DIRECT",
+      "to": "HEATER_SB_F",
+      "verified": false,
+      "note": "F90_POS direct bus to -FX08 15A, sheet 881"
+    },
+    {
+      "from": "POS_DIRECT",
+      "to": "HEATER_SB_CTRL_F",
+      "verified": false,
+      "note": "F90_POS to -FX09 1A control, sheet 881"
+    },
+    {
+      "from": "HEATER_SB_F",
+      "to": "HEATER_SB",
+      "verified": true,
+      "note": "-W884 7x2.5 harness to Webasto Air Top 2000 STC main unit in lazarette"
+    },
+    {
+      "from": "HEATER_SB_CTRL_F",
+      "to": "HEATER_SB_PANEL",
+      "verified": true,
+      "note": "-W886 to control panel + temp sensor in saloon"
+    },
+    {
+      "from": "HEATER_SB_PANEL",
+      "to": "HEATER_SB",
+      "verified": true
+    },
+    {
+      "from": "HEATER_SB",
+      "to": "HEATER_SB_FUELPUMP",
+      "verified": true,
+      "note": "-W885 to -MFP_SB fuel pump in engine room"
+    },
+    {
+      "from": "HEATER_SB",
+      "to": "XNEG",
+      "verified": true
+    },
+    {
+      "from": "HEATER_SB_PANEL",
+      "to": "XNEG",
+      "verified": false,
+      "note": "negative inferred"
+    },
+    {
+      "from": "MSB",
+      "to": "MON_FX02",
+      "verified": true,
+      "note": "MSB+ (F90_POS) to -FX02 5A water/fuel metering, sheet 591"
+    },
+    {
+      "from": "MON_FX02",
+      "to": "MON_U1",
+      "verified": true,
+      "note": "-FX02 to tank-monitor 24/12V converter -U1"
+    },
+    {
+      "from": "MON_U1",
+      "to": "MON_VSM",
+      "verified": false,
+      "note": "U1 12V output supplies tank monitoring / VSM display; exact path inferred"
+    },
+    {
+      "from": "MON_U1",
+      "to": "XNEG",
+      "verified": true
+    },
+    {
+      "from": "MON_VSM",
+      "to": "XNEG",
+      "verified": true,
+      "note": "VSM 422 negatives to XNEG (sheet 590)"
+    },
+    {
+      "from": "MON_S07",
+      "to": "MON_VSM",
+      "verified": false,
+      "note": "-S07 BlueSea 7495 start-battery volt-check feeds VSM; inferred"
+    }
+  ]
+}

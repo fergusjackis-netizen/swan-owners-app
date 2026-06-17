@@ -1,0 +1,1209 @@
+{
+  "_meta": {
+    "subsystem": "core",
+    "note": "DC main distribution + nav/exterior lights + bilge pumps. Snapshot of the first three digitized subsystems; edit per-subsystem .netlist.json files going forward."
+  },
+  "components": [
+    {
+      "id": "BATT",
+      "type": "battery",
+      "name": "Service battery bank (24V)",
+      "location": "+DC_MS",
+      "keywords": [
+        "battery",
+        "bank",
+        "house"
+      ]
+    },
+    {
+      "id": "DCMS_F01",
+      "type": "fuse",
+      "name": "Battery main fuse",
+      "rating_A": 250,
+      "fuse_type": "T (time-delay)",
+      "location": "+DC_MS",
+      "keywords": [
+        "main",
+        "battery"
+      ]
+    },
+    {
+      "id": "DCMS_S01",
+      "type": "switch",
+      "name": "Battery main switch",
+      "rating_A": 500,
+      "part": "BD9521 2-P",
+      "location": "+DC_MS",
+      "keywords": [
+        "main",
+        "isolator",
+        "battery"
+      ]
+    },
+    {
+      "id": "DCMS_K01",
+      "type": "contactor",
+      "name": "Battery-protect contactor (SBP)",
+      "location": "+DC_MS",
+      "keywords": [
+        "contactor",
+        "protect",
+        "sbp"
+      ]
+    },
+    {
+      "id": "POS_BUS",
+      "type": "busbar",
+      "name": "Main 600A positive busbar",
+      "polarity": "positive",
+      "part": "PowerBar 600A",
+      "location": "+DC_MS",
+      "keywords": [
+        "busbar",
+        "powerbar",
+        "positive"
+      ]
+    },
+    {
+      "id": "DCMS_F04",
+      "type": "fuse",
+      "name": "Alternator fuse",
+      "rating_A": 125,
+      "fuse_type": "MEGA/AMG",
+      "location": "+DC_MS",
+      "keywords": [
+        "alternator"
+      ]
+    },
+    {
+      "id": "DCMS_F06",
+      "type": "fuse",
+      "name": "Inverter/charger fuse",
+      "rating_A": 150,
+      "fuse_type": "MEGA/AMG",
+      "location": "+DC_MS",
+      "keywords": [
+        "inverter",
+        "charger"
+      ]
+    },
+    {
+      "id": "DCMS_F05",
+      "type": "fuse",
+      "name": "MSB feed fuse",
+      "rating_A": 100,
+      "fuse_type": "MEGA/AMG",
+      "location": "+DC_MS",
+      "keywords": [
+        "msb",
+        "switchboard",
+        "panel"
+      ]
+    },
+    {
+      "id": "DCMS_F07",
+      "type": "fuse",
+      "name": "Primary winch port fuse",
+      "rating_A": 80,
+      "fuse_type": "AMG",
+      "location": "+DC_MS",
+      "keywords": [
+        "primary",
+        "winch",
+        "port"
+      ]
+    },
+    {
+      "id": "DCMS_F08",
+      "type": "fuse",
+      "name": "Primary winch stbd fuse",
+      "rating_A": 80,
+      "fuse_type": "AMG",
+      "location": "+DC_MS",
+      "keywords": [
+        "primary",
+        "winch",
+        "starboard"
+      ]
+    },
+    {
+      "id": "DCMS_F09",
+      "type": "fuse",
+      "name": "Main winch port fuse",
+      "rating_A": 80,
+      "fuse_type": "AMG",
+      "location": "+DC_MS",
+      "keywords": [
+        "main",
+        "winch",
+        "port"
+      ]
+    },
+    {
+      "id": "DCMS_F10",
+      "type": "fuse",
+      "name": "Main winch stbd fuse",
+      "rating_A": 80,
+      "fuse_type": "AMG",
+      "location": "+DC_MS",
+      "keywords": [
+        "main",
+        "winch",
+        "starboard"
+      ]
+    },
+    {
+      "id": "DCMS_F11",
+      "type": "fuse",
+      "name": "Mooring winch fuse",
+      "rating_A": 80,
+      "fuse_type": "AMG",
+      "location": "+DC_MS",
+      "keywords": [
+        "mooring",
+        "winch"
+      ]
+    },
+    {
+      "id": "DCMS_F12",
+      "type": "fuse",
+      "name": "Jib furler fuse",
+      "rating_A": 80,
+      "fuse_type": "AMG",
+      "location": "+DC_MS",
+      "keywords": [
+        "jib",
+        "furler",
+        "headsail"
+      ]
+    },
+    {
+      "id": "DCMS_F02",
+      "type": "fuse",
+      "name": "24V consumer distribution fuse",
+      "rating_A": 150,
+      "location": "+DC_MS",
+      "keywords": [
+        "consumers",
+        "distribution"
+      ]
+    },
+    {
+      "id": "ALTERNATOR",
+      "type": "charger",
+      "name": "Alternator",
+      "location": "+ENG_ROOM",
+      "keywords": [
+        "alternator",
+        "charging"
+      ]
+    },
+    {
+      "id": "INVERTER_CHARGER",
+      "type": "charger",
+      "name": "Inverter / charger",
+      "location": "+DC_MS",
+      "keywords": [
+        "inverter",
+        "charger",
+        "victron",
+        "shore"
+      ]
+    },
+    {
+      "id": "PRI_WIN_PT",
+      "type": "winch",
+      "name": "Primary winch port",
+      "location": "+COCKPIT_PT",
+      "keywords": [
+        "primary",
+        "winch",
+        "port",
+        "genoa"
+      ]
+    },
+    {
+      "id": "PRI_WIN_SB",
+      "type": "winch",
+      "name": "Primary winch starboard",
+      "location": "+COCKPIT_SB",
+      "keywords": [
+        "primary",
+        "winch",
+        "starboard",
+        "stbd",
+        "genoa"
+      ]
+    },
+    {
+      "id": "MAIN_WIN_PT",
+      "type": "winch",
+      "name": "Main winch port",
+      "location": "+COAMING_PT",
+      "keywords": [
+        "main",
+        "winch",
+        "port",
+        "halyard"
+      ]
+    },
+    {
+      "id": "MAIN_WIN_SB",
+      "type": "winch",
+      "name": "Main winch starboard",
+      "location": "+COAMING_SB",
+      "keywords": [
+        "main",
+        "winch",
+        "starboard",
+        "stbd",
+        "halyard"
+      ]
+    },
+    {
+      "id": "MOORING_WINCH",
+      "type": "winch",
+      "name": "Mooring winch",
+      "location": "+LAZARETTE",
+      "keywords": [
+        "mooring",
+        "winch",
+        "stern"
+      ]
+    },
+    {
+      "id": "JIB_FURLER",
+      "type": "consumer",
+      "name": "Jib furler",
+      "location": "+FOREPEAK",
+      "keywords": [
+        "jib",
+        "furler",
+        "headsail",
+        "roller"
+      ]
+    },
+    {
+      "id": "CONSUMERS_24V",
+      "type": "consumer",
+      "name": "24V consumer distribution (terminal -X01)",
+      "location": "+DC_MS",
+      "keywords": [
+        "consumers",
+        "distribution",
+        "panel"
+      ]
+    },
+    {
+      "id": "MSB",
+      "type": "busbar",
+      "name": "Main switch board (+24V)",
+      "location": "+MSB",
+      "polarity": "positive",
+      "keywords": [
+        "switchboard",
+        "panel",
+        "distribution"
+      ]
+    },
+    {
+      "id": "XNEG",
+      "type": "busbar",
+      "name": "Negative bus",
+      "location": "+MSB",
+      "polarity": "negative",
+      "keywords": [
+        "negative",
+        "ground",
+        "earth"
+      ]
+    },
+    {
+      "id": "F05",
+      "type": "fuse",
+      "name": "Nav lights",
+      "rating_A": 5,
+      "location": "+MSB"
+    },
+    {
+      "id": "F20",
+      "type": "fuse",
+      "name": "Anchor light",
+      "rating_A": 2.5,
+      "location": "+MSB"
+    },
+    {
+      "id": "F19",
+      "type": "fuse",
+      "name": "Windex light",
+      "rating_A": 2.5,
+      "location": "+MSB"
+    },
+    {
+      "id": "FX04",
+      "type": "fuse",
+      "name": "Compass light / fog horn",
+      "rating_A": 5,
+      "location": "+MSB"
+    },
+    {
+      "id": "FX19",
+      "type": "fuse",
+      "name": "Steaming light",
+      "rating_A": 5,
+      "location": "+MSB"
+    },
+    {
+      "id": "S06",
+      "type": "switch",
+      "name": "Compass light switch",
+      "location": "+HARN_AFT"
+    },
+    {
+      "id": "S1",
+      "type": "switch",
+      "name": "Steaming light switch",
+      "location": "+PENG (engine panel)"
+    },
+    {
+      "id": "STERN_LT",
+      "type": "light",
+      "name": "Stern light",
+      "part": "2LT 980 520-501",
+      "location": "+LAZARETTE",
+      "keywords": [
+        "stern",
+        "nav",
+        "navigation",
+        "running",
+        "white"
+      ]
+    },
+    {
+      "id": "PORT_LT",
+      "type": "light",
+      "name": "Side light port",
+      "part": "2LT 980 520-081",
+      "location": "+EXT",
+      "keywords": [
+        "port",
+        "nav",
+        "navigation",
+        "running",
+        "red",
+        "sidelight"
+      ]
+    },
+    {
+      "id": "STBD_LT",
+      "type": "light",
+      "name": "Side light stbd",
+      "part": "2LT 980 520-281",
+      "location": "+EXT",
+      "keywords": [
+        "starboard",
+        "stbd",
+        "nav",
+        "navigation",
+        "running",
+        "green",
+        "sidelight"
+      ]
+    },
+    {
+      "id": "ANCHOR_LT",
+      "type": "light",
+      "name": "Anchor light",
+      "location": "+MAST",
+      "keywords": [
+        "anchor",
+        "masthead",
+        "all-round"
+      ]
+    },
+    {
+      "id": "WINDEX_LT",
+      "type": "light",
+      "name": "Windex light",
+      "location": "+MAST",
+      "keywords": [
+        "windex",
+        "wind",
+        "instrument"
+      ]
+    },
+    {
+      "id": "CL_PT",
+      "type": "light",
+      "name": "Compass light port",
+      "part": "83-34598",
+      "location": "+PED_PT",
+      "keywords": [
+        "compass",
+        "port",
+        "binnacle"
+      ]
+    },
+    {
+      "id": "CL_SB",
+      "type": "light",
+      "name": "Compass light stbd",
+      "part": "83-34598",
+      "location": "+PED_SB",
+      "keywords": [
+        "compass",
+        "starboard",
+        "stbd",
+        "binnacle"
+      ]
+    },
+    {
+      "id": "STEAMING",
+      "type": "light",
+      "name": "Steaming light",
+      "location": "+MAST",
+      "keywords": [
+        "steaming",
+        "motoring",
+        "masthead"
+      ]
+    },
+    {
+      "id": "JB475",
+      "type": "junction_box",
+      "name": "Junction box 475",
+      "location": "+LAZARETTE"
+    },
+    {
+      "id": "JB476",
+      "type": "junction_box",
+      "name": "Junction box 476",
+      "location": "+FOREPEAK"
+    },
+    {
+      "id": "JB480",
+      "type": "junction_box",
+      "name": "Junction box 480",
+      "location": "+LAZARETTE"
+    },
+    {
+      "id": "JB490",
+      "type": "junction_box",
+      "name": "Junction box 490",
+      "location": "+MAST"
+    },
+    {
+      "id": "DCMS_F03",
+      "type": "fuse",
+      "name": "Direct/always-live feed fuse",
+      "rating_A": 100,
+      "fuse_type": "MEGA/AMG",
+      "location": "+DC_MS",
+      "keywords": [
+        "direct",
+        "always",
+        "live"
+      ]
+    },
+    {
+      "id": "POS_DIRECT",
+      "type": "busbar",
+      "name": "Direct positive bus (always-live)",
+      "polarity": "positive",
+      "location": "+EXT",
+      "keywords": [
+        "direct",
+        "always",
+        "live",
+        "positive"
+      ]
+    },
+    {
+      "id": "NEG_DIRECT",
+      "type": "busbar",
+      "name": "Direct negative bus",
+      "polarity": "negative",
+      "location": "+EXT",
+      "keywords": [
+        "direct",
+        "negative"
+      ]
+    },
+    {
+      "id": "BP_F01",
+      "type": "fuse",
+      "name": "Main bilge pump fwd fuse (-F01)",
+      "rating_A": 5,
+      "location": "+MSB",
+      "keywords": [
+        "bilge",
+        "pump",
+        "main",
+        "forward",
+        "fwd"
+      ]
+    },
+    {
+      "id": "BP_F02",
+      "type": "fuse",
+      "name": "Main bilge pump aft fuse (-F02)",
+      "rating_A": 5,
+      "location": "+MSB",
+      "keywords": [
+        "bilge",
+        "pump",
+        "main",
+        "aft"
+      ]
+    },
+    {
+      "id": "BP_F03",
+      "type": "fuse",
+      "name": "Forepeak bilge pump fuse (-F03)",
+      "rating_A": 5,
+      "location": "+MSB",
+      "keywords": [
+        "bilge",
+        "pump",
+        "forepeak"
+      ]
+    },
+    {
+      "id": "BP_F04",
+      "type": "fuse",
+      "name": "Lazarette bilge pump fuse (-F04)",
+      "rating_A": 5,
+      "location": "+MSB",
+      "keywords": [
+        "bilge",
+        "pump",
+        "lazarette"
+      ]
+    },
+    {
+      "id": "BP_S01",
+      "type": "switch",
+      "name": "Main bilge pump fwd manual switch (-S01)",
+      "location": "+MSB",
+      "keywords": [
+        "bilge",
+        "pump",
+        "manual",
+        "switch",
+        "fwd"
+      ]
+    },
+    {
+      "id": "BP_S02",
+      "type": "switch",
+      "name": "Main bilge pump aft manual switch (-S02)",
+      "location": "+MSB",
+      "keywords": [
+        "bilge",
+        "pump",
+        "manual",
+        "switch",
+        "aft"
+      ]
+    },
+    {
+      "id": "BP_S03",
+      "type": "switch",
+      "name": "Forepeak bilge pump manual switch (-S03)",
+      "location": "+MSB",
+      "keywords": [
+        "bilge",
+        "pump",
+        "manual",
+        "switch",
+        "forepeak"
+      ]
+    },
+    {
+      "id": "BP_S04",
+      "type": "switch",
+      "name": "Lazarette bilge pump manual switch (-S04)",
+      "location": "+MSB",
+      "keywords": [
+        "bilge",
+        "pump",
+        "manual",
+        "switch",
+        "lazarette"
+      ]
+    },
+    {
+      "id": "BL_MAIN_FWD",
+      "type": "switch",
+      "name": "Main fwd float switch (-BL_MAIN_FWD)",
+      "location": "+HARN_FWD",
+      "keywords": [
+        "float",
+        "auto",
+        "bilge",
+        "fwd"
+      ]
+    },
+    {
+      "id": "BL_MAIN_AFT",
+      "type": "switch",
+      "name": "Main aft float switch (-BL_MAIN_AFT)",
+      "location": "+HARN_AFT",
+      "keywords": [
+        "float",
+        "auto",
+        "bilge",
+        "aft"
+      ]
+    },
+    {
+      "id": "BL_FOREPEAK1",
+      "type": "switch",
+      "name": "Forepeak float switch 1 (-BL_FOREPEAK1)",
+      "location": "+FOREPEAK",
+      "keywords": [
+        "float",
+        "auto",
+        "bilge",
+        "forepeak"
+      ]
+    },
+    {
+      "id": "BL_FOREPEAK2",
+      "type": "switch",
+      "name": "Forepeak float switch 2 (-BL_FOREPEAK2)",
+      "location": "+FOREPEAK",
+      "keywords": [
+        "float",
+        "auto",
+        "bilge",
+        "forepeak"
+      ]
+    },
+    {
+      "id": "BL_LAZARETTE",
+      "type": "switch",
+      "name": "Lazarette float switch (-BL_LAZARETTE)",
+      "location": "+LAZARETTE",
+      "keywords": [
+        "float",
+        "auto",
+        "bilge",
+        "lazarette"
+      ]
+    },
+    {
+      "id": "BP_MAIN_FWD",
+      "type": "pump",
+      "name": "Main bilge pump fwd",
+      "part": "Johnson 24V 2.5A",
+      "location": "+FOREPEAK",
+      "keywords": [
+        "bilge",
+        "pump",
+        "main",
+        "forward",
+        "fwd"
+      ]
+    },
+    {
+      "id": "BP_MAIN_AFT",
+      "type": "pump",
+      "name": "Main bilge pump aft",
+      "part": "Johnson 24V 2.5A",
+      "location": "+ENG_ROOM",
+      "keywords": [
+        "bilge",
+        "pump",
+        "main",
+        "aft",
+        "engine"
+      ]
+    },
+    {
+      "id": "BP_FOREPEAK",
+      "type": "pump",
+      "name": "Forepeak bilge pump",
+      "location": "+FOREPEAK",
+      "keywords": [
+        "bilge",
+        "pump",
+        "forepeak",
+        "bow"
+      ]
+    },
+    {
+      "id": "BP_LAZARETTE",
+      "type": "pump",
+      "name": "Lazarette bilge pump",
+      "location": "+LAZARETTE",
+      "keywords": [
+        "bilge",
+        "pump",
+        "lazarette",
+        "stern"
+      ]
+    },
+    {
+      "id": "JB550",
+      "type": "junction_box",
+      "name": "Junction box 550",
+      "location": "+HARN_FWD"
+    },
+    {
+      "id": "JB551",
+      "type": "junction_box",
+      "name": "Junction box 551",
+      "location": "+HARN_AFT"
+    },
+    {
+      "id": "JB552",
+      "type": "junction_box",
+      "name": "Junction box 552",
+      "location": "+HARN_MID"
+    },
+    {
+      "id": "JB553",
+      "type": "junction_box",
+      "name": "Junction box 553",
+      "location": "+HARN_AFT"
+    }
+  ],
+  "connections": [
+    {
+      "from": "BATT",
+      "to": "DCMS_F01",
+      "verified": true
+    },
+    {
+      "from": "DCMS_F01",
+      "to": "DCMS_S01",
+      "verified": true
+    },
+    {
+      "from": "DCMS_S01",
+      "to": "DCMS_K01",
+      "verified": false
+    },
+    {
+      "from": "DCMS_K01",
+      "to": "POS_BUS",
+      "verified": false
+    },
+    {
+      "from": "POS_BUS",
+      "to": "DCMS_F04",
+      "verified": true
+    },
+    {
+      "from": "POS_BUS",
+      "to": "DCMS_F06",
+      "verified": true
+    },
+    {
+      "from": "POS_BUS",
+      "to": "DCMS_F05",
+      "verified": true
+    },
+    {
+      "from": "POS_BUS",
+      "to": "DCMS_F07",
+      "verified": true
+    },
+    {
+      "from": "POS_BUS",
+      "to": "DCMS_F08",
+      "verified": true
+    },
+    {
+      "from": "POS_BUS",
+      "to": "DCMS_F09",
+      "verified": true
+    },
+    {
+      "from": "POS_BUS",
+      "to": "DCMS_F10",
+      "verified": true
+    },
+    {
+      "from": "POS_BUS",
+      "to": "DCMS_F11",
+      "verified": true
+    },
+    {
+      "from": "POS_BUS",
+      "to": "DCMS_F12",
+      "verified": true
+    },
+    {
+      "from": "POS_BUS",
+      "to": "DCMS_F02",
+      "verified": true
+    },
+    {
+      "from": "DCMS_F04",
+      "to": "ALTERNATOR",
+      "verified": true
+    },
+    {
+      "from": "DCMS_F06",
+      "to": "INVERTER_CHARGER",
+      "verified": true
+    },
+    {
+      "from": "DCMS_F05",
+      "to": "MSB",
+      "ref": "feeds +MSB board",
+      "verified": true
+    },
+    {
+      "from": "DCMS_F07",
+      "to": "PRI_WIN_PT",
+      "verified": true
+    },
+    {
+      "from": "DCMS_F08",
+      "to": "PRI_WIN_SB",
+      "verified": true
+    },
+    {
+      "from": "DCMS_F09",
+      "to": "MAIN_WIN_PT",
+      "verified": true
+    },
+    {
+      "from": "DCMS_F10",
+      "to": "MAIN_WIN_SB",
+      "verified": true
+    },
+    {
+      "from": "DCMS_F11",
+      "to": "MOORING_WINCH",
+      "verified": true
+    },
+    {
+      "from": "DCMS_F12",
+      "to": "JIB_FURLER",
+      "verified": true
+    },
+    {
+      "from": "DCMS_F02",
+      "to": "CONSUMERS_24V",
+      "verified": false
+    },
+    {
+      "from": "MSB",
+      "to": "F05",
+      "ref": ";MSB+ /464.12H",
+      "verified": true
+    },
+    {
+      "from": "F05",
+      "to": "STERN_LT",
+      "gauge_mm2": 1.5,
+      "verified": false
+    },
+    {
+      "from": "F05",
+      "to": "PORT_LT",
+      "gauge_mm2": 1.5,
+      "verified": false
+    },
+    {
+      "from": "F05",
+      "to": "STBD_LT",
+      "gauge_mm2": 1.5,
+      "verified": false
+    },
+    {
+      "from": "STERN_LT",
+      "to": "XNEG",
+      "verified": false
+    },
+    {
+      "from": "PORT_LT",
+      "to": "XNEG",
+      "verified": false
+    },
+    {
+      "from": "STBD_LT",
+      "to": "XNEG",
+      "verified": false
+    },
+    {
+      "from": "MSB",
+      "to": "F20",
+      "verified": true
+    },
+    {
+      "from": "F20",
+      "to": "JB480",
+      "verified": false
+    },
+    {
+      "from": "JB480",
+      "to": "ANCHOR_LT",
+      "verified": false
+    },
+    {
+      "from": "ANCHOR_LT",
+      "to": "XNEG",
+      "verified": false
+    },
+    {
+      "from": "MSB",
+      "to": "F19",
+      "verified": true
+    },
+    {
+      "from": "F19",
+      "to": "JB490",
+      "wire": "W490",
+      "verified": false
+    },
+    {
+      "from": "JB490",
+      "to": "WINDEX_LT",
+      "wire": "W490.A",
+      "wire_type": "ÖLFLEX 2x1.5²",
+      "gauge_mm2": 1.5,
+      "verified": false
+    },
+    {
+      "from": "WINDEX_LT",
+      "to": "XNEG",
+      "verified": false
+    },
+    {
+      "from": "MSB",
+      "to": "FX04",
+      "verified": true
+    },
+    {
+      "from": "FX04",
+      "to": "S06",
+      "wire": "W300",
+      "verified": false
+    },
+    {
+      "from": "S06",
+      "to": "JB475",
+      "wire": "W475",
+      "wire_type": "ÖLFLEX 2x1.5²",
+      "gauge_mm2": 1.5,
+      "verified": false
+    },
+    {
+      "from": "S06",
+      "to": "JB476",
+      "wire": "W476",
+      "wire_type": "ÖLFLEX 2x1.5²",
+      "gauge_mm2": 1.5,
+      "verified": false
+    },
+    {
+      "from": "JB475",
+      "to": "CL_PT",
+      "wire": "W480.A",
+      "wire_type": "ÖLFLEX 2x1.5²",
+      "gauge_mm2": 1.5,
+      "verified": false
+    },
+    {
+      "from": "JB476",
+      "to": "CL_SB",
+      "wire": "W480.B",
+      "wire_type": "ÖLFLEX 2x1.5²",
+      "gauge_mm2": 1.5,
+      "verified": false
+    },
+    {
+      "from": "CL_PT",
+      "to": "XNEG",
+      "verified": false
+    },
+    {
+      "from": "CL_SB",
+      "to": "XNEG",
+      "verified": false
+    },
+    {
+      "from": "MSB",
+      "to": "FX19",
+      "ref": "sheet 481",
+      "verified": true
+    },
+    {
+      "from": "FX19",
+      "to": "S1",
+      "verified": false
+    },
+    {
+      "from": "S1",
+      "to": "STEAMING",
+      "wire": "W470",
+      "wire_type": "ÖLFLEX 12x1.5²",
+      "gauge_mm2": 1.5,
+      "verified": false
+    },
+    {
+      "from": "STEAMING",
+      "to": "XNEG",
+      "verified": false
+    },
+    {
+      "from": "BATT",
+      "to": "DCMS_F03",
+      "verified": false,
+      "ref": "DIRECT feed — confirm tap point (before/after main switch) on sheet 400 zone 7D"
+    },
+    {
+      "from": "DCMS_F03",
+      "to": "POS_DIRECT",
+      "wire": "W4012-1",
+      "verified": true
+    },
+    {
+      "from": "POS_DIRECT",
+      "to": "BP_F01",
+      "verified": true
+    },
+    {
+      "from": "POS_DIRECT",
+      "to": "BP_F02",
+      "verified": true
+    },
+    {
+      "from": "POS_DIRECT",
+      "to": "BP_F03",
+      "verified": true
+    },
+    {
+      "from": "POS_DIRECT",
+      "to": "BP_F04",
+      "verified": true
+    },
+    {
+      "from": "BP_F01",
+      "to": "BP_S01",
+      "verified": false
+    },
+    {
+      "from": "BP_F01",
+      "to": "BL_MAIN_FWD",
+      "verified": false
+    },
+    {
+      "from": "BP_S01",
+      "to": "BP_MAIN_FWD",
+      "wire": "W550",
+      "wire_type": "ÖLFLEX 4x1.5²",
+      "gauge_mm2": 1.5,
+      "verified": false
+    },
+    {
+      "from": "BL_MAIN_FWD",
+      "to": "BP_MAIN_FWD",
+      "verified": false
+    },
+    {
+      "from": "BP_MAIN_FWD",
+      "to": "NEG_DIRECT",
+      "verified": false
+    },
+    {
+      "from": "BP_F02",
+      "to": "BP_S02",
+      "verified": false
+    },
+    {
+      "from": "BP_F02",
+      "to": "BL_MAIN_AFT",
+      "verified": false
+    },
+    {
+      "from": "BP_S02",
+      "to": "BP_MAIN_AFT",
+      "wire": "W551",
+      "wire_type": "MKEM 1.5²",
+      "gauge_mm2": 1.5,
+      "verified": false
+    },
+    {
+      "from": "BL_MAIN_AFT",
+      "to": "BP_MAIN_AFT",
+      "verified": false
+    },
+    {
+      "from": "BP_MAIN_AFT",
+      "to": "NEG_DIRECT",
+      "verified": false
+    },
+    {
+      "from": "BP_F03",
+      "to": "BP_S03",
+      "verified": false
+    },
+    {
+      "from": "BP_F03",
+      "to": "BL_FOREPEAK1",
+      "verified": false
+    },
+    {
+      "from": "BP_F03",
+      "to": "BL_FOREPEAK2",
+      "verified": false
+    },
+    {
+      "from": "BP_S03",
+      "to": "BP_FOREPEAK",
+      "wire": "W552",
+      "wire_type": "ÖLFLEX 4x1.5²",
+      "gauge_mm2": 1.5,
+      "verified": false
+    },
+    {
+      "from": "BL_FOREPEAK1",
+      "to": "BP_FOREPEAK",
+      "verified": false
+    },
+    {
+      "from": "BL_FOREPEAK2",
+      "to": "BP_FOREPEAK",
+      "verified": false
+    },
+    {
+      "from": "BP_FOREPEAK",
+      "to": "NEG_DIRECT",
+      "verified": false
+    },
+    {
+      "from": "BP_F04",
+      "to": "BP_S04",
+      "verified": false
+    },
+    {
+      "from": "BP_F04",
+      "to": "BL_LAZARETTE",
+      "verified": false
+    },
+    {
+      "from": "BP_S04",
+      "to": "BP_LAZARETTE",
+      "wire": "W553",
+      "wire_type": "ÖLFLEX 4x1.5²",
+      "gauge_mm2": 1.5,
+      "verified": false
+    },
+    {
+      "from": "BL_LAZARETTE",
+      "to": "BP_LAZARETTE",
+      "verified": false
+    },
+    {
+      "from": "BP_LAZARETTE",
+      "to": "NEG_DIRECT",
+      "verified": false
+    }
+  ]
+}

@@ -1,0 +1,76 @@
+{
+  "_meta": {
+    "vessel": "Tiger — Swan 48 Mk2, Hull 233",
+    "source": "48-233 Electrical 2022-05-13.PDF, sheets 550 + 551 (=05 Plumbing, BILGE PUMPS)",
+    "subsystem": "bilge_pumps",
+    "voltage": 24,
+    "extracted_with": "wiring/extract_sheet.py (PDF pages 74 + 75)",
+    "note": "Four bilge pumps (main fwd, main aft, forepeak, lazarette), each on its own 5A fuse off the POS_DIRECT bus. POS_DIRECT is fed via the 100A fuse F03 on sheet 400 (=DCMS_F03). The 'DIRECT' bus is conventionally an always-live feed that bypasses the battery main switch so pumps run with the boat off — but the exact tap point (before vs after the main switch) is NOT confirmed from the text and is flagged unverified; confirm on sheet 400 zone 7D. Each pump has a MANUAL panel switch (S01-S04) and an AUTOMATIC float switch (BL_*) wired in parallel."
+  },
+  "components": [
+    { "id": "DCMS_F03",   "type": "fuse",   "name": "Direct/always-live feed fuse", "rating_A": 100, "fuse_type": "MEGA/AMG", "location": "+DC_MS" },
+    { "id": "POS_DIRECT", "type": "busbar", "name": "Direct positive bus (always-live)", "polarity": "positive", "location": "+EXT" },
+    { "id": "NEG_DIRECT", "type": "busbar", "name": "Direct negative bus", "polarity": "negative", "location": "+EXT" },
+
+    { "id": "BP_F01", "type": "fuse", "name": "Main bilge pump fwd fuse (-F01)", "rating_A": 5, "location": "+MSB" },
+    { "id": "BP_F02", "type": "fuse", "name": "Main bilge pump aft fuse (-F02)", "rating_A": 5, "location": "+MSB" },
+    { "id": "BP_F03", "type": "fuse", "name": "Forepeak bilge pump fuse (-F03)", "rating_A": 5, "location": "+MSB" },
+    { "id": "BP_F04", "type": "fuse", "name": "Lazarette bilge pump fuse (-F04)", "rating_A": 5, "location": "+MSB" },
+
+    { "id": "BP_S01", "type": "switch", "name": "Main bilge pump fwd manual switch (-S01)", "location": "+MSB" },
+    { "id": "BP_S02", "type": "switch", "name": "Main bilge pump aft manual switch (-S02)", "location": "+MSB" },
+    { "id": "BP_S03", "type": "switch", "name": "Forepeak bilge pump manual switch (-S03)", "location": "+MSB" },
+    { "id": "BP_S04", "type": "switch", "name": "Lazarette bilge pump manual switch (-S04)", "location": "+MSB" },
+
+    { "id": "BL_MAIN_FWD",  "type": "switch", "name": "Main fwd float switch (-BL_MAIN_FWD)", "location": "+HARN_FWD" },
+    { "id": "BL_MAIN_AFT",  "type": "switch", "name": "Main aft float switch (-BL_MAIN_AFT)", "location": "+HARN_AFT" },
+    { "id": "BL_FOREPEAK1", "type": "switch", "name": "Forepeak float switch 1 (-BL_FOREPEAK1)", "location": "+FOREPEAK" },
+    { "id": "BL_FOREPEAK2", "type": "switch", "name": "Forepeak float switch 2 (-BL_FOREPEAK2)", "location": "+FOREPEAK" },
+    { "id": "BL_LAZARETTE", "type": "switch", "name": "Lazarette float switch (-BL_LAZARETTE)", "location": "+LAZARETTE" },
+
+    { "id": "BP_MAIN_FWD",  "type": "pump", "name": "Main bilge pump fwd",  "part": "Johnson 24V 2.5A", "location": "+FOREPEAK" },
+    { "id": "BP_MAIN_AFT",  "type": "pump", "name": "Main bilge pump aft",  "part": "Johnson 24V 2.5A", "location": "+ENG_ROOM" },
+    { "id": "BP_FOREPEAK",  "type": "pump", "name": "Forepeak bilge pump",  "location": "+FOREPEAK" },
+    { "id": "BP_LAZARETTE", "type": "pump", "name": "Lazarette bilge pump", "location": "+LAZARETTE" },
+
+    { "id": "JB550", "type": "junction_box", "name": "Junction box 550", "location": "+HARN_FWD" },
+    { "id": "JB551", "type": "junction_box", "name": "Junction box 551", "location": "+HARN_AFT" },
+    { "id": "JB552", "type": "junction_box", "name": "Junction box 552", "location": "+HARN_MID" },
+    { "id": "JB553", "type": "junction_box", "name": "Junction box 553", "location": "+HARN_AFT" }
+  ],
+  "connections": [
+    { "from": "BATT",        "to": "DCMS_F03",   "verified": false, "note": "DIRECT always-live feed — confirm tap point (before/after main switch) on sheet 400 zone 7D" },
+    { "from": "DCMS_F03",    "to": "POS_DIRECT", "wire": "W4012-1", "verified": true },
+
+    { "from": "POS_DIRECT",  "to": "BP_F01", "verified": true },
+    { "from": "POS_DIRECT",  "to": "BP_F02", "verified": true },
+    { "from": "POS_DIRECT",  "to": "BP_F03", "verified": true },
+    { "from": "POS_DIRECT",  "to": "BP_F04", "verified": true },
+
+    { "from": "BP_F01", "to": "BP_S01",       "verified": false },
+    { "from": "BP_F01", "to": "BL_MAIN_FWD",  "verified": false },
+    { "from": "BP_S01", "to": "BP_MAIN_FWD",  "wire": "W550", "wire_type": "ÖLFLEX 4x1.5²", "gauge_mm2": 1.5, "verified": false },
+    { "from": "BL_MAIN_FWD", "to": "BP_MAIN_FWD", "verified": false },
+    { "from": "BP_MAIN_FWD", "to": "NEG_DIRECT", "verified": false },
+
+    { "from": "BP_F02", "to": "BP_S02",       "verified": false },
+    { "from": "BP_F02", "to": "BL_MAIN_AFT",  "verified": false },
+    { "from": "BP_S02", "to": "BP_MAIN_AFT",  "wire": "W551", "wire_type": "MKEM 1.5²", "gauge_mm2": 1.5, "verified": false },
+    { "from": "BL_MAIN_AFT", "to": "BP_MAIN_AFT", "verified": false },
+    { "from": "BP_MAIN_AFT", "to": "NEG_DIRECT", "verified": false },
+
+    { "from": "BP_F03", "to": "BP_S03",       "verified": false },
+    { "from": "BP_F03", "to": "BL_FOREPEAK1", "verified": false },
+    { "from": "BP_F03", "to": "BL_FOREPEAK2", "verified": false },
+    { "from": "BP_S03", "to": "BP_FOREPEAK",  "wire": "W552", "wire_type": "ÖLFLEX 4x1.5²", "gauge_mm2": 1.5, "verified": false },
+    { "from": "BL_FOREPEAK1", "to": "BP_FOREPEAK", "verified": false },
+    { "from": "BL_FOREPEAK2", "to": "BP_FOREPEAK", "verified": false },
+    { "from": "BP_FOREPEAK", "to": "NEG_DIRECT", "verified": false },
+
+    { "from": "BP_F04", "to": "BP_S04",       "verified": false },
+    { "from": "BP_F04", "to": "BL_LAZARETTE", "verified": false },
+    { "from": "BP_S04", "to": "BP_LAZARETTE", "wire": "W553", "wire_type": "ÖLFLEX 4x1.5²", "gauge_mm2": 1.5, "verified": false },
+    { "from": "BL_LAZARETTE", "to": "BP_LAZARETTE", "verified": false },
+    { "from": "BP_LAZARETTE", "to": "NEG_DIRECT", "verified": false }
+  ]
+}

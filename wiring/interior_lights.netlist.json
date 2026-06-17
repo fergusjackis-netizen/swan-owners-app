@@ -1,0 +1,141 @@
+{
+  "_meta": {
+    "subsystem": "interior_lights",
+    "source": "sheets 460-473 (=11 INTERIOR LIGHTS); detail sheets 464-469 standard, 470-473 options",
+    "voltage": 24,
+    "note": "Interior cabin lighting. Master fuse -F17 25A on +MSB feeds the INTLT_POS distribution bus; per-area fuses -FX14/-FX15/-FX16/-FX17/-FX18 hang off INTLT_POS and feed each area's switch panel and light groups. Night light is a separate circuit: -FX03 5A fed from the F90_POS bus, not INTLT_POS. Option sheets 470-473 are alternative-configuration variants of the same fuses/switches/light groups (extra harness/dimmer variants e.g. -U4116/-U4152) and add no new switched groups. Negative returns go to XNEG. Light groups are aggregated per switched circuit; distinct switched groups within an area (ceiling vs indirect vs wall/reading vs toilet) are kept as separate loads where the panel shows separate switches."
+  },
+  "components": [
+    { "id": "INT_F17", "type": "fuse", "name": "-F17 25A INTERIOR LIGHTS (master)", "location": "+MSB", "rating_A": 25, "keywords": ["interior","lights","master","fuse","F17"] },
+    { "id": "INTLT_POS", "type": "busbar", "name": "INTLT_POS interior lights positive distribution bus", "location": "+MSB", "keywords": ["interior","lights","positive","bus","distribution"] },
+
+    { "id": "INT_FX14", "type": "fuse", "name": "-FX14 10A Fwd cabin lts", "location": "+HARN_FWD", "rating_A": 10, "keywords": ["forward","fwd","cabin","lights","fuse","FX14"] },
+    { "id": "INT_FX15", "type": "fuse", "name": "-FX15 10A Saloon lts", "location": "+MSB", "rating_A": 10, "keywords": ["saloon","lounge","lights","fuse","FX15"] },
+    { "id": "INT_FX16", "type": "fuse", "name": "-FX16 5A Galley lights", "location": "+HARN_MID", "rating_A": 5, "keywords": ["galley","kitchen","lights","fuse","FX16"] },
+    { "id": "INT_FX17", "type": "fuse", "name": "-FX17 5A Port aft cabin", "location": "+HARN_MID", "rating_A": 5, "keywords": ["port","aft","cabin","lights","fuse","FX17"] },
+    { "id": "INT_FX18", "type": "fuse", "name": "-FX18 5A Stbd aft cabin lts", "location": "+HARN_MID", "rating_A": 5, "keywords": ["starboard","stbd","aft","cabin","toilet","lights","fuse","FX18"] },
+    { "id": "INT_FX03", "type": "fuse", "name": "-FX03 5A NIGHT LIGHT", "location": "+MSB", "rating_A": 5, "keywords": ["night","light","fuse","FX03"] },
+
+    { "id": "JB4126", "type": "junction_box", "name": "+JB4126 fwd cabin lights junction box", "location": "+HARN_FWD", "keywords": ["forward","fwd","cabin","junction","box","lights"] },
+    { "id": "JB4140", "type": "junction_box", "name": "+JB4140 galley lights junction box", "location": "+HARN_MID", "keywords": ["galley","junction","box","lights"] },
+    { "id": "JB4150", "type": "junction_box", "name": "+JB4150 port aft cabin lights junction box", "location": "+HARN_MID", "keywords": ["port","aft","cabin","junction","box","lights"] },
+    { "id": "JB4160", "type": "junction_box", "name": "+JB4160 stbd aft cabin lights junction box", "location": "+HARN_SBA", "keywords": ["starboard","stbd","aft","cabin","junction","box","lights"] },
+
+    { "id": "INT_SW_FWD_CEIL", "type": "switch", "name": "-SA01 / -SA04 fwd cabin ceiling & indirect light switch (Berker 1D, door SB side)", "location": "+HARN_FWD", "keywords": ["forward","fwd","cabin","ceiling","indirect","switch"] },
+    { "id": "INT_SW_FWD_READ", "type": "switch", "name": "-SA03 fwd cabin reading/wall light switch", "location": "+HARN_FWD", "keywords": ["forward","fwd","cabin","reading","wall","light","switch"] },
+    { "id": "INT_SW_FWD_TOILET", "type": "switch", "name": "-SA01A fwd toilet light switch", "location": "+HARN_FWD", "keywords": ["forward","fwd","toilet","head","light","switch"] },
+
+    { "id": "INT_SW_SAL_CEIL", "type": "switch", "name": "-SC01 saloon ceiling light switch (Berker 2D)", "location": "+HARN_LTS_SAL", "keywords": ["saloon","ceiling","light","switch"] },
+    { "id": "INT_SW_SAL_IND", "type": "switch", "name": "-SC01A saloon indirect light switch", "location": "+HARN_LTS_SAL", "keywords": ["saloon","indirect","light","switch"] },
+    { "id": "INT_SW_SAL_WALL", "type": "switch", "name": "-SC02 saloon wall light switch", "location": "+HARN_LTS_SAL", "keywords": ["saloon","wall","light","switch"] },
+    { "id": "INT_SW_SAL_LEAD", "type": "switch", "name": "-SL01 saloon leading-light switch (Berker 1/6 white)", "location": "+HARN_LTS_SAL", "keywords": ["saloon","leading","light","switch"] },
+    { "id": "INT_RLY_SAL_LEAD", "type": "relay", "name": "-KL01 saloon leading-light relay (C7-A2024D)", "location": "+HARN_LTS_SAL", "part": "C7-A2024D", "keywords": ["saloon","leading","light","relay"] },
+
+    { "id": "INT_SW_GAL_CEIL", "type": "switch", "name": "-SD01 galley ceiling light switch (Berker 1D)", "location": "+HARN_LTS_GAL", "keywords": ["galley","kitchen","ceiling","light","switch"] },
+    { "id": "INT_SW_GAL_IND", "type": "switch", "name": "-SD01A galley indirect light switch", "location": "+HARN_LTS_GAL", "keywords": ["galley","kitchen","indirect","light","switch"] },
+
+    { "id": "INT_SW_PTA_CEIL", "type": "switch", "name": "-SE01 port aft cabin ceiling light switch (Berker 1D)", "location": "+HARN_LTS_PTA", "keywords": ["port","aft","cabin","ceiling","light","switch"] },
+    { "id": "INT_SW_PTA_IND", "type": "switch", "name": "-SE01A port aft cabin indirect light switch (Berker 1D)", "location": "+HARN_LTS_PTA", "keywords": ["port","aft","cabin","indirect","light","switch"] },
+    { "id": "INT_SW_PTA_WALL", "type": "switch", "name": "-SE02 port aft cabin wall/reading light switch", "location": "+HARN_LTS_PTA", "keywords": ["port","aft","cabin","wall","reading","light","switch"] },
+
+    { "id": "INT_SW_SBA_CEIL", "type": "switch", "name": "-SF01 stbd aft cabin ceiling light switch (Berker 1D)", "location": "+HARN_LTS_SBA", "keywords": ["starboard","stbd","aft","cabin","ceiling","light","switch"] },
+    { "id": "INT_SW_SBA_IND", "type": "switch", "name": "-SF01A stbd aft cabin indirect light switch (Berker 1D)", "location": "+HARN_LTS_SBA", "keywords": ["starboard","stbd","aft","cabin","indirect","light","switch"] },
+    { "id": "INT_SW_SBA_WALL", "type": "switch", "name": "-SF02 stbd aft cabin wall/reading light switch", "location": "+HARN_LTS_SBA", "keywords": ["starboard","stbd","aft","cabin","wall","reading","light","switch"] },
+    { "id": "INT_SW_AFT_TOILET", "type": "switch", "name": "-SF03 aft toilet light switch", "location": "+HARN_LTS_AFT_TOI", "keywords": ["aft","toilet","head","light","switch"] },
+
+    { "id": "INT_SW_NIGHT", "type": "switch", "name": "-S05 NIGHT LIGHT switch (at main panel)", "location": "+MSB", "keywords": ["night","light","switch","panel"] },
+
+    { "id": "FWD_CABIN_LIGHTS", "type": "light", "name": "Fwd cabin ceiling & indirect lights (-EA01 ceiling, -EA10/-EA09 indirect)", "location": "+HARN_LTS_FWD", "keywords": ["forward","fwd","cabin","ceiling","indirect","lights"] },
+    { "id": "FWD_CABIN_READING_LIGHTS", "type": "light", "name": "Fwd cabin reading/wall lights pt & sb (-EA14/-EA14.A reading, -EA08 hanging locker)", "location": "+HARN_LTS_FWD", "keywords": ["forward","fwd","cabin","reading","wall","hanging","locker","lights"] },
+    { "id": "FWD_TOILET_LIGHTS", "type": "light", "name": "Fwd toilet lights (-EA11)", "location": "+HARN_LTS_FWD", "keywords": ["forward","fwd","toilet","head","lights"] },
+
+    { "id": "SALOON_LIGHTS", "type": "light", "name": "Saloon ceiling lights (-EC01/-EC03/-EC10/-EC02)", "location": "+HARN_LTS_SAL", "keywords": ["saloon","lounge","ceiling","lights"] },
+    { "id": "SALOON_INDIRECT_LIGHTS", "type": "light", "name": "Saloon indirect lights (-EC09 pt/sb mid & floor, -EC15 stairs)", "location": "+HARN_LTS_SAL", "keywords": ["saloon","lounge","indirect","stairs","lights"] },
+    { "id": "SALOON_WALL_LIGHTS", "type": "light", "name": "Saloon wall lights pt & sb (-EC15.A/-EC15.B)", "location": "+HARN_LTS_SAL", "keywords": ["saloon","lounge","wall","lights"] },
+    { "id": "SALOON_LEADING_LIGHT", "type": "light", "name": "Saloon ceiling/leading light (-EC03 via relay -KL01)", "location": "+HARN_LTS_SAL", "keywords": ["saloon","leading","ceiling","light"] },
+
+    { "id": "GALLEY_LIGHTS", "type": "light", "name": "Galley ceiling lights (-ED01)", "location": "+HARN_LTS_GAL", "keywords": ["galley","kitchen","ceiling","lights"] },
+    { "id": "GALLEY_INDIRECT_LIGHTS", "type": "light", "name": "Galley indirect lights mid & floor (-ED10/-ED09)", "location": "+HARN_LTS_GAL", "keywords": ["galley","kitchen","indirect","lights"] },
+
+    { "id": "PORT_AFT_CABIN_LIGHTS", "type": "light", "name": "Port aft cabin ceiling & indirect lights (-EE01 ceiling, -EE09 indirect, -EE08 hanging locker)", "location": "+HARN_LTS_PTA", "keywords": ["port","aft","cabin","ceiling","indirect","lights"] },
+    { "id": "PORT_AFT_CABIN_WALL_LIGHTS", "type": "light", "name": "Port aft cabin reading & wall lights (-EE14/-EE14.A reading, -EE15/-EE15.A wall)", "location": "+HARN_LTS_PTA", "keywords": ["port","aft","cabin","reading","wall","lights"] },
+
+    { "id": "STBD_AFT_CABIN_LIGHTS", "type": "light", "name": "Stbd aft cabin ceiling & indirect lights (-EF01 ceiling, -EF09 indirect, -EF08 hanging locker)", "location": "+HARN_LTS_SBA", "keywords": ["starboard","stbd","aft","cabin","ceiling","indirect","lights"] },
+    { "id": "STBD_AFT_CABIN_WALL_LIGHTS", "type": "light", "name": "Stbd aft cabin reading & wall lights (-EF14/-EF14.A reading, -EF15/-EF15.A wall)", "location": "+HARN_LTS_SBA", "keywords": ["starboard","stbd","aft","cabin","reading","wall","lights"] },
+    { "id": "AFT_TOILET_LIGHTS", "type": "light", "name": "Aft toilet lights (-EF11)", "location": "+HARN_LTS_AFT_TOI", "keywords": ["aft","toilet","head","lights"] },
+
+    { "id": "NIGHT_LIGHT", "type": "light", "name": "Night lights: galley (-ER01) & nav station / main panel (-ER02)", "location": "+HARN_LTS_GAL", "keywords": ["night","light","galley","nav","station","panel"] }
+  ],
+  "connections": [
+    { "from": "MSB", "to": "INT_F17", "verified": true, "note": "-F17 25A interior-lights master fuse sits on +MSB board" },
+    { "from": "INT_F17", "to": "INTLT_POS", "wire": "RD", "verified": true, "note": ";INTLT_POS bus fed from -F17 25A, sheet 464 zone 1G/1H" },
+
+    { "from": "INTLT_POS", "to": "INT_FX14", "wire": "RD", "verified": true, "note": "sheet 464 fwd cabin fuse off INTLT_POS" },
+    { "from": "INTLT_POS", "to": "INT_FX15", "verified": true, "note": "sheet 465 saloon fuse off INTLT_POS (/464.12G -> /466.1F bus run)" },
+    { "from": "INTLT_POS", "to": "INT_FX16", "verified": true, "note": "sheet 466 galley fuse off INTLT_POS (/465.12H -> /467.1F)" },
+    { "from": "INTLT_POS", "to": "INT_FX17", "verified": true, "note": "sheet 467 port aft fuse off INTLT_POS (/466.8F -> /468.1F)" },
+    { "from": "INTLT_POS", "to": "INT_FX18", "verified": true, "note": "sheet 468 stbd aft fuse off INTLT_POS (/467.8F)" },
+
+    { "from": "INT_FX14", "to": "JB4126", "wire": "W4126 RD/BK MKEM 1.5", "verified": true },
+    { "from": "JB4126", "to": "INT_SW_FWD_CEIL", "verified": true, "note": "fwd cab switch panel SA01/SA04" },
+    { "from": "JB4126", "to": "INT_SW_FWD_READ", "verified": true },
+    { "from": "JB4126", "to": "INT_SW_FWD_TOILET", "verified": true, "note": "fwd toilet switch SA01A" },
+    { "from": "INT_SW_FWD_CEIL", "to": "FWD_CABIN_LIGHTS", "verified": true },
+    { "from": "INT_SW_FWD_READ", "to": "FWD_CABIN_READING_LIGHTS", "verified": true },
+    { "from": "INT_SW_FWD_TOILET", "to": "FWD_TOILET_LIGHTS", "verified": true },
+
+    { "from": "INT_FX15", "to": "INT_SW_SAL_CEIL", "wire": "W4116 RD MKEM 1.5", "verified": true },
+    { "from": "INT_FX15", "to": "INT_SW_SAL_IND", "verified": false, "note": "saloon panel fed from FX15; SC01A on same panel" },
+    { "from": "INT_FX15", "to": "INT_SW_SAL_WALL", "verified": false, "note": "saloon panel fed from FX15; SC02 on same panel" },
+    { "from": "INT_FX15", "to": "INT_SW_SAL_LEAD", "verified": false, "note": "leading-light switch SL01 on saloon panel" },
+    { "from": "INT_SW_SAL_CEIL", "to": "SALOON_LIGHTS", "verified": true },
+    { "from": "INT_SW_SAL_IND", "to": "SALOON_INDIRECT_LIGHTS", "verified": true },
+    { "from": "INT_SW_SAL_WALL", "to": "SALOON_WALL_LIGHTS", "verified": true },
+    { "from": "INT_SW_SAL_LEAD", "to": "INT_RLY_SAL_LEAD", "wire": "W4143 RD/BK", "verified": true, "note": ";LEADING_LT+/-" },
+    { "from": "INT_RLY_SAL_LEAD", "to": "SALOON_LEADING_LIGHT", "verified": true },
+
+    { "from": "INT_FX16", "to": "JB4140", "wire": "W4140 RD/BK MKEM 1.5", "verified": true },
+    { "from": "JB4140", "to": "INT_SW_GAL_CEIL", "verified": true },
+    { "from": "JB4140", "to": "INT_SW_GAL_IND", "verified": false, "note": "SD01A indirect on galley panel" },
+    { "from": "INT_SW_GAL_CEIL", "to": "GALLEY_LIGHTS", "verified": true },
+    { "from": "INT_SW_GAL_IND", "to": "GALLEY_INDIRECT_LIGHTS", "verified": true },
+
+    { "from": "INT_FX17", "to": "JB4150", "wire": "W4150 RD/BK MKEM 1.5", "verified": true },
+    { "from": "JB4150", "to": "INT_SW_PTA_CEIL", "verified": true },
+    { "from": "JB4150", "to": "INT_SW_PTA_IND", "verified": false, "note": "SE01A on port aft panel" },
+    { "from": "JB4150", "to": "INT_SW_PTA_WALL", "verified": false, "note": "SE02 on port aft panel" },
+    { "from": "INT_SW_PTA_CEIL", "to": "PORT_AFT_CABIN_LIGHTS", "verified": true },
+    { "from": "INT_SW_PTA_IND", "to": "PORT_AFT_CABIN_LIGHTS", "verified": false, "note": "indirect grouped into port aft cabin lights load" },
+    { "from": "INT_SW_PTA_WALL", "to": "PORT_AFT_CABIN_WALL_LIGHTS", "verified": true },
+
+    { "from": "INT_FX18", "to": "JB4160", "wire": "W4160 RD/BK MKEM 1.5", "verified": true },
+    { "from": "JB4160", "to": "INT_SW_SBA_CEIL", "verified": true },
+    { "from": "JB4160", "to": "INT_SW_SBA_IND", "verified": false, "note": "SF01A on stbd aft panel" },
+    { "from": "JB4160", "to": "INT_SW_SBA_WALL", "verified": false, "note": "SF02 on stbd aft panel" },
+    { "from": "JB4160", "to": "INT_SW_AFT_TOILET", "verified": false, "note": "SF03 aft toilet switch fed from FX18 / JB4160" },
+    { "from": "INT_SW_SBA_CEIL", "to": "STBD_AFT_CABIN_LIGHTS", "verified": true },
+    { "from": "INT_SW_SBA_IND", "to": "STBD_AFT_CABIN_LIGHTS", "verified": false, "note": "indirect grouped into stbd aft cabin lights load" },
+    { "from": "INT_SW_SBA_WALL", "to": "STBD_AFT_CABIN_WALL_LIGHTS", "verified": true },
+    { "from": "INT_SW_AFT_TOILET", "to": "AFT_TOILET_LIGHTS", "verified": true },
+
+    { "from": "MSB", "to": "INT_FX03", "verified": true, "note": "-FX03 5A night-light fuse on +MSB, fed from ;F90_POS bus /339.8F (separate from INTLT_POS)" },
+    { "from": "INT_FX03", "to": "INT_SW_NIGHT", "verified": true, "note": "-S05 NIGHT LIGHT switch at main panel" },
+    { "from": "INT_SW_NIGHT", "to": "NIGHT_LIGHT", "wire": "W4400 RD/BK MKEM 1.5", "verified": true, "note": "feeds -ER01 galley & -ER02 nav-station night lights" },
+
+    { "from": "FWD_CABIN_LIGHTS", "to": "XNEG", "wire": "BK", "verified": true },
+    { "from": "FWD_CABIN_READING_LIGHTS", "to": "XNEG", "wire": "BK", "verified": false },
+    { "from": "FWD_TOILET_LIGHTS", "to": "XNEG", "wire": "BK", "verified": false },
+    { "from": "SALOON_LIGHTS", "to": "XNEG", "wire": "BK", "verified": true },
+    { "from": "SALOON_INDIRECT_LIGHTS", "to": "XNEG", "wire": "BK", "verified": false },
+    { "from": "SALOON_WALL_LIGHTS", "to": "XNEG", "wire": "BK", "verified": false },
+    { "from": "SALOON_LEADING_LIGHT", "to": "XNEG", "wire": "BK", "verified": false },
+    { "from": "GALLEY_LIGHTS", "to": "XNEG", "wire": "BK", "verified": true },
+    { "from": "GALLEY_INDIRECT_LIGHTS", "to": "XNEG", "wire": "BK", "verified": false },
+    { "from": "PORT_AFT_CABIN_LIGHTS", "to": "XNEG", "wire": "BK", "verified": true },
+    { "from": "PORT_AFT_CABIN_WALL_LIGHTS", "to": "XNEG", "wire": "BK", "verified": false },
+    { "from": "STBD_AFT_CABIN_LIGHTS", "to": "XNEG", "wire": "BK", "verified": true },
+    { "from": "STBD_AFT_CABIN_WALL_LIGHTS", "to": "XNEG", "wire": "BK", "verified": false },
+    { "from": "AFT_TOILET_LIGHTS", "to": "XNEG", "wire": "BK", "verified": false },
+    { "from": "NIGHT_LIGHT", "to": "XNEG", "wire": "BK", "verified": true, "note": "NEG W4400-BK to -XNEG" }
+  ]
+}

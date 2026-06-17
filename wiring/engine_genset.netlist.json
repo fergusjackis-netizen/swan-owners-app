@@ -1,0 +1,92 @@
+{
+  "_meta": {
+    "subsystem": "engine_genset",
+    "source": "sheets 600 (page 83, MAIN ENGINE AND GENSET START CIRCUITS), 630 (page 84, VOLVO ORIGINAL DIAGRAM D2-75), ENG ROOM SHEET (page 50, DC-MS2 +ENG_ROOM), DC-MS2 12V layout (page 49); 810 ref (page 95 eng-room fans, =08); =06",
+    "voltage": 24,
+    "note": "Engine & genset DC. START SYSTEM IS 12V (eng/gen start batteries, starters, alternators, glow plugs, main switches, battery-parallel relays all 12V). 24V appears only via the engine-room charge feed and shunt context. Voltages are noted in component names. Start batteries (ENG_START_BATT, GEN_START_BATT) are SEPARATE from the 24V SERVICE bank BATT."
+  },
+  "components": [
+    { "id": "ENG_START_BATT", "type": "battery", "name": "Engine start battery 12V 815CCA (-G60)", "location": "+DC_MS2", "part": "12V 815CCA", "keywords": ["engine","start","battery","cranking","12V"] },
+    { "id": "GEN_START_BATT", "type": "battery", "name": "Generator start battery 12V 815CCA (-G61)", "location": "+DC_MS2", "part": "12V 815CCA", "keywords": ["generator","genset","start","battery","cranking","12V"] },
+
+    { "id": "ENG_S01", "type": "switch", "name": "Engine main switch 500A 2-P BD9521 (-S01)", "location": "+DC_MS2", "rating_A": 500, "part": "BD9521", "keywords": ["engine","start","main","switch","isolator","12V"] },
+    { "id": "GEN_S02", "type": "switch", "name": "Generator main switch 500A 2-P BD9521 (-S02)", "location": "+DC_MS2", "rating_A": 500, "part": "BD9521", "keywords": ["generator","genset","main","switch","isolator","12V"] },
+
+    { "id": "ENG_BATT_PAR_K01", "type": "contactor", "name": "Battery parallel contactor ENG side 12V 150A (-K01)", "location": "+DC_MS2", "rating_A": 150, "keywords": ["battery","parallel","emergency","contactor","relay","engine","12V"] },
+    { "id": "GEN_BATT_PAR_K02", "type": "contactor", "name": "Battery parallel contactor GEN side 12V 150A (-K02)", "location": "+DC_MS2", "rating_A": 150, "keywords": ["battery","parallel","emergency","contactor","relay","generator","12V"] },
+
+    { "id": "ENG_STARTER", "type": "motor", "name": "Engine starter motor 12V (-ENG_START / -MST1)", "location": "+EXT", "keywords": ["engine","start","starter","cranking","motor","12V"] },
+    { "id": "GEN_STARTER", "type": "motor", "name": "Generator starter motor 12V (-GEN_START / -MST2)", "location": "+EXT", "keywords": ["generator","genset","start","starter","cranking","motor","12V"] },
+
+    { "id": "ENG_START_ALT", "type": "charger", "name": "Engine start alternator (-MST1 START ALTERNATOR)", "location": "+EXT", "keywords": ["engine","alternator","charge","start","12V"] },
+    { "id": "GEN_START_ALT", "type": "charger", "name": "Generator start alternator (-MST2 GEN START ALTERNATOR)", "location": "+EXT", "keywords": ["generator","genset","alternator","charge","start","12V"] },
+
+    { "id": "ENG_GLOWPLUGS", "type": "consumer", "name": "Engine glow plugs / preheat (Volvo D2-75 diagram pos 5)", "location": "+EXT", "keywords": ["glow","preheat","engine","start","12V"] },
+    { "id": "ENG_STOP_SOLENOID", "type": "consumer", "name": "Engine stop solenoid valve (Volvo D2-75 diagram pos 7)", "location": "+EXT", "keywords": ["engine","stop","solenoid","12V"] },
+    { "id": "ENG_FLYWHEEL_SENSOR", "type": "sensor", "name": "Engine flywheel / rpm sensor (Volvo D2-75 diagram pos 6)", "location": "+EXT", "keywords": ["engine","flywheel","rpm","sensor","12V"] },
+
+    { "id": "ENG_CHARGE_REG_U01", "type": "charger", "name": "Engine-room charge regulator (-U01)", "location": "+ENG_ROOM", "keywords": ["alternator","charge","regulator","engine","12V"] },
+    { "id": "ALT_CTRL_K60", "type": "relay", "name": "Alternator control relay (-K60) RELECO C10-A10X12D", "location": "+ENG_ROOM", "part": "RELECO C10-A10X12D", "keywords": ["alternator","charge","control","relay","engine"] },
+
+    { "id": "ENG_FUEL_PUMP_RELAY_BU01", "type": "relay", "name": "Engine-room sheet relay (-BU01)", "location": "+ENG_ROOM", "keywords": ["engine","room","relay","control"] },
+
+    { "id": "ENG_SMOKE_DETECTOR", "type": "sensor", "name": "Engine room optical smoke detector (-FX03 fed; ORB-OP-42001-MAR)", "location": "+ENG_ROOM", "part": "ORB-OP-42001-MAR", "keywords": ["smoke","fire","detector","engine","room","sensor"] },
+    { "id": "ENG_ROOM_THERMOSTAT_SGF", "type": "sensor", "name": "Engine room thermostat (-SGF) set to 35C, Termostat C10A2Y", "location": "+ENG_ROOM", "part": "C10A2Y", "keywords": ["engine","room","fan","thermostat","temperature","sensor"] },
+    { "id": "ENG_ROOM_LIGHT", "type": "light", "name": "Engine room light F-28 cool white w/ touch sensor (8041)", "location": "+ENG_ROOM", "part": "8041", "keywords": ["engine","room","light"] },
+
+    { "id": "ENG_ROOM_FAN_M_ER1", "type": "motor", "name": "Engine room ventilation fan 1 (-M_ER1, sheet 810 =08)", "location": "+ENG_ROOM", "keywords": ["engine","room","fan","ventilation","cooling"] },
+    { "id": "ENG_ROOM_FAN_M_ER2", "type": "motor", "name": "Engine room ventilation fan 2 (-M_ER2, sheet 810 =08)", "location": "+ENG_ROOM", "keywords": ["engine","room","fan","ventilation","cooling"] },
+    { "id": "ENG_ROOM_FAN_RELAY_ERFAN4", "type": "relay", "name": "Engine room fan relay (-ERFAN4, sheet 810 =08)", "location": "+ENG_ROOM", "rating_A": 5, "keywords": ["engine","room","fan","ventilation","relay"] },
+
+    { "id": "MASTER_SHUNT_B", "type": "shunt", "name": "Master shunt 500A (engine room sheet -B)", "location": "+ENG_ROOM", "rating_A": 500, "keywords": ["shunt","master","monitor","engine","room"] },
+
+    { "id": "ENG_FX01", "type": "fuse", "name": "Engine charger fuse 1A (-FX01)", "location": "+DC_MS2", "rating_A": 1, "keywords": ["engine","charge","fuse"] },
+    { "id": "ENG_FX02", "type": "fuse", "name": "Engine batt parallel fuse 10A (-FX02)", "location": "+DC_MS2", "rating_A": 10, "keywords": ["engine","battery","parallel","fuse"] },
+    { "id": "ENG_FX03", "type": "fuse", "name": "Battery parallel control fuse 5A (-FX03)", "location": "+DC_MS2", "rating_A": 5, "keywords": ["battery","parallel","fuse"] },
+    { "id": "ENG_FX04", "type": "fuse", "name": "Battery parallel control fuse 5A (-FX04)", "location": "+DC_MS2", "rating_A": 5, "keywords": ["battery","parallel","fuse"] },
+    { "id": "GEN_FX05", "type": "fuse", "name": "Generator charger / batt par fuse 10A (-FX05)", "location": "+DC_MS2", "rating_A": 10, "keywords": ["generator","charge","battery","parallel","fuse"] },
+    { "id": "ENG_FX07", "type": "fuse", "name": "Engine charger fuse 1A (-FX07)", "location": "+DC_MS2", "rating_A": 1, "keywords": ["engine","charge","fuse"] },
+
+    { "id": "SMOKE_FX03_ER", "type": "fuse", "name": "Engine room smoke detector autofuse 5A (-FX03, ENG_ROOM)", "location": "+ENG_ROOM", "rating_A": 5, "keywords": ["smoke","fire","detector","fuse"] }
+  ],
+  "connections": [
+    { "from": "ENG_START_BATT", "to": "ENG_S01", "wire": "W60+ RD P-FLEX 1x95mm2", "verified": true, "note": "Engine start battery positive to engine main switch (sheet 600)" },
+    { "from": "ENG_S01", "to": "ENG_STARTER", "wire": "W610+ RD P-FLEX 1x95mm2", "verified": true, "note": "Engine main switch to engine starter motor (sheet 600)" },
+    { "from": "ENG_START_BATT", "to": "XNEG", "wire": "W60- BK P-FLEX 1x95mm2", "verified": false, "note": "Engine start battery negative; routes via master shunt to system negative. Exact negative termination not directly readable on sheet 600." },
+
+    { "from": "GEN_START_BATT", "to": "GEN_S02", "wire": "W64+ RD P-FLEX 1x95mm2", "verified": true, "note": "Generator start battery positive to generator main switch (sheet 600)" },
+    { "from": "GEN_S02", "to": "GEN_STARTER", "wire": "W640+ RD P-FLEX 1x95mm2", "verified": true, "note": "Generator main switch to generator starter motor (sheet 600)" },
+    { "from": "GEN_START_BATT", "to": "XNEG", "wire": "W64- BK P-FLEX 1x95mm2", "verified": false, "note": "Generator start battery negative; routes via master shunt to system negative. Exact negative termination not directly readable." },
+
+    { "from": "ENG_S01", "to": "ENG_BATT_PAR_K01", "wire": "1x25mm2", "verified": true, "note": "Engine main switch feeds ENG-side battery-parallel contactor K01 (sheet 600)" },
+    { "from": "GEN_S02", "to": "GEN_BATT_PAR_K02", "wire": "1x25mm2", "verified": true, "note": "Generator main switch feeds GEN-side battery-parallel contactor K02 (sheet 600)" },
+    { "from": "ENG_BATT_PAR_K01", "to": "GEN_BATT_PAR_K02", "verified": false, "note": "SAFETY: K01 and K02 are the battery-parallel/emergency-parallel contactors. When energised they bridge the engine and generator 12V start batteries (W610/W640). Closing both parallels the two start banks for emergency cranking. Bridge link inferred from schematic layout; coil-control logic (BATTERY PAR. switch -S4 on engine panel sheet, X4) not fully traced." },
+
+    { "from": "ENG_FX02", "to": "ENG_BATT_PAR_K01", "verified": false, "note": "FX02 10A 'ENG BATT PAR' fuse in K01 parallel branch (sheet 600)" },
+    { "from": "GEN_FX05", "to": "GEN_BATT_PAR_K02", "verified": false, "note": "FX05 10A 'GEN BATT PAR' fuse in K02 parallel branch (sheet 600)" },
+    { "from": "ENG_FX03", "to": "ENG_BATT_PAR_K01", "verified": false, "note": "FX03 5A control feed for parallel contactor coil circuit (sheet 600)" },
+    { "from": "ENG_FX04", "to": "GEN_BATT_PAR_K02", "verified": false, "note": "FX04 5A control feed for parallel contactor coil circuit (sheet 600)" },
+
+    { "from": "ENG_START_BATT", "to": "ENG_FX01", "verified": false, "note": "ENG CHARGER 1A fuse on engine charge sense line (sheet 600)" },
+    { "from": "ENG_FX01", "to": "ENG_CHARGE_REG_U01", "verified": false, "note": "Engine charge regulator U01 sense from engine battery; W620 GEN_CHG / ENG_CHG charge lines (sheets 600/630/eng-room). Inferred." },
+    { "from": "GEN_START_BATT", "to": "ENG_FX07", "verified": false, "note": "GEN CHARGER 1A fuse on charge sense line (sheet 600)" },
+
+    { "from": "ENG_START_ALT", "to": "ENG_START_BATT", "wire": "W620 ;ENG_CHG", "verified": false, "note": "Engine start alternator charges engine start battery (sheets 600/630). Routed through charge regulator U01." },
+    { "from": "GEN_START_ALT", "to": "GEN_START_BATT", "wire": "W620 ;GEN_CHG", "verified": false, "note": "Generator start alternator charges generator start battery (sheets 600/630)." },
+
+    { "from": "ENG_CHARGE_REG_U01", "to": "ALTERNATOR", "verified": false, "note": "SAFETY: charge regulator U01 controls the main alternator field/charge to the 24V SERVICE bank (ALTERNATOR node fed via DCMS_F04 125A). Cross-ref /630 ALT_CONT to K60. Field-control link inferred, not directly traced through to the service bank." },
+    { "from": "ENG_CHARGE_REG_U01", "to": "ALT_CTRL_K60", "verified": true, "note": "U01 RUN/REG output to alternator control relay K60 (eng-room sheet, ref /630.7F-8E)" },
+    { "from": "ALT_CTRL_K60", "to": "ALTERNATOR", "wire": "ALT_CONT+/ALT_CONT- W633", "verified": false, "note": "K60 switches alternator control (ALT_CONT) on Volvo harness sheet 630. Drives main alternator regulation." },
+
+    { "from": "ENG_GLOWPLUGS", "to": "ENG_START_BATT", "verified": false, "note": "Glow plugs (Volvo D2-75 diagram pos 5) fed from engine 12V start system via main switch. Exact feed point not directly readable; on Volvo OEM harness." },
+    { "from": "ENG_STOP_SOLENOID", "to": "ENG_START_BATT", "verified": false, "note": "Stop solenoid on Volvo OEM harness, 12V engine system. Inferred." },
+
+    { "from": "SMOKE_FX03_ER", "to": "ENG_SMOKE_DETECTOR", "wire": "5A autofuse", "verified": true, "note": "Engine room optical smoke detector fed via 5A autofuse (eng-room sheet)" },
+
+    { "from": "ENG_ROOM_THERMOSTAT_SGF", "to": "ENG_ROOM_FAN_RELAY_ERFAN4", "verified": true, "note": "Thermostat SGF (set 35C) controls engine room fan relay (sheets eng-room / 810)" },
+    { "from": "ENG_ROOM_FAN_RELAY_ERFAN4", "to": "ENG_ROOM_FAN_M_ER1", "wire": "W841", "verified": true, "note": "Fan relay to engine room ventilation fan 1 (sheet 810)" },
+    { "from": "ENG_ROOM_FAN_RELAY_ERFAN4", "to": "ENG_ROOM_FAN_M_ER2", "wire": "W841", "verified": true, "note": "Fan relay to engine room ventilation fan 2 (sheet 810)" },
+
+    { "from": "MASTER_SHUNT_B", "to": "XNEG", "verified": false, "note": "Master shunt 500A in engine room negative path to system negative. Measures total current; exact polarity terminal inferred." }
+  ]
+}

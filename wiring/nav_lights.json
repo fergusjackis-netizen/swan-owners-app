@@ -1,0 +1,72 @@
+{
+  "_meta": {
+    "vessel": "Tiger — Swan 48 Mk2, Hull 233",
+    "source": "48-233 Electrical 2022-05-13.PDF, sheets 480 + 481 (=11 Lights)",
+    "subsystem": "navigation_and_exterior_lights",
+    "voltage": 24,
+    "extracted_with": "coordinate-aware layout reconstruction (wiring/extract_sheet.py)",
+    "note": "Backbone (MSB -> fuse -> load) is read directly from the drawing layout. Edges marked verified:false (junction-box routing and negative returns) are inferred from the sheet's wire labels + standard practice; confirm against the drawing before relying on them for a repair."
+  },
+
+  "components": [
+    { "id": "MSB",  "type": "busbar", "name": "Main switch board (+24V)", "location": "+MSB", "polarity": "positive" },
+    { "id": "XNEG", "type": "busbar", "name": "Negative bus",            "location": "+MSB", "polarity": "negative" },
+
+    { "id": "F05",  "type": "fuse", "name": "Nav lights",                "rating_A": 5.0,  "location": "+MSB" },
+    { "id": "F20",  "type": "fuse", "name": "Anchor light",              "rating_A": 2.5,  "location": "+MSB" },
+    { "id": "F19",  "type": "fuse", "name": "Windex light",              "rating_A": 2.5,  "location": "+MSB" },
+    { "id": "FX04", "type": "fuse", "name": "Compass light / fog horn",  "rating_A": 5.0,  "location": "+MSB" },
+    { "id": "FX19", "type": "fuse", "name": "Steaming light",            "rating_A": 5.0,  "location": "+MSB" },
+
+    { "id": "S06",  "type": "switch", "name": "Compass light switch",    "location": "+HARN_AFT", "terminals": ["13", "14"] },
+    { "id": "S1",   "type": "switch", "name": "Steaming light switch",   "location": "+PENG (engine panel)", "terminals": ["13", "14"] },
+
+    { "id": "STERN_LT",  "type": "light", "name": "Stern light",         "part": "2LT 980 520-501", "location": "+LAZARETTE" },
+    { "id": "PORT_LT",   "type": "light", "name": "Side light port",     "part": "2LT 980 520-081", "location": "+EXT" },
+    { "id": "STBD_LT",   "type": "light", "name": "Side light stbd",     "part": "2LT 980 520-281", "location": "+EXT" },
+    { "id": "ANCHOR_LT", "type": "light", "name": "Anchor light",        "location": "+MAST" },
+    { "id": "WINDEX_LT", "type": "light", "name": "Windex light",        "location": "+MAST" },
+    { "id": "CL_PT",     "type": "light", "name": "Compass light port",  "part": "83-34598", "location": "+PED_PT" },
+    { "id": "CL_SB",     "type": "light", "name": "Compass light stbd",  "part": "83-34598", "location": "+PED_SB" },
+    { "id": "STEAMING",  "type": "light", "name": "Steaming light",      "location": "+MAST" },
+
+    { "id": "JB475", "type": "junction_box", "name": "Junction box 475", "location": "+LAZARETTE" },
+    { "id": "JB476", "type": "junction_box", "name": "Junction box 476", "location": "+FOREPEAK" },
+    { "id": "JB480", "type": "junction_box", "name": "Junction box 480", "location": "+LAZARETTE" },
+    { "id": "JB490", "type": "junction_box", "name": "Junction box 490", "location": "+MAST" }
+  ],
+
+  "connections": [
+    { "from": "MSB",       "to": "F05",       "ref": ";MSB+ /464.12H", "verified": true },
+    { "from": "F05",       "to": "STERN_LT",  "gauge_mm2": 1.5, "verified": false },
+    { "from": "F05",       "to": "PORT_LT",   "gauge_mm2": 1.5, "verified": false },
+    { "from": "F05",       "to": "STBD_LT",   "gauge_mm2": 1.5, "verified": false },
+    { "from": "STERN_LT",  "to": "XNEG",      "verified": false },
+    { "from": "PORT_LT",   "to": "XNEG",      "verified": false },
+    { "from": "STBD_LT",   "to": "XNEG",      "verified": false },
+
+    { "from": "MSB",       "to": "F20",       "verified": true },
+    { "from": "F20",       "to": "JB480",     "verified": false },
+    { "from": "JB480",     "to": "ANCHOR_LT", "verified": false },
+    { "from": "ANCHOR_LT", "to": "XNEG",      "verified": false },
+
+    { "from": "MSB",       "to": "F19",       "verified": true },
+    { "from": "F19",       "to": "JB490",     "wire": "W490", "verified": false },
+    { "from": "JB490",     "to": "WINDEX_LT", "wire": "W490.A", "wire_type": "ÖLFLEX 2x1.5²", "gauge_mm2": 1.5, "verified": false },
+    { "from": "WINDEX_LT", "to": "XNEG",      "verified": false },
+
+    { "from": "MSB",       "to": "FX04",      "verified": true },
+    { "from": "FX04",      "to": "S06",       "wire": "W300", "verified": false },
+    { "from": "S06",       "to": "JB475",     "wire": "W475", "wire_type": "ÖLFLEX 2x1.5²", "gauge_mm2": 1.5, "verified": false },
+    { "from": "S06",       "to": "JB476",     "wire": "W476", "wire_type": "ÖLFLEX 2x1.5²", "gauge_mm2": 1.5, "verified": false },
+    { "from": "JB475",     "to": "CL_PT",     "wire": "W480.A", "wire_type": "ÖLFLEX 2x1.5²", "gauge_mm2": 1.5, "verified": false },
+    { "from": "JB476",     "to": "CL_SB",     "wire": "W480.B", "wire_type": "ÖLFLEX 2x1.5²", "gauge_mm2": 1.5, "verified": false },
+    { "from": "CL_PT",     "to": "XNEG",      "verified": false },
+    { "from": "CL_SB",     "to": "XNEG",      "verified": false },
+
+    { "from": "MSB",       "to": "FX19",      "ref": "sheet 481", "verified": true },
+    { "from": "FX19",      "to": "S1",        "verified": false },
+    { "from": "S1",        "to": "STEAMING",  "wire": "W470", "wire_type": "ÖLFLEX 12x1.5²", "gauge_mm2": 1.5, "verified": false },
+    { "from": "STEAMING",  "to": "XNEG",      "verified": false }
+  ]
+}

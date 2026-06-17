@@ -1,0 +1,106 @@
+{
+  "_meta": {
+    "subsystem": "ac_230v",
+    "source": "sheets 100,110-113,120-125,150",
+    "voltage": 230,
+    "note": "Swan 48-233 230V AC system. Sources: shore inlet (+SHO_GEN_BOX) and optional generator feed the Victron Quattro 24/5000 inverter/charger (-U01) AC inputs. The Quattro AC OUTPUT (via galvanic isolator -GI) is the system AC busbar, distributed through the +AC_OUT output box (terminals -X1) as three feeds AC_OUT1/2/3 to the +JB_AC distribution board where branch breakers live. AC_OUT1 -> outlets (F33 galley, F34 accommodation, sheet 120). AC_OUT2 -> water heater (F35) + generator start charger (F01, sheet 110). AC_OUT3 -> air conditioning (F36, sheet 113 -> sheet 111 chiller breakers F01-F05). Electric stove/hob (-FOUT5/-HOB) was moved to sheet 100 and is fed off the Quattro AC-OUT bus directly. The Quattro charger DC side links to dc_distribution.json (not referenced here per AC/DC separation). Breaker amp ratings read directly from sheets; series order shore/gen -> Quattro confirmed on sheet 100. Washer (sheet 124) and lazarette outlets (sheet 125) are daisy-chained outlets off the accommodation outlet strings."
+  },
+  "components": [
+    { "id": "AC_SHORE_INLET",  "type": "source",   "name": "Shore power inlet (-XIN, 63A/50A)", "location": "+SHO_GEN_BOX", "rating_A": 63, "keywords": ["shore","power","inlet","mains","dock"] },
+    { "id": "AC_GENERATOR",    "type": "source",   "name": "Generator (optional, -G1)",        "location": "+SHO_GEN_BOX", "keywords": ["generator","genset","gen"] },
+    { "id": "AC_GALV_ISO",     "type": "junction_box", "name": "Galvanic isolator (-GI 32A)",   "location": "+SHO_GEN_BOX", "rating_A": 32, "keywords": ["galvanic","isolator"] },
+
+    { "id": "AC_SHORE_MAIN",   "type": "breaker",  "name": "Shore main fuse/breaker (-FSHORE, ABB 50AB 2P)", "location": "+SHO_GEN_BOX", "rating_A": 50, "keywords": ["shore","main","breaker","fuse","isolator"] },
+    { "id": "AC_SHORE_RCD",    "type": "breaker",  "name": "Shore RCD (-FSH/-FN, 63A 0.03A)",  "location": "+SHO_GEN_BOX", "rating_A": 63, "keywords": ["shore","rcd","residual","trip"] },
+    { "id": "AC_GEN_RCD",      "type": "breaker",  "name": "Generator RCD breaker (-FGEN, 32A 0.03A)", "location": "+SHO_GEN_BOX", "rating_A": 32, "keywords": ["generator","gen","rcd","breaker"] },
+
+    { "id": "AC_QUATTRO",      "type": "charger",  "name": "Victron Quattro 24/5000 inverter/charger (-U01)", "location": "+AC_OUT", "part": "Quattro 24/5000/120-100/100", "keywords": ["inverter","charger","quattro","victron"] },
+    { "id": "AC_CHARGER_IN",   "type": "consumer", "name": "Quattro AC input (charging side of -U01)", "location": "+AC_OUT", "keywords": ["charger","battery","charging","ac","input"] },
+
+    { "id": "AC_BUS",          "type": "busbar",   "name": "AC output bus (Quattro AC-OUT, +AC_OUT box)", "location": "+AC_OUT", "keywords": ["ac","bus","busbar","output","supply","power"] },
+
+    { "id": "AC_OUT1",         "type": "busbar",   "name": "AC OUT1 feed (-X1 6L/6N, /100.7B)", "location": "+JB_AC", "keywords": ["ac","out1","outlets","feed"] },
+    { "id": "AC_OUT2",         "type": "busbar",   "name": "AC OUT2 feed (-X1 7L/7N, /100.8B)", "location": "+JB_AC", "keywords": ["ac","out2","feed"] },
+    { "id": "AC_OUT3",         "type": "busbar",   "name": "AC OUT3 feed (-X1 8L/8N, /100.8B)", "location": "+JB_AC", "keywords": ["ac","out3","air","conditioning","feed"] },
+
+    { "id": "AC_F33",          "type": "breaker",  "name": "Outlets galley breaker (-F33, 15A)",        "location": "+JB_AC", "rating_A": 15, "keywords": ["outlet","socket","galley","kitchen","breaker"] },
+    { "id": "AC_F34",          "type": "breaker",  "name": "Outlets accommodation breaker (-F34, 10A)", "location": "+JB_AC", "rating_A": 10, "keywords": ["outlet","socket","accommodation","cabin","breaker"] },
+    { "id": "AC_F35",          "type": "breaker",  "name": "Water heater breaker (-F35, 10A)",          "location": "+JB_AC", "rating_A": 10, "keywords": ["water","heater","calorifier","breaker"] },
+    { "id": "AC_F01_GENCHG",   "type": "breaker",  "name": "Generator start charger breaker (-F01, GE 6AC 2P)", "location": "+JB_AC", "rating_A": 6, "keywords": ["start","charger","generator","engine","breaker"] },
+    { "id": "AC_F36",          "type": "breaker",  "name": "Air conditioning breaker (-F36, 25A; 16A if salon/fwd AC fitted)", "location": "+JB_AC", "rating_A": 25, "keywords": ["air","conditioning","ac","aircon","breaker"] },
+    { "id": "AC_FOUT5_HOB",    "type": "breaker",  "name": "Electric stove/hob breaker (-FOUT5, ABB 25AB 2P)", "location": "+AC_OUT", "rating_A": 25, "keywords": ["stove","hob","cooker","oven","breaker"] },
+
+    { "id": "AC_OUTLETS_GALLEY", "type": "outlet", "name": "Galley outlets (galley sockets, microwave, dishwasher, Quooker)", "location": "+galley", "keywords": ["outlet","socket","galley","kitchen","microwave","dishwasher","quooker"] },
+    { "id": "AC_OUTLETS_STBD",   "type": "outlet", "name": "Outlets STBD side string (-W1161: fwd cabin, nav station, aft toilet, aft stbd, lazarette)", "location": "+stbd", "keywords": ["outlet","socket","starboard","stbd","cabin","lazarette"] },
+    { "id": "AC_OUTLETS_PORT",   "type": "outlet", "name": "Outlets PORT side string (-W1162: fwd toilet, saloon, aft port, owners, washer port)", "location": "+port", "keywords": ["outlet","socket","port","cabin","saloon","owners"] },
+    { "id": "AC_ENTERTAINMENT",  "type": "outlet", "name": "Entertainment outlet (-W1163/-X1163)", "location": "+saloon", "keywords": ["outlet","entertainment","tv"] },
+    { "id": "AC_WASHER",         "type": "appliance", "name": "Washer (stbd aft toilet, -X1164; option)", "location": "+stbd_aft_toilet", "keywords": ["washer","washing","machine","laundry"] },
+
+    { "id": "AC_WATER_HEATER", "type": "appliance", "name": "Water heater / calorifier (-X1510, outlet)", "location": "+JB_AC", "keywords": ["water","heater","calorifier","hot","boiler"] },
+    { "id": "AC_GEN_START_CHG","type": "charger",   "name": "Generator/engine start charger (-X131, 2x230V)", "location": "+JB_AC", "keywords": ["start","charger","engine","generator","battery"] },
+
+    { "id": "AC_STOVE",        "type": "appliance", "name": "Electric stove / hob & oven (-HOB1, 6.1kW)", "location": "+AC_STOV", "rating_A": 25, "keywords": ["stove","hob","cooker","oven","ceramic","range"] },
+
+    { "id": "AC_AIRCON_BUS",   "type": "busbar",   "name": "Air conditioning box feed (-W1104, +AIRC_BOX)", "location": "+AIRC_BOX", "keywords": ["air","conditioning","ac","aircon"] },
+    { "id": "AC_AIRC_F01",     "type": "breaker",  "name": "Aircon sea water pump breaker (-F01, GE 6AC 2P)",   "location": "+AIRC_BOX", "rating_A": 6,  "keywords": ["air","conditioning","sea","water","pump","breaker"] },
+    { "id": "AC_AIRC_F02",     "type": "breaker",  "name": "Aircon Chiller FWD breaker (-F02, GE 6AC 2P)",       "location": "+AIRC_BOX", "rating_A": 6,  "keywords": ["air","conditioning","chiller","forward","fwd","breaker"] },
+    { "id": "AC_AIRC_F03",     "type": "breaker",  "name": "Aircon Chiller SALOON breaker (-F03, GE 16AC 2P)",   "location": "+AIRC_BOX", "rating_A": 16, "keywords": ["air","conditioning","chiller","saloon","breaker"] },
+    { "id": "AC_AIRC_F04",     "type": "breaker",  "name": "Aircon Chiller AFT PORT breaker (-F04, GE 6AC 2P)",  "location": "+AIRC_BOX", "rating_A": 6,  "keywords": ["air","conditioning","chiller","aft","port","breaker"] },
+    { "id": "AC_AIRC_F05",     "type": "breaker",  "name": "Aircon Chiller AFT STBD breaker (-F05, GE 6AC 2P)",  "location": "+AIRC_BOX", "rating_A": 6,  "keywords": ["air","conditioning","chiller","aft","starboard","stbd","breaker"] },
+
+    { "id": "AC_AIRC_SWPUMP",  "type": "pump",     "name": "Aircon sea water pump (-SW_PUMP)", "location": "+AIRC_BOX", "keywords": ["air","conditioning","sea","water","pump"] },
+    { "id": "AC_CHILLER_FWD",  "type": "appliance","name": "Chiller FWD",        "location": "+fwd",  "keywords": ["air","conditioning","chiller","forward","fwd"] },
+    { "id": "AC_CHILLER_SAL",  "type": "appliance","name": "Chiller SALOON",     "location": "+saloon","keywords": ["air","conditioning","chiller","saloon"] },
+    { "id": "AC_CHILLER_AFTP", "type": "appliance","name": "Chiller AFT PORT",   "location": "+aft_port", "keywords": ["air","conditioning","chiller","aft","port"] },
+    { "id": "AC_CHILLER_AFTS", "type": "appliance","name": "Chiller AFT STBD",   "location": "+aft_stbd", "keywords": ["air","conditioning","chiller","aft","starboard","stbd"] }
+  ],
+  "connections": [
+    { "from": "AC_SHORE_INLET", "to": "AC_SHORE_MAIN", "wire": "-W1110 BN/BU/PE 16mm", "verified": true },
+    { "from": "AC_SHORE_MAIN",  "to": "AC_SHORE_RCD",  "verified": true },
+    { "from": "AC_SHORE_RCD",   "to": "AC_GALV_ISO",   "wire": "-W1101/-W1102", "verified": false, "note": "Galvanic isolator -GI is in the shore PE/feed path before the Quattro AC input; exact terminal order inferred from sheet 100 layout." },
+    { "from": "AC_GALV_ISO",    "to": "AC_QUATTRO",    "wire": "-W1111 to AC IN-1", "verified": true },
+    { "from": "AC_GENERATOR",   "to": "AC_GEN_RCD",    "verified": false, "note": "Generator is optional (OPTION 6010404); detailed gen connections on sheet 640 (not in this set). Gen RCD feeds Quattro AC IN-2." },
+    { "from": "AC_GEN_RCD",     "to": "AC_QUATTRO",    "wire": "to AC IN-2", "verified": false, "note": "AC IN-2 feed; see sheet 100 note that Quattro may not start on AC-IN-2 unless DC voltage adequate." },
+
+    { "from": "AC_QUATTRO", "to": "AC_BUS", "wire": "AC OUT", "verified": true },
+
+    { "from": "AC_BUS", "to": "AC_OUT1", "wire": "-W1110.A / AC_OUT1 L/N/PE, /100.7B", "verified": true },
+    { "from": "AC_BUS", "to": "AC_OUT2", "wire": "-W1120.A / AC_OUT2 L/N/PE, /100.8B", "verified": true },
+    { "from": "AC_BUS", "to": "AC_OUT3", "wire": "AC_OUT3 L/N/PE, /100.8B", "verified": true },
+    { "from": "AC_BUS", "to": "AC_FOUT5_HOB", "verified": true, "note": "Stove/hob moved to sheet 100, fed off Quattro AC-OUT bus via -FOUT5 (ABB 25AB 2P)." },
+    { "from": "AC_BUS", "to": "AC_CHARGER_IN", "verified": false, "note": "Quattro internal AC-IN charges the 24V bank (DC side in dc_distribution.json). Represented as the charger AC input; no AC distribution breaker — charger draws from its own AC input path." },
+
+    { "from": "AC_OUT1", "to": "AC_F33", "verified": true },
+    { "from": "AC_OUT1", "to": "AC_F34", "verified": true },
+
+    { "from": "AC_OUT2", "to": "AC_F35", "wire": "via +AC_OUT terminals 12/13 (AC_L/AC_N)", "verified": true },
+    { "from": "AC_OUT2", "to": "AC_F01_GENCHG", "verified": true },
+
+    { "from": "AC_OUT3", "to": "AC_F36", "verified": true },
+
+    { "from": "AC_F33", "to": "AC_OUTLETS_GALLEY", "wire": "-W1159 etc 3x2.5", "verified": true },
+    { "from": "AC_F34", "to": "AC_OUTLETS_STBD", "wire": "-W1161 -> /121, /125", "verified": false, "note": "F33/F34 each split into several outlet/appliance cables on sheet 120; galley group (W1159/W1160 microwave/W1165 Quooker/W1164 dishwasher) vs accommodation strings (W1161 stbd, W1162 port, W1163 entertainment). Exact cable-to-breaker assignment within the -X1 distribution row is not fully unambiguous from the dump." },
+    { "from": "AC_F34", "to": "AC_OUTLETS_PORT", "wire": "-W1162 -> /122", "verified": false, "note": "See note on AC_F34 split." },
+    { "from": "AC_F34", "to": "AC_ENTERTAINMENT", "wire": "-W1163", "verified": false, "note": "See note on AC_F34 split." },
+
+    { "from": "AC_F33", "to": "AC_WASHER", "wire": "-W1164 (Dishwasher branch) -> -X1164 -> sheet 124 washer", "verified": false, "note": "Washer outlet -X1164 on sheet 124 is fed from the -W1164 'Dishwasher' branch on sheet 120 (galley group). Only live when shore or generator power present. Exact parent breaker (F33 vs F34) not fully unambiguous from dump." },
+
+    { "from": "AC_F35", "to": "AC_WATER_HEATER", "wire": "-W1510 -> -X1510", "verified": true },
+    { "from": "AC_F01_GENCHG", "to": "AC_GEN_START_CHG", "wire": "-W131 -> -X131", "verified": true },
+
+    { "from": "AC_FOUT5_HOB", "to": "AC_STOVE", "wire": "230V 6.1kW HOB & OVEN", "verified": true },
+
+    { "from": "AC_F36", "to": "AC_AIRCON_BUS", "wire": "-W1104 3x6.0 -> /111.1F", "verified": true },
+    { "from": "AC_AIRCON_BUS", "to": "AC_AIRC_F01", "verified": true },
+    { "from": "AC_AIRCON_BUS", "to": "AC_AIRC_F02", "verified": true },
+    { "from": "AC_AIRCON_BUS", "to": "AC_AIRC_F03", "verified": true },
+    { "from": "AC_AIRCON_BUS", "to": "AC_AIRC_F04", "verified": true },
+    { "from": "AC_AIRCON_BUS", "to": "AC_AIRC_F05", "verified": true },
+
+    { "from": "AC_AIRC_F01", "to": "AC_AIRC_SWPUMP",  "verified": true },
+    { "from": "AC_AIRC_F02", "to": "AC_CHILLER_FWD",  "wire": "-W1860", "verified": true },
+    { "from": "AC_AIRC_F03", "to": "AC_CHILLER_SAL",  "wire": "-W1862", "verified": true },
+    { "from": "AC_AIRC_F04", "to": "AC_CHILLER_AFTP", "wire": "-W1863", "verified": true },
+    { "from": "AC_AIRC_F05", "to": "AC_CHILLER_AFTS", "wire": "-W1864", "verified": true }
+  ]
+}

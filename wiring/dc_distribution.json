@@ -1,0 +1,66 @@
+{
+  "_meta": {
+    "vessel": "Tiger — Swan 48 Mk2, Hull 233",
+    "source": "48-233 Electrical 2022-05-13.PDF, sheet 400 (+DC_MS Main switch cabinet, =04 DC-system 24V)",
+    "subsystem": "dc_main_distribution",
+    "voltage": 24,
+    "extracted_with": "wiring/extract_sheet.py (PDF page 47, fuse->consumer map confirmed on page 48)",
+    "note": "Main 24V trunk: battery -> main fuse F01 (250A) -> main switch S01 (500A) -> battery-protect contactor K01 -> 600A positive busbar -> MEGA/AMG consumer fuses. Fuse->consumer mapping is read directly from the sheet. Exact series order of F01/S01/K01 in the trunk is the standard arrangement; confirm against the drawing. Consumer-fuse F05 (100A) feeds the +MSB switch board, which is where the nav-light fuses live (see nav_lights.json)."
+  },
+  "components": [
+    { "id": "BATT",     "type": "battery",   "name": "Service battery bank (24V)", "location": "+DC_MS" },
+    { "id": "DCMS_F01", "type": "fuse",      "name": "Battery main fuse",   "rating_A": 250, "fuse_type": "T (time-delay)", "location": "+DC_MS" },
+    { "id": "DCMS_S01", "type": "switch",    "name": "Battery main switch", "rating_A": 500, "part": "BD9521 2-P", "location": "+DC_MS" },
+    { "id": "DCMS_K01", "type": "contactor", "name": "Battery-protect contactor (SBP)", "location": "+DC_MS" },
+    { "id": "POS_BUS",  "type": "busbar",    "name": "Main 600A positive busbar", "polarity": "positive", "part": "PowerBar 600A", "location": "+DC_MS" },
+
+    { "id": "DCMS_F04", "type": "fuse", "name": "Alternator fuse",        "rating_A": 125, "fuse_type": "MEGA/AMG", "location": "+DC_MS" },
+    { "id": "DCMS_F06", "type": "fuse", "name": "Inverter/charger fuse",  "rating_A": 150, "fuse_type": "MEGA/AMG", "location": "+DC_MS" },
+    { "id": "DCMS_F05", "type": "fuse", "name": "MSB feed fuse",          "rating_A": 100, "fuse_type": "MEGA/AMG", "location": "+DC_MS" },
+    { "id": "DCMS_F07", "type": "fuse", "name": "Primary winch port fuse","rating_A": 80,  "fuse_type": "AMG", "location": "+DC_MS" },
+    { "id": "DCMS_F08", "type": "fuse", "name": "Primary winch stbd fuse","rating_A": 80,  "fuse_type": "AMG", "location": "+DC_MS" },
+    { "id": "DCMS_F09", "type": "fuse", "name": "Main winch port fuse",   "rating_A": 80,  "fuse_type": "AMG", "location": "+DC_MS" },
+    { "id": "DCMS_F10", "type": "fuse", "name": "Main winch stbd fuse",   "rating_A": 80,  "fuse_type": "AMG", "location": "+DC_MS" },
+    { "id": "DCMS_F11", "type": "fuse", "name": "Mooring winch fuse",     "rating_A": 80,  "fuse_type": "AMG", "location": "+DC_MS" },
+    { "id": "DCMS_F12", "type": "fuse", "name": "Jib furler fuse",        "rating_A": 80,  "fuse_type": "AMG", "location": "+DC_MS" },
+    { "id": "DCMS_F02", "type": "fuse", "name": "24V consumer distribution fuse", "rating_A": 150, "location": "+DC_MS" },
+
+    { "id": "ALTERNATOR",        "type": "charger",  "name": "Alternator",            "location": "+ENG_ROOM" },
+    { "id": "INVERTER_CHARGER",  "type": "charger",  "name": "Inverter / charger",    "location": "+DC_MS" },
+    { "id": "PRI_WIN_PT",        "type": "winch",    "name": "Primary winch port",    "location": "+COCKPIT_PT" },
+    { "id": "PRI_WIN_SB",        "type": "winch",    "name": "Primary winch starboard","location": "+COCKPIT_SB" },
+    { "id": "MAIN_WIN_PT",       "type": "winch",    "name": "Main winch port",       "location": "+COAMING_PT" },
+    { "id": "MAIN_WIN_SB",       "type": "winch",    "name": "Main winch starboard",  "location": "+COAMING_SB" },
+    { "id": "MOORING_WINCH",     "type": "winch",    "name": "Mooring winch",         "location": "+LAZARETTE" },
+    { "id": "JIB_FURLER",        "type": "consumer", "name": "Jib furler",            "location": "+FOREPEAK" },
+    { "id": "CONSUMERS_24V",     "type": "consumer", "name": "24V consumer distribution (terminal -X01)", "location": "+DC_MS" }
+  ],
+  "connections": [
+    { "from": "BATT",     "to": "DCMS_F01", "verified": true },
+    { "from": "DCMS_F01", "to": "DCMS_S01", "verified": true },
+    { "from": "DCMS_S01", "to": "DCMS_K01", "verified": false },
+    { "from": "DCMS_K01", "to": "POS_BUS",  "verified": false },
+
+    { "from": "POS_BUS", "to": "DCMS_F04", "verified": true },
+    { "from": "POS_BUS", "to": "DCMS_F06", "verified": true },
+    { "from": "POS_BUS", "to": "DCMS_F05", "verified": true },
+    { "from": "POS_BUS", "to": "DCMS_F07", "verified": true },
+    { "from": "POS_BUS", "to": "DCMS_F08", "verified": true },
+    { "from": "POS_BUS", "to": "DCMS_F09", "verified": true },
+    { "from": "POS_BUS", "to": "DCMS_F10", "verified": true },
+    { "from": "POS_BUS", "to": "DCMS_F11", "verified": true },
+    { "from": "POS_BUS", "to": "DCMS_F12", "verified": true },
+    { "from": "POS_BUS", "to": "DCMS_F02", "verified": true },
+
+    { "from": "DCMS_F04", "to": "ALTERNATOR",       "verified": true },
+    { "from": "DCMS_F06", "to": "INVERTER_CHARGER", "verified": true },
+    { "from": "DCMS_F05", "to": "MSB",              "ref": "links to nav_lights.json (+MSB)", "verified": true },
+    { "from": "DCMS_F07", "to": "PRI_WIN_PT",       "verified": true },
+    { "from": "DCMS_F08", "to": "PRI_WIN_SB",       "verified": true },
+    { "from": "DCMS_F09", "to": "MAIN_WIN_PT",      "verified": true },
+    { "from": "DCMS_F10", "to": "MAIN_WIN_SB",      "verified": true },
+    { "from": "DCMS_F11", "to": "MOORING_WINCH",    "verified": true },
+    { "from": "DCMS_F12", "to": "JIB_FURLER",       "verified": true },
+    { "from": "DCMS_F02", "to": "CONSUMERS_24V",    "verified": false }
+  ]
+}

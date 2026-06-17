@@ -1,0 +1,916 @@
+{
+  "_meta": {
+    "subsystem": "thrusters_windlass",
+    "source": "sheets 300,325,326,330,331,335,336,339,340,341 (+ feed sheet 400)",
+    "voltage": 24,
+    "note": "Electrical side of bow thruster (Sidepower SRV100/185TC opt 4090067 = sheet 325 / SRLP100/185TC-IP opt 4090070 = sheet 330; same physical install, alternative options), stern thruster (Sidepower SRLP100/185T-24V opt 4090070, sheets 335/336), anchor windlass (Maxwell RC10, sheets 340/341) and emergency-stop (sheet 300). Each thruster runs off its OWN dedicated 24V battery (2x12V 75Ah) via a 325A/ANL thruster fuse and 500A automatic main switch -S01; the service MSB only feeds a DC-DC charger to top up each thruster battery (bow -F26 25A, stern -F27 25A) and the windlass motor (via FA05 40A / F90). Bow thruster DOWN sensor on sheet 339. Remote RC-23E on sheet 326 drives windlass NO1/NO2. E-STOP relay -K01 (sheet 300) provides hydraulic-stop interlock contacts cross-referenced into windlass sheet 340.7D."
+  },
+  "components": [
+    {
+      "id": "ESTOP_S01",
+      "type": "switch",
+      "name": "Emergency stop push-button (-S01, +PED_SB pedestal stbd)",
+      "location": "+PED_SB",
+      "keywords": [
+        "emergency",
+        "stop",
+        "estop",
+        "pushbutton"
+      ]
+    },
+    {
+      "id": "ESTOP_F90",
+      "type": "fuse",
+      "name": "E-stop / hydraulic feed fuse (-F90 GE 25AC)",
+      "location": "+MSB",
+      "rating_A": 25,
+      "part": "GE 25AC",
+      "keywords": [
+        "emergency",
+        "stop",
+        "fuse",
+        "f90"
+      ]
+    },
+    {
+      "id": "ESTOP_FX01",
+      "type": "fuse",
+      "name": "Hydraulic stop fuse (-FX01 5A)",
+      "location": "+MSB",
+      "rating_A": 5,
+      "keywords": [
+        "emergency",
+        "stop",
+        "hydraulic",
+        "fuse"
+      ]
+    },
+    {
+      "id": "ESTOP_K01",
+      "type": "relay",
+      "name": "E-stop relay (-K01 C5-A3024D, E.STOP)",
+      "location": "+MSB",
+      "part": "C5-A3024D",
+      "keywords": [
+        "emergency",
+        "stop",
+        "estop",
+        "relay",
+        "interlock"
+      ]
+    },
+    {
+      "id": "ESTOP_FX05",
+      "type": "fuse",
+      "name": "Thruster sensor fuse (-FX05 1A)",
+      "location": "+MSB",
+      "rating_A": 1,
+      "keywords": [
+        "thruster",
+        "sensor",
+        "fuse"
+      ]
+    },
+    {
+      "id": "BT_BATT",
+      "type": "battery",
+      "name": "Bow thruster battery (-U03, 2x12V 75Ah 975CCA)",
+      "location": "+FOREPEAK",
+      "part": "2x12V 75Ah",
+      "keywords": [
+        "bow",
+        "thruster",
+        "battery",
+        "u03"
+      ]
+    },
+    {
+      "id": "BT_FAMS",
+      "type": "fuse",
+      "name": "Bow thruster main fuse (-FAMS 325A/ANL)",
+      "location": "+BOW_MS",
+      "rating_A": 325,
+      "part": "ANL 325A",
+      "keywords": [
+        "bow",
+        "thruster",
+        "fuse",
+        "fams"
+      ]
+    },
+    {
+      "id": "BT_S01",
+      "type": "switch",
+      "name": "Bow thruster battery / main switch (-S01 500A 2-P BD9521, automatic main switch)",
+      "location": "+BOW_MS",
+      "rating_A": 500,
+      "part": "BD9521 2-P",
+      "keywords": [
+        "bow",
+        "thruster",
+        "main",
+        "switch",
+        "isolator"
+      ]
+    },
+    {
+      "id": "BT_F01",
+      "type": "breaker",
+      "name": "Bow thruster motor breaker (-F01 ABB 32AK)",
+      "location": "+BOW_MS",
+      "rating_A": 32,
+      "part": "ABB 32AK",
+      "keywords": [
+        "bow",
+        "thruster",
+        "breaker",
+        "motor"
+      ]
+    },
+    {
+      "id": "BT_F02",
+      "type": "breaker",
+      "name": "Bow thruster controller breaker (-F02 32AK)",
+      "location": "+BOW_MS",
+      "rating_A": 32,
+      "part": "32AK",
+      "keywords": [
+        "bow",
+        "thruster",
+        "breaker",
+        "controller"
+      ]
+    },
+    {
+      "id": "BT_M01",
+      "type": "motor",
+      "name": "Bow thruster motor (Sidepower SRLP100/185TC-IP / SRV100/185TC, item 61883)",
+      "location": "+FOREPEAK",
+      "part": "Sidepower SRLP100/185TC-IP",
+      "keywords": [
+        "bow",
+        "thruster",
+        "motor",
+        "sidepower"
+      ]
+    },
+    {
+      "id": "BT_CONTROLLER",
+      "type": "controller",
+      "name": "Bow thruster controller (-CONTROLLER 150000, S-link)",
+      "location": "+BOW_MS",
+      "part": "150000",
+      "keywords": [
+        "bow",
+        "thruster",
+        "controller",
+        "slink"
+      ]
+    },
+    {
+      "id": "BT_PANEL",
+      "type": "controller",
+      "name": "Bow thruster control panel (-G04 PJC212, +PED_SB)",
+      "location": "+PED_SB",
+      "part": "PJC212",
+      "keywords": [
+        "bow",
+        "thruster",
+        "panel",
+        "control",
+        "joystick"
+      ]
+    },
+    {
+      "id": "BT_DCDC_F26",
+      "type": "fuse",
+      "name": "Bow thruster battery DC-DC charger fuse (-F26 25A)",
+      "location": "+MSB",
+      "rating_A": 25,
+      "keywords": [
+        "bow",
+        "thruster",
+        "charger",
+        "dcdc",
+        "fuse"
+      ]
+    },
+    {
+      "id": "BT_F25",
+      "type": "fuse",
+      "name": "Bow thruster control fuse (-F25 5A)",
+      "location": "+MSB",
+      "rating_A": 5,
+      "keywords": [
+        "bow",
+        "thruster",
+        "control",
+        "fuse"
+      ]
+    },
+    {
+      "id": "BT_SENSOR_B01",
+      "type": "sensor",
+      "name": "Bow thruster DOWN sensor (-B01 IG5772, +HARN_FWD)",
+      "location": "+HARN_FWD",
+      "part": "IG 5772",
+      "keywords": [
+        "bow",
+        "thruster",
+        "sensor",
+        "down"
+      ]
+    },
+    {
+      "id": "BT_SENSOR_K39",
+      "type": "relay",
+      "name": "Bow thruster DOWN sensor relay (-K39 PLC-RSC-24VDC/21AU)",
+      "location": "+MSB",
+      "part": "PLC-RSC-24VDC/21AU",
+      "keywords": [
+        "bow",
+        "thruster",
+        "sensor",
+        "relay",
+        "down"
+      ]
+    },
+    {
+      "id": "BT_SENSOR_H06",
+      "type": "consumer",
+      "name": "Bow thruster DOWN indicator (-H06)",
+      "location": "+MSB",
+      "keywords": [
+        "bow",
+        "thruster",
+        "indicator",
+        "down",
+        "lamp"
+      ]
+    },
+    {
+      "id": "ST_BATT",
+      "type": "battery",
+      "name": "Stern thruster battery (-U04, 2x12V 75Ah 975CCA)",
+      "location": "+HARN_AFT",
+      "part": "2x12V 75Ah",
+      "keywords": [
+        "stern",
+        "thruster",
+        "battery",
+        "u04"
+      ]
+    },
+    {
+      "id": "ST_FAMS",
+      "type": "fuse",
+      "name": "Stern thruster main fuse (-FAMS 325A/ANL)",
+      "location": "+STN_MS",
+      "rating_A": 325,
+      "part": "ANL 325A",
+      "keywords": [
+        "stern",
+        "thruster",
+        "fuse",
+        "fams"
+      ]
+    },
+    {
+      "id": "ST_S01",
+      "type": "switch",
+      "name": "Stern thruster battery / main switch (-S01 500A 2-P BD9521, automatic main switch)",
+      "location": "+STN_MS",
+      "rating_A": 500,
+      "part": "BD9521 2-P",
+      "keywords": [
+        "stern",
+        "thruster",
+        "main",
+        "switch",
+        "isolator"
+      ]
+    },
+    {
+      "id": "ST_F01",
+      "type": "breaker",
+      "name": "Stern thruster motor breaker (-F01 ABB 32AK)",
+      "location": "+STN_MS",
+      "rating_A": 32,
+      "part": "ABB 32AK",
+      "keywords": [
+        "stern",
+        "thruster",
+        "breaker",
+        "motor"
+      ]
+    },
+    {
+      "id": "ST_F02",
+      "type": "breaker",
+      "name": "Stern thruster controller breaker (-F02 32AK)",
+      "location": "+STN_MS",
+      "rating_A": 32,
+      "part": "32AK",
+      "keywords": [
+        "stern",
+        "thruster",
+        "breaker",
+        "controller"
+      ]
+    },
+    {
+      "id": "ST_M01",
+      "type": "motor",
+      "name": "Stern thruster motor (Sidepower SRLP100/185T-24V, item 61883)",
+      "location": "+HARN_AFT",
+      "part": "Sidepower SRLP100/185T-24V",
+      "keywords": [
+        "stern",
+        "thruster",
+        "motor",
+        "sidepower"
+      ]
+    },
+    {
+      "id": "ST_CONTROLLER",
+      "type": "controller",
+      "name": "Stern thruster controller (-CONTROLLER_2 150000, S-link)",
+      "location": "+STN_MS",
+      "part": "150000",
+      "keywords": [
+        "stern",
+        "thruster",
+        "controller",
+        "slink"
+      ]
+    },
+    {
+      "id": "ST_DCDC_F27",
+      "type": "fuse",
+      "name": "Stern thruster battery DC-DC charger fuse (-F27 25A)",
+      "location": "+MSB",
+      "rating_A": 25,
+      "keywords": [
+        "stern",
+        "thruster",
+        "charger",
+        "dcdc",
+        "fuse"
+      ]
+    },
+    {
+      "id": "WINDLASS_FA05",
+      "type": "fuse",
+      "name": "Windlass feed fuse (-FA05 MSB MEGA/AMG 40A, MSB_F90+)",
+      "location": "+MSB",
+      "rating_A": 40,
+      "part": "MEGA/AMG 40A",
+      "keywords": [
+        "windlass",
+        "anchor",
+        "fuse",
+        "fa05",
+        "feed"
+      ]
+    },
+    {
+      "id": "WINDLASS_SOLBOX",
+      "type": "relay",
+      "name": "Windlass electronic control / solenoid box (-K_WINDLASS, up/down contactors)",
+      "location": "+FOREPEAK",
+      "keywords": [
+        "windlass",
+        "anchor",
+        "solenoid",
+        "contactor",
+        "updown"
+      ]
+    },
+    {
+      "id": "WINDLASS_V03",
+      "type": "fuse",
+      "name": "Windlass solenoid box fuse (-V03 6A)",
+      "location": "+FOREPEAK",
+      "rating_A": 6,
+      "keywords": [
+        "windlass",
+        "anchor",
+        "fuse",
+        "solenoid"
+      ]
+    },
+    {
+      "id": "WINDLASS_V04",
+      "type": "fuse",
+      "name": "Windlass solenoid box fuse (-V04 6A)",
+      "location": "+FOREPEAK",
+      "rating_A": 6,
+      "keywords": [
+        "windlass",
+        "anchor",
+        "fuse",
+        "solenoid"
+      ]
+    },
+    {
+      "id": "WINDLASS_M",
+      "type": "motor",
+      "name": "Anchor windlass motor (-MW1 Maxwell RC-10)",
+      "location": "+FOREPEAK",
+      "part": "Maxwell RC-10",
+      "keywords": [
+        "windlass",
+        "anchor",
+        "motor",
+        "capstan",
+        "maxwell"
+      ]
+    },
+    {
+      "id": "WINDLASS_F24",
+      "type": "fuse",
+      "name": "Windlass control fuse (-F24 2.5A)",
+      "location": "+JB340",
+      "rating_A": 2.5,
+      "keywords": [
+        "windlass",
+        "anchor",
+        "control",
+        "fuse"
+      ]
+    },
+    {
+      "id": "WINDLASS_S1",
+      "type": "switch",
+      "name": "Windlass foot switch ANCHOR UP (-S1, MAXWELL)",
+      "location": "+FOREPEAK",
+      "keywords": [
+        "windlass",
+        "anchor",
+        "up",
+        "footswitch"
+      ]
+    },
+    {
+      "id": "WINDLASS_S2",
+      "type": "switch",
+      "name": "Windlass foot switch ANCHOR DOWN (-S2, MAXWELL)",
+      "location": "+FOREPEAK",
+      "keywords": [
+        "windlass",
+        "anchor",
+        "down",
+        "footswitch"
+      ]
+    },
+    {
+      "id": "WINDLASS_S100",
+      "type": "switch",
+      "name": "Windlass console up/down switch (-S100, +PED_SB)",
+      "location": "+PED_SB",
+      "keywords": [
+        "windlass",
+        "anchor",
+        "console",
+        "updown",
+        "switch"
+      ]
+    },
+    {
+      "id": "WINDLASS_S02",
+      "type": "switch",
+      "name": "Windlass remote/local control switch (-S02)",
+      "location": "+W_LASS_REM_CNTL",
+      "keywords": [
+        "windlass",
+        "anchor",
+        "switch",
+        "control"
+      ]
+    },
+    {
+      "id": "WINDLASS_S03",
+      "type": "switch",
+      "name": "Windlass control switch (-S03)",
+      "location": "+W_LASS_REM_CNTL",
+      "keywords": [
+        "windlass",
+        "anchor",
+        "switch",
+        "control"
+      ]
+    },
+    {
+      "id": "WINDLASS_SENSOR_S100",
+      "type": "sensor",
+      "name": "Windlass chain counter sensor (AA320/AA560 magnet, S100)",
+      "location": "+FOREPEAK",
+      "part": "AutoAnchor AA320",
+      "keywords": [
+        "windlass",
+        "anchor",
+        "sensor",
+        "chaincounter",
+        "magnet"
+      ]
+    },
+    {
+      "id": "WINDLASS_REMOTE_RX",
+      "type": "controller",
+      "name": "Windlass radio remote receiver (-S01 RRC R04 / A201-PF, +OWNERS CABIN)",
+      "location": "+OWNERS_CABIN",
+      "part": "RRC R04",
+      "keywords": [
+        "windlass",
+        "anchor",
+        "remote",
+        "receiver",
+        "radio"
+      ]
+    },
+    {
+      "id": "WINDLASS_REMOTE_ONOFF",
+      "type": "switch",
+      "name": "Windlass remote on/off switch (-S1 CA10, +SAIL LOCKER)",
+      "location": "+SAIL_LOCKER",
+      "part": "CA10",
+      "keywords": [
+        "windlass",
+        "anchor",
+        "remote",
+        "onoff",
+        "switch"
+      ]
+    },
+    {
+      "id": "REMOTE_RC23E",
+      "type": "controller",
+      "name": "Radio remote thruster+windlass receiver (RC-23E / A202-620, in saloon)",
+      "location": "+SALOON",
+      "part": "RC-23E A202-620",
+      "keywords": [
+        "remote",
+        "radio",
+        "thruster",
+        "windlass",
+        "rc23e"
+      ]
+    },
+    {
+      "id": "REMOTE_RC23E_BTN",
+      "type": "switch",
+      "name": "Radio remote on/off (-S01, RC-23E)",
+      "location": "+SALOON",
+      "keywords": [
+        "remote",
+        "radio",
+        "onoff",
+        "switch"
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "from": "MSB",
+      "to": "ESTOP_F90",
+      "wire": "MSB_F90+",
+      "verified": true,
+      "note": "F90 fed from MSB_F90+ /400.1B"
+    },
+    {
+      "from": "ESTOP_F90",
+      "to": "ESTOP_FX01",
+      "wire": "F90_POS",
+      "verified": true
+    },
+    {
+      "from": "ESTOP_FX01",
+      "to": "ESTOP_K01",
+      "verified": true,
+      "note": "FX01 5A HYDRAULIC STOP feeds E.STOP relay coil"
+    },
+    {
+      "from": "ESTOP_S01",
+      "to": "ESTOP_K01",
+      "wire": "W300",
+      "verified": true,
+      "note": "EM push-button -S01 in series with E.STOP relay -K01"
+    },
+    {
+      "from": "ESTOP_K01",
+      "to": "XNEG",
+      "wire": "MSB-",
+      "verified": true
+    },
+    {
+      "from": "ESTOP_K01",
+      "to": "WINDLASS_SOLBOX",
+      "verified": false,
+      "note": "E-stop interlock: -K01 contact cross-ref /340.7D into windlass; safety-relevant, exact contact path inferred"
+    },
+    {
+      "from": "ESTOP_F90",
+      "to": "ESTOP_FX05",
+      "wire": "F90_POS",
+      "verified": true,
+      "note": "FX05 thruster-sensor fuse fed from F90_POS /339.1F"
+    },
+    {
+      "from": "BT_BATT",
+      "to": "BT_FAMS",
+      "wire": "W320.A+ 95mm2",
+      "verified": true,
+      "note": "Bow thruster runs off its OWN battery -U03, not POS_BUS"
+    },
+    {
+      "from": "BT_FAMS",
+      "to": "BT_S01",
+      "verified": true,
+      "note": "325A/ANL thruster fuse into 500A main switch"
+    },
+    {
+      "from": "BT_S01",
+      "to": "BT_F01",
+      "verified": true
+    },
+    {
+      "from": "BT_S01",
+      "to": "BT_F02",
+      "verified": true
+    },
+    {
+      "from": "BT_F01",
+      "to": "BT_M01",
+      "wire": "W320.+ 95mm2",
+      "verified": true
+    },
+    {
+      "from": "BT_F02",
+      "to": "BT_CONTROLLER",
+      "verified": true,
+      "note": "F02 32AK feeds bow thruster controller"
+    },
+    {
+      "from": "BT_CONTROLLER",
+      "to": "BT_M01",
+      "verified": true,
+      "note": "controller drives motor + actuator/solenoid (D1/D2/A2 + ACT1)"
+    },
+    {
+      "from": "BT_PANEL",
+      "to": "BT_CONTROLLER",
+      "wire": "S-link",
+      "verified": true,
+      "note": "PJC212 panel on S-link network",
+      "signal": true
+    },
+    {
+      "from": "BT_M01",
+      "to": "BT_BATT",
+      "wire": "W320.- 95mm2",
+      "verified": true,
+      "note": "negative return to bow thruster battery"
+    },
+    {
+      "from": "POS_BUS",
+      "to": "BT_DCDC_F26",
+      "verified": false,
+      "note": "DC-DC charger fuse -F26 25A fed from MSB+ /400.2B; on MSB positive busbar"
+    },
+    {
+      "from": "BT_DCDC_F26",
+      "to": "BT_BATT",
+      "verified": true,
+      "note": "DC-DC charger keeps bow thruster battery charged (W408)"
+    },
+    {
+      "from": "POS_BUS",
+      "to": "BT_F25",
+      "verified": false,
+      "note": "F25 5A control fuse fed from MSB+"
+    },
+    {
+      "from": "MSB",
+      "to": "ESTOP_FX05",
+      "verified": true,
+      "note": "duplicate path note: FX05 sensor fuse on MSB F90_POS"
+    },
+    {
+      "from": "ESTOP_FX05",
+      "to": "BT_SENSOR_K39",
+      "verified": true,
+      "note": "FX05 1A feeds sensor relay -K39"
+    },
+    {
+      "from": "BT_SENSOR_B01",
+      "to": "BT_SENSOR_K39",
+      "wire": "W3211",
+      "verified": true,
+      "note": "IG5772 inductive sensor into -K39 (BOWTHR DOWN)"
+    },
+    {
+      "from": "BT_SENSOR_K39",
+      "to": "BT_SENSOR_H06",
+      "verified": true,
+      "note": "K39 drives BOW THR DOWN indicator -H06"
+    },
+    {
+      "from": "BT_SENSOR_K39",
+      "to": "XNEG",
+      "wire": "MSB-",
+      "verified": true
+    },
+    {
+      "from": "ST_BATT",
+      "to": "ST_FAMS",
+      "wire": "W327.A+ 95mm2",
+      "verified": true,
+      "note": "Stern thruster runs off its OWN battery -U04"
+    },
+    {
+      "from": "ST_FAMS",
+      "to": "ST_S01",
+      "verified": true
+    },
+    {
+      "from": "ST_S01",
+      "to": "ST_F01",
+      "verified": true
+    },
+    {
+      "from": "ST_S01",
+      "to": "ST_F02",
+      "verified": true
+    },
+    {
+      "from": "ST_F01",
+      "to": "ST_M01",
+      "wire": "W327.+ 95mm2",
+      "verified": true
+    },
+    {
+      "from": "ST_F02",
+      "to": "ST_CONTROLLER",
+      "verified": true
+    },
+    {
+      "from": "ST_CONTROLLER",
+      "to": "ST_M01",
+      "verified": true,
+      "note": "controller drives motor + actuator (ACT1)"
+    },
+    {
+      "from": "ST_M01",
+      "to": "ST_BATT",
+      "wire": "W327.- 95mm2",
+      "verified": true,
+      "note": "negative return to stern thruster battery"
+    },
+    {
+      "from": "ST_CONTROLLER",
+      "to": "BT_CONTROLLER",
+      "wire": "S-link_AFT",
+      "verified": true,
+      "note": "stern controller shares S-link backbone /330.17K",
+      "signal": true
+    },
+    {
+      "from": "POS_BUS",
+      "to": "ST_DCDC_F27",
+      "verified": false,
+      "note": "DC-DC charger fuse -F27 25A fed from MSB+ /330.15I"
+    },
+    {
+      "from": "ST_DCDC_F27",
+      "to": "ST_BATT",
+      "verified": true,
+      "note": "DC-DC charger keeps stern thruster battery charged (W3209)"
+    },
+    {
+      "from": "WINDLASS_FA05",
+      "to": "POS_BUS",
+      "verified": true,
+      "note": "FA05 40A on battery main fuse / MSB busbar; 1x16 from F05A to F90, 3x16 to MSB busbar (sheet 400)"
+    },
+    {
+      "from": "WINDLASS_FA05",
+      "to": "WINDLASS_SOLBOX",
+      "wire": "WINDLASS+ MEGA 100A",
+      "verified": true,
+      "note": "WINDLASS+ feed /400.3B to solenoid box"
+    },
+    {
+      "from": "WINDLASS_SOLBOX",
+      "to": "WINDLASS_V03",
+      "verified": true
+    },
+    {
+      "from": "WINDLASS_SOLBOX",
+      "to": "WINDLASS_V04",
+      "verified": true
+    },
+    {
+      "from": "WINDLASS_V03",
+      "to": "WINDLASS_M",
+      "wire": "W340.F1",
+      "verified": true,
+      "note": "UP solenoid path -> Maxwell RC-10 motor"
+    },
+    {
+      "from": "WINDLASS_V04",
+      "to": "WINDLASS_M",
+      "wire": "W340.F2",
+      "verified": true,
+      "note": "DOWN solenoid path -> Maxwell RC-10 motor"
+    },
+    {
+      "from": "WINDLASS_M",
+      "to": "XNEG",
+      "wire": "WINDLASS- / NEG",
+      "verified": true,
+      "note": "windlass negative return; WINDLASS- /400.4B to MSB-"
+    },
+    {
+      "from": "WINDLASS_S1",
+      "to": "WINDLASS_SOLBOX",
+      "verified": true,
+      "note": "ANCHOR UP foot switch"
+    },
+    {
+      "from": "WINDLASS_S2",
+      "to": "WINDLASS_SOLBOX",
+      "verified": true,
+      "note": "ANCHOR DOWN foot switch"
+    },
+    {
+      "from": "WINDLASS_S100",
+      "to": "WINDLASS_SOLBOX",
+      "verified": false,
+      "note": "console up/down switch -S100 into control circuit"
+    },
+    {
+      "from": "WINDLASS_F24",
+      "to": "WINDLASS_SOLBOX",
+      "verified": true,
+      "note": "F24 2.5A control fuse feeds windlass/mooring control"
+    },
+    {
+      "from": "WINDLASS_S02",
+      "to": "WINDLASS_F24",
+      "verified": false
+    },
+    {
+      "from": "WINDLASS_S03",
+      "to": "WINDLASS_F24",
+      "verified": false
+    },
+    {
+      "from": "WINDLASS_SENSOR_S100",
+      "to": "WINDLASS_SOLBOX",
+      "wire": "W340",
+      "verified": false,
+      "note": "AutoAnchor chain-counter magnet sensor"
+    },
+    {
+      "from": "WINDLASS_REMOTE_ONOFF",
+      "to": "WINDLASS_REMOTE_RX",
+      "verified": true,
+      "note": "remote on/off -S1 CA10 enables receiver RRC R04"
+    },
+    {
+      "from": "WINDLASS_REMOTE_RX",
+      "to": "WINDLASS_SOLBOX",
+      "wire": "NO1/NO2",
+      "verified": true,
+      "note": "receiver NO1/NO2 -> windlass up/down /340.1B (option 6030043)"
+    },
+    {
+      "from": "WINDLASS_REMOTE_RX",
+      "to": "XNEG",
+      "wire": "NEG",
+      "verified": true,
+      "note": "/340.1A negative"
+    },
+    {
+      "from": "REMOTE_RC23E_BTN",
+      "to": "REMOTE_RC23E",
+      "verified": true,
+      "note": "radio remote on/off -S01"
+    },
+    {
+      "from": "REMOTE_RC23E",
+      "to": "WINDLASS_SOLBOX",
+      "wire": "NO1.1/NO2.1/POS.1",
+      "verified": true,
+      "note": "RC-23E NO1/NO2 -> windlass /340.4B (option 6010279)"
+    },
+    {
+      "from": "REMOTE_RC23E",
+      "to": "BT_CONTROLLER",
+      "wire": "S-Link 8730B",
+      "verified": true,
+      "note": "RC-23E thruster control via S-link interface unit 8730B /325.14J",
+      "signal": true
+    }
+  ]
+}
