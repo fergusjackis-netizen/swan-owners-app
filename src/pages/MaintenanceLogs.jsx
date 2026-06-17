@@ -436,6 +436,7 @@ export default function MaintenanceLogs() {
         body: JSON.stringify({
           system,
           max_tokens: 1024,
+          model: selected?.model,   // vessel model → selects the digitized wiring netlist
           messages: [
             ...chatMessages.map(m => ({ role: m.role, content: m.content })),
             { role: 'user', content: userContent }

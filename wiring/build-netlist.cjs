@@ -1,77 +1,87 @@
 #!/usr/bin/env node
 /*
- * Compiles every wiring/*.netlist.json subsystem file into api/wiring-data.js,
- * a single dependency-free ESM module the Vercel function imports.
+ * Compiles every digitized vessel MODEL into api/wiring-data.js, a single
+ * dependency-free ESM module the Vercel function imports.
  *
- * Each subsystem is one wiring/<name>.netlist.json with shape:
- *   { "_meta": { "subsystem": "...", ... }, "components": [...], "connections": [...] }
+ * Layout: one folder per model under wiring/models/<key>/ containing:
+ *   _model.json                      { key, name, drawings, aliases }
+ *   <subsystem>.netlist.json         { _meta, components, connections }
  *
- * Components are merged by id (first definition wins; a later differing
- * definition is reported as a conflict). Connections are concatenated.
- * Cross-subsystem edges are fine — an edge may reference a component defined in
- * another file, as long as that component is defined exactly once somewhere.
+ * Output: export const NETLISTS = { "<key>": { meta, components, connections } }
+ * keyed by model, so the engine can serve the right wiring to each owner's boat.
+ *
+ * Components are merged by id within a model (first wins; differing redefinition
+ * reported). Every connection endpoint must be a defined component in that model.
  *
  * Run:  node wiring/build-netlist.cjs
  */
 const fs = require('fs');
 const path = require('path');
 
-const WIRING_DIR = path.join(__dirname);
+const MODELS_DIR = path.join(__dirname, 'models');
 const OUT = path.join(__dirname, '..', 'api', 'wiring-data.js');
 
-const files = fs.readdirSync(WIRING_DIR).filter(f => f.endsWith('.netlist.json')).sort();
-if (!files.length) { console.error('No *.netlist.json files found in', WIRING_DIR); process.exit(1); }
+if (!fs.existsSync(MODELS_DIR)) { console.error('No wiring/models directory.'); process.exit(1); }
 
-const components = new Map();
-const connections = [];
-const subsystems = [];
-let conflicts = 0;
+const modelKeys = fs.readdirSync(MODELS_DIR).filter(d => {
+  try { return fs.statSync(path.join(MODELS_DIR, d)).isDirectory(); } catch { return false; }
+}).sort();
+if (!modelKeys.length) { console.error('No model folders under wiring/models/.'); process.exit(1); }
 
-for (const file of files) {
-  const data = JSON.parse(fs.readFileSync(path.join(WIRING_DIR, file), 'utf8'));
-  const sub = (data._meta && data._meta.subsystem) || file.replace('.netlist.json', '');
-  subsystems.push(sub);
-  for (const c of data.components || []) {
-    if (components.has(c.id)) {
-      const prev = JSON.stringify(components.get(c.id));
-      if (prev !== JSON.stringify(c)) {
-        console.warn(`  ! conflict: component "${c.id}" redefined in ${file} (keeping first)`);
-        conflicts++;
+const NETLISTS = {};
+let totalComp = 0, totalConn = 0, conflicts = 0;
+
+for (const key of modelKeys) {
+  const dir = path.join(MODELS_DIR, key);
+  const files = fs.readdirSync(dir).filter(f => f.endsWith('.netlist.json')).sort();
+  if (!files.length) { console.warn(`  ! model "${key}" has no .netlist.json files — skipping`); continue; }
+
+  let modelMeta = { key, name: key };
+  const modelPath = path.join(dir, '_model.json');
+  if (fs.existsSync(modelPath)) modelMeta = { ...modelMeta, ...JSON.parse(fs.readFileSync(modelPath, 'utf8')) };
+
+  const components = new Map();
+  const connections = [];
+  const subsystems = [];
+
+  for (const file of files) {
+    const data = JSON.parse(fs.readFileSync(path.join(dir, file), 'utf8'));
+    subsystems.push((data._meta && data._meta.subsystem) || file.replace('.netlist.json', ''));
+    for (const c of data.components || []) {
+      if (components.has(c.id)) {
+        if (JSON.stringify(components.get(c.id)) !== JSON.stringify(c)) {
+          console.warn(`  ! [${key}] conflict: component "${c.id}" redefined in ${file} (keeping first)`);
+          conflicts++;
+        }
+        continue;
       }
-      continue;
+      components.set(c.id, c);
     }
-    components.set(c.id, c);
+    for (const e of data.connections || []) connections.push(e);
   }
-  for (const e of data.connections || []) connections.push(e);
-  console.log(`  + ${file}: ${(data.components || []).length} components, ${(data.connections || []).length} connections`);
-}
 
-const compArr = [...components.values()];
+  // Validate referential integrity within this model.
+  const ids = new Set(components.keys());
+  const missing = new Set();
+  for (const e of connections) { if (!ids.has(e.from)) missing.add(e.from); if (!ids.has(e.to)) missing.add(e.to); }
+  if (missing.size) {
+    console.error(`\nERROR [${key}]: connections reference undefined components: ${[...missing].join(', ')}`);
+    process.exit(1);
+  }
 
-// Validate: every connection endpoint must be a defined component.
-const ids = new Set(components.keys());
-const missing = new Set();
-for (const e of connections) {
-  if (!ids.has(e.from)) missing.add(e.from);
-  if (!ids.has(e.to)) missing.add(e.to);
-}
-if (missing.size) {
-  console.error('\nERROR: connections reference undefined components:', [...missing].join(', '));
-  process.exit(1);
+  const compArr = [...components.values()];
+  NETLISTS[key] = {
+    meta: { key: modelMeta.key, name: modelMeta.name, aliases: modelMeta.aliases || [], drawings: modelMeta.drawings, subsystems },
+    components: compArr,
+    connections,
+  };
+  totalComp += compArr.length; totalConn += connections.length;
+  console.log(`  ${key}: ${files.length} subsystems, ${compArr.length} components, ${connections.length} connections`);
 }
 
 const banner = `// AUTO-GENERATED by wiring/build-netlist.cjs — do not edit by hand.
-// Source of truth: wiring/*.netlist.json. Run \`node wiring/build-netlist.cjs\` to regenerate.
+// Source of truth: wiring/models/<key>/*.netlist.json. Run \`node wiring/build-netlist.cjs\` to regenerate.
+// NETLISTS is keyed by vessel model so the engine serves each owner the right wiring.
 `;
-const body = `export const NETLIST = {
-  meta: {
-    vessel: 'Tiger — Swan 48 Mk2, Hull 233',
-    subsystems: ${JSON.stringify(subsystems)},
-    voltage: 24,
-  },
-  components: ${JSON.stringify(compArr, null, 2)},
-  connections: ${JSON.stringify(connections, null, 2)},
-};
-`;
-fs.writeFileSync(OUT, banner + body);
-console.log(`\nWrote ${path.relative(path.join(__dirname, '..'), OUT)}: ${compArr.length} components, ${connections.length} connections across ${subsystems.length} subsystems${conflicts ? `, ${conflicts} conflict(s)` : ''}.`);
+fs.writeFileSync(OUT, banner + `export const NETLISTS = ${JSON.stringify(NETLISTS, null, 2)};\n`);
+console.log(`\nWrote ${path.relative(path.join(__dirname, '..'), OUT)}: ${Object.keys(NETLISTS).length} model(s), ${totalComp} components, ${totalConn} connections${conflicts ? `, ${conflicts} conflict(s)` : ''}.`);
