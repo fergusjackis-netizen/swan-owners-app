@@ -1,4 +1,14 @@
 import { WIRING_TOOLS, runWiringTool, isWiringTool, WIRING_SYSTEM_HINT } from './wiring.js'
+import { FORUM_TOOLS, runForumTool, isForumTool, FORUM_SYSTEM_HINT, forumEnabled } from './forum.js'
+
+// Run one of our custom tools (wiring = sync, forum = async). Returns the result
+// object, or null if the tool isn't one of ours (e.g. a server tool like web_search).
+async function runLocalTool(name, input) {
+  if (isWiringTool(name)) return runWiringTool(name, input)
+  if (isForumTool(name)) return await runForumTool(name, input)
+  return null
+}
+const isLocalTool = name => isWiringTool(name) || isForumTool(name)
 
 const ANTHROPIC_URL = 'https://api.anthropic.com/v1/messages'
 
@@ -24,12 +34,16 @@ export default async function handler(req, res) {
   try {
     const { messages, system, max_tokens } = req.body
 
-    // Give Claude the wiring tools alongside web search, and tell it (server-side)
-    // that the digitized electrical model exists so it prefers facts over guesses.
-    const systemWithWiring = [system, WIRING_SYSTEM_HINT].filter(Boolean).join('\n\n')
+    // Give Claude the wiring tools alongside web search (and the forum search tool
+    // when configured), and tell it server-side these exist so it prefers facts
+    // and real owner threads over guessing.
+    const useForum = forumEnabled()
+    const systemWithTools = [system, WIRING_SYSTEM_HINT, useForum ? FORUM_SYSTEM_HINT : null]
+      .filter(Boolean).join('\n\n')
     const tools = [
       { type: 'web_search_20250305', name: 'web_search' },
       ...WIRING_TOOLS,
+      ...(useForum ? FORUM_TOOLS : []),
     ]
 
     const convo = [...messages]
@@ -41,23 +55,24 @@ export default async function handler(req, res) {
       data = await callClaude({
         model: 'claude-sonnet-4-5',
         max_tokens: max_tokens || 1024,
-        system: systemWithWiring,
+        system: systemWithTools,
         messages: convo,
         tools,
       })
 
       if (data.stop_reason !== 'tool_use') break
 
-      const toolUses = (data.content || []).filter(b => b.type === 'tool_use' && isWiringTool(b.name))
+      const toolUses = (data.content || []).filter(b => b.type === 'tool_use' && isLocalTool(b.name))
       if (toolUses.length === 0) break // a tool_use we don't own (server tool) — let it stand
 
+      const results = await Promise.all(toolUses.map(tu => runLocalTool(tu.name, tu.input)))
       convo.push({ role: 'assistant', content: data.content })
       convo.push({
         role: 'user',
-        content: toolUses.map(tu => ({
+        content: toolUses.map((tu, i) => ({
           type: 'tool_result',
           tool_use_id: tu.id,
-          content: JSON.stringify(runWiringTool(tu.name, tu.input)),
+          content: JSON.stringify(results[i]),
         })),
       })
     }
